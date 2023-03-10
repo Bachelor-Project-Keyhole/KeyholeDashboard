@@ -1,9 +1,14 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { WeatherProvider } from './src/contexts/WeatherContext/WeatherContext';
+import Home from './src/screens/Home';
 
 function App() {
 return (
-<div>{'react setup from scratch without cra testing ts'}</div>
+    <WeatherProvider>
+        <Home/>
+    </WeatherProvider>
+
 );
 }
 export default App;

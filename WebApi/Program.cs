@@ -1,4 +1,21 @@
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
+
+//WE WILL NEED TO ADD A CONDITION TO ONLY TRIGGER THESE IF WE ARE IN DEV ENVIRONMENT
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          //   policy.WithOrigins("http://localhost:8080/",
+                          //                       "https://localhost:7173", "http://localhost:5161").AllowAnyMethod();
+                          //Console.WriteLine("CORS policy");
+                          policy.AllowAnyOrigin()
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+                      });
+});
 
 // Add services to the container.
 
@@ -17,6 +34,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 
