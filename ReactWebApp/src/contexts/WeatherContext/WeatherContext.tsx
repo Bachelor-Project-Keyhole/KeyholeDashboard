@@ -1,4 +1,4 @@
-import { get, merge } from 'lodash'
+import { get } from 'lodash'
 import * as React from 'react'
 import axios from 'axios'
 
@@ -17,16 +17,13 @@ export const WeatherProvider: React.FC<{children:any}> = props => {
     const [temperature, setTemperature] = React.useState(0)
 
     const getTemperature = React.useCallback(async () => {
-        console.log("GETTEMP");
         try {
             const response = await axios({
                 method: 'get',
                 url: 'https://localhost:7173/WeatherForecast',
             })
                 
-            console.log("GETTEMP2");
-            const temp = get(response, 'data[0].temperatureC')
-            console.log("GETTEMP3");
+            const temp = get(response, 'data[0].summary')
             setTemperature(temp)
             return temp
         }
