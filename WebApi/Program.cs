@@ -25,7 +25,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 /*var appSettingsFile = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT"))
     ? "appsettings.json" : $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT")}.json";*/
 
-var configuration = new ConfigurationBuilder()
+new ConfigurationBuilder()
     .AddJsonFile("appsettings.json").Build();
 
 // DB connections when we have them
@@ -35,11 +35,11 @@ var configuration = new ConfigurationBuilder()
 #region Register dependecy injections and automapper
 
 builder.Services.RegisterAutoMapper();
-builder.Services.RegisterGoogleApi();
+builder.Services.RegisterPersistence();
 
 #endregion
 
-
+builder.Services.Configure<MailKitAuth>(builder.Configuration.GetSection("MailKit"));
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo {Title = "Web Dashboards API", Version = "V1"});

@@ -3,10 +3,14 @@ using AutoMapper;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
+using WebApi.Controllers.V1.Email.Model;
+using WebApi.Helper;
+using WebApi.Services.MailKit;
 
 namespace WebApi.Controllers.V1.Email;
 
@@ -16,44 +20,28 @@ namespace WebApi.Controllers.V1.Email;
 public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;
+    private readonly IMailKitService _mailKitService;
 
     public EmailController(
-        IMapper mapper)
+        IMapper mapper,
+        IMailKitService mailKitService)
     {
         _mapper = mapper;
+        _mailKitService = mailKitService;
     }
 
     /// <summary>
     /// Send an email
     /// </summary>
-    /// <param name="toEmail"></param>
-    /// <param name="body"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Send Email")]
     [Route("")]
-    public async Task<IActionResult> SendEmail(string toEmail, string body)
+    public async Task<IActionResult> SendEmail(SendEmailRequest request)
     {
-        var email = new MimeMessage();
-        email.From.Add(MailboxAddress.Parse("joe.dashboards@gmail.com")); // Just to test it out
-        email.To.Add(MailboxAddress.Parse(toEmail));
-        email.Subject = "Test Email Subject";
-        email.Body = new TextPart(TextFormat.Html)
-        {
-            Text = body
-        };
-
-        using var smpt = new SmtpClient(); // Use mailKit instead of system package.
-
-        // For example if you want to use gmail, the parameter would be something like "smtp.gmail.com"
-        //TODO: inject the password and email.
-        await smpt.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-        await smpt.AuthenticateAsync("joe.dashboards@gmail.com", "dvmegeprkxucbnju");
-        await smpt.SendAsync(email);
-        await smpt.DisconnectAsync(true);
-
+        await _mailKitService.SendEmail(request);
         return Ok();
-
     }
 
 }

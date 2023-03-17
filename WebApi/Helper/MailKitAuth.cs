@@ -3,7 +3,7 @@ namespace WebApi.Helper;
 
 public class MailKitAuth
 {
-    public string ClientId { get; set; }
+    public string SupportEmail { get; set; }
 
-    public string ClientSecret { get; set; }
+    public string EmailPassword { get; set; }
 }
