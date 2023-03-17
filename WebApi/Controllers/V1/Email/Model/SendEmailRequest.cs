@@ -1,4 +1,5 @@
-﻿#pragma warning disable CS8618
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global
+#pragma warning disable CS8618
 namespace WebApi.Controllers.V1.Email.Model;
 
 public class SendEmailRequest

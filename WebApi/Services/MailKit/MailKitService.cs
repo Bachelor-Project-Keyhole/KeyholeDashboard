@@ -25,6 +25,7 @@ public class MailKitService : IMailKitService
             email.From.Add(MailboxAddress.Parse(_mailKit.SupportEmail)); // Just to test it out
             email.To.Add(MailboxAddress.Parse(request.ToEmail));
             email.Subject = "Test Email Subject";
+            // Create html email body template in html and css 
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
                 Text = request.EmailBody
