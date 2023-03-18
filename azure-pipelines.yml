@@ -23,7 +23,12 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+-   task: VSTest@2
+    inputs:
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+      testSelector: 'testAssemblies'
+      testAssemblyVer2: |
+        **\bin\**\*Tests.dll
+        **\bin\**\*Test.dll
+      searchFolder: '$(System.DefaultWorkingDirectory)'
