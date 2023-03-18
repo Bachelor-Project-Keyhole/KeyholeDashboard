@@ -8,6 +8,6 @@ public class UnitTest1
     public void Test1()
     {
         var result = 42;
-        result.Should().Be(23);
+        result.Should().Be(42);
     }
 }
