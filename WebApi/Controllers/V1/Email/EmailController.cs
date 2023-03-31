@@ -1,16 +1,14 @@
 ﻿using System.Net;
 using AutoMapper;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using MimeKit.Text;
+using Service;
+using Service.Email.EmailService;
+using Service.ExceptionHandling;
+using Service.ExceptionHandling.BaseExceptionHandlingService;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 using WebApi.Controllers.V1.Email.Model;
-using WebApi.Helper;
-using WebApi.Services.MailKit;
+
 
 namespace WebApi.Controllers.V1.Email;
 
@@ -20,14 +18,17 @@ namespace WebApi.Controllers.V1.Email;
 public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;
-    private readonly IMailKitService _mailKitService;
+    private readonly IEmailService _emailService;
+    private readonly IBaseExceptionHandlingService _baseException;
 
     public EmailController(
         IMapper mapper,
-        IMailKitService mailKitService)
+        IEmailService emailService,
+        IBaseExceptionHandlingService baseException)
     {
         _mapper = mapper;
-        _mailKitService = mailKitService;
+        _emailService = emailService;
+        _baseException = baseException;
     }
 
     /// <summary>
@@ -40,7 +41,8 @@ public class EmailController : BaseApiController
     [Route("")]
     public async Task<IActionResult> SendEmail(SendEmailRequest request)
     {
-        await _mailKitService.SendEmail(request);
+        var status = await _emailService.SendEmail(_mapper.Map<Service.Email.Model.SendEmailRequest>(request));
+        // Exception Response from BaseExceptionHandlingService
         return Ok();
     }
 

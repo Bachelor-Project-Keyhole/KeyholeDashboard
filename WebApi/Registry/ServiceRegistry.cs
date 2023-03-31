@@ -1,8 +1,5 @@
-﻿using Google.Apis.Auth.AspNetCore3;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using WebApi.Helper;
-using WebApi.Services.MailKit;
+﻿using Service.Email.EmailService;
+using Service.ExceptionHandling.BaseExceptionHandlingService;
 
 namespace WebApi.Registry;
 
@@ -10,6 +7,20 @@ static class ServiceRegistry
 {
     public static void RegisterPersistence(this IServiceCollection collection)
     {
-        collection.AddTransient<IMailKitService, MailKitService>();
+        #region Services
+
+        #region Email Service
+
+        collection.AddTransient<IEmailService, EmailService>();
+
+        #endregion
+
+        #region Exception Handeling
+
+        collection.AddTransient<IBaseExceptionHandlingService, BaseExceptionHandlingService>();
+
+        #endregion
+        
+        #endregion
     }
 }

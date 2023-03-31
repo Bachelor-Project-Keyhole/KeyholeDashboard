@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CS8618
-namespace WebApi.Helper;
+namespace Service.Email.Helper;
 
-public class MailKitAuth
+public class EmailAuth
 {
     public string SupportEmail { get; set; }
 

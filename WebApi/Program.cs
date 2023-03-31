@@ -2,7 +2,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
-using WebApi.Helper;
+using Service.Email.Helper;
 using WebApi.Registry;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -39,7 +39,7 @@ builder.Services.RegisterPersistence();
 
 #endregion
 
-builder.Services.Configure<MailKitAuth>(builder.Configuration.GetSection("MailKit"));
+builder.Services.Configure<EmailAuth>(builder.Configuration.GetSection("MailKit"));
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo {Title = "Web Dashboards API", Version = "V1"});

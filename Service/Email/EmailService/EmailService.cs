@@ -3,26 +3,27 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
-using WebApi.Controllers.V1.Email.Model;
-using WebApi.Helper;
+using Service.Email.Helper;
+using Service.Email.Model;
+using Service.ExceptionHandling;
 
-namespace WebApi.Services.MailKit;
+namespace Service.Email.EmailService;
 
-public class MailKitService : IMailKitService
+public class EmailService : IEmailService
 {
-    private readonly MailKitAuth _mailKit;
-    
-    public MailKitService(IOptions<MailKitAuth> mailkit)
+    private readonly EmailAuth _email;
+
+    public EmailService(IOptions<EmailAuth> mailkit)
     {
-        _mailKit = mailkit.Value;
+        _email = mailkit.Value;
     }
     
-    public async Task SendEmail(SendEmailRequest request)
+    public async Task<string> SendEmail(SendEmailRequest request)
     {
         try
         {
             var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_mailKit.SupportEmail)); // Just to test it out
+            email.From.Add(MailboxAddress.Parse(_email.SupportEmail)); // Just to test it out
             email.To.Add(MailboxAddress.Parse(request.ToEmail));
             email.Subject = "Test Email Subject";
             // Create html email body template in html and css 
@@ -36,14 +37,16 @@ public class MailKitService : IMailKitService
             // For example if you want to use gmail, the parameter would be something like "smtp.gmail.com"
             //TODO: Later on password should be stored to azure vault.
             await smpt.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-            await smpt.AuthenticateAsync(_mailKit.SupportEmail, _mailKit.EmailPassword);
-            await smpt.SendAsync(email);
+            await smpt.AuthenticateAsync(_email.SupportEmail, _email.EmailPassword);
+            var sendStatus = await smpt.SendAsync(email);
             await smpt.DisconnectAsync(true);
+            
+            return sendStatus;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            throw;
+            return BaseExceptionMessage.EmailServiceFailed.ToString();
         }
     }
 }
