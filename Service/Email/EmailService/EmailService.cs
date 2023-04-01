@@ -5,7 +5,6 @@ using MimeKit;
 using MimeKit.Text;
 using Service.Email.Helper;
 using Service.Email.Model;
-using Service.ExceptionHandling;
 
 namespace Service.Email.EmailService;
 
@@ -18,7 +17,7 @@ public class EmailService : IEmailService
         _email = mailkit.Value;
     }
     
-    public async Task<string> SendEmail(SendEmailRequest request)
+    public async Task SendEmail(SendEmailRequest request)
     {
         try
         {
@@ -38,15 +37,15 @@ public class EmailService : IEmailService
             //TODO: Later on password should be stored to azure vault.
             await smpt.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
             await smpt.AuthenticateAsync(_email.SupportEmail, _email.EmailPassword);
-            var sendStatus = await smpt.SendAsync(email);
+            await smpt.SendAsync(email);
             await smpt.DisconnectAsync(true);
-            
-            return sendStatus;
+
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BaseExceptionMessage.EmailServiceFailed.ToString();
+            throw;
         }
+        
     }
 }

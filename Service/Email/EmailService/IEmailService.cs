@@ -4,5 +4,5 @@ namespace Service.Email.EmailService;
 
 public interface IEmailService
 {
-    Task<string> SendEmail(SendEmailRequest request);
+    Task SendEmail(SendEmailRequest request);
 }
