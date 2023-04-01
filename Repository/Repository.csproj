@@ -7,8 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="DomainEntities" />
-      <Folder Include="DomainService" />
+      <ProjectReference Include="..\Domain\Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UserRepository\ReadModel" />
+      <Folder Include="UserRepository\WriteModel" />
     </ItemGroup>
 
 </Project>
