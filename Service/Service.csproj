@@ -7,10 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Email\Repository" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Reference Include="Microsoft.Extensions.Options">
         <HintPath>..\..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.15\Microsoft.Extensions.Options.dll</HintPath>
       </Reference>
