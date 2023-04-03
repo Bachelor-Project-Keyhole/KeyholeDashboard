@@ -1,8 +1,7 @@
 ﻿using System.Net;
+using Application.Email.EmailService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Service.Email.EmailService;
-using Service.JWT.Authorization;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 using WebApi.Controllers.V1.Email.Model;
@@ -37,7 +36,7 @@ public class EmailController : BaseApiController
     [Route("")]
     public async Task<IActionResult> SendEmail(SendEmailRequest request)
     {
-        await _emailService.SendEmail(_mapper.Map<Service.Email.Model.SendEmailRequest>(request));
+        await _emailService.SendEmail(_mapper.Map<Application.Email.Model.SendEmailRequest>(request));
         // Exception Response from BaseExceptionHandlingService
         return Ok();
     }

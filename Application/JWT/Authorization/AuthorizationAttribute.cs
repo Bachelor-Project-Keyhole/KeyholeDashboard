@@ -1,14 +1,12 @@
 ﻿using Domain.DomainEntities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.DependencyInjection;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8600
 
-namespace Service.JWT.Authorization;
+namespace Application.JWT.Authorization;
 
 // For different accessibility to APIs based on access level, custom authorization attribute is required.
 

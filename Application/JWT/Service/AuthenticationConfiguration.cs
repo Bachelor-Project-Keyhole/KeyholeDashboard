@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Service.JWT.Service;
+namespace Application.JWT.Service;
 
 public static class AuthenticationConfiguration
 {

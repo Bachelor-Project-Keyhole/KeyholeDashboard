@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS8618
-namespace Service.JWT.Model;
+namespace Application.JWT.Model;
 
 public class JwtSettings
 {

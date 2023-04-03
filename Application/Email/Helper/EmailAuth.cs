@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS8618
-namespace Service.Email.Helper;
+namespace Application.Email.Helper;
 
 public class EmailAuth
 {

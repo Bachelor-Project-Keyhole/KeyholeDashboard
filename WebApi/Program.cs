@@ -1,9 +1,10 @@
 using System.Reflection;
+using Application.Email.Helper;
+using Application.JWT.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
-using Service.Email.Helper;
-using Service.JWT.Model;
+using MongoDB.Driver;
 using WebApi.Registry;
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -27,17 +28,20 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 /*var appSettingsFile = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT"))
     ? "appsettings.json" : $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT")}.json";*/
 
-new ConfigurationBuilder()
+var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json").Build();
 
 // DB connections when we have them
+// TODO: Fix connection string in appsettings
+var client = new MongoClient(configuration.GetConnectionString("MongoDbConnString"));
+var database = client.GetDatabase(configuration.GetConnectionString("MongoDbConnSchema"));
 
 #endregion
 
 #region Register dependecy injections and automapper
 
 builder.Services.RegisterAutoMapper();
-builder.Services.RegisterPersistence();
+builder.Services.RegisterPersistence(database);
 
 #endregion
 

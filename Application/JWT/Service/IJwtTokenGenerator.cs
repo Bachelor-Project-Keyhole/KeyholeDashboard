@@ -1,6 +1,6 @@
-﻿using Service.JWT.Model;
+﻿using Application.JWT.Model;
 
-namespace Service.JWT.Service;
+namespace Application.JWT.Service;
 
 public interface IJwtTokenGenerator
 {

@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Service.JWT.Helper;
+namespace Application.JWT.Helper;
 
 public static class PasswordHelper
 {

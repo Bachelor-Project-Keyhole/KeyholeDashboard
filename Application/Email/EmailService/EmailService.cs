@@ -1,12 +1,12 @@
-﻿using MailKit.Net.Smtp;
+﻿using Application.Email.Helper;
+using Application.Email.Model;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
-using Service.Email.Helper;
-using Service.Email.Model;
 
-namespace Service.Email.EmailService;
+namespace Application.Email.EmailService;
 
 public class EmailService : IEmailService
 {

@@ -2,11 +2,11 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.JWT.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Service.JWT.Model;
 
-namespace Service.JWT.Service;
+namespace Application.JWT.Service;
 
 public class JwtTokenGenerator : IJwtTokenGenerator
 {

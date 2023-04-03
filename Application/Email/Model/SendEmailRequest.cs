@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS8618
-namespace Service.Email.Model;
+namespace Application.Email.Model;
 
 public class SendEmailRequest
 {

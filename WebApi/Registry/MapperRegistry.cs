@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Application.Email.Model;
+using AutoMapper;
 using MongoDB.Bson;
 
 namespace WebApi.Registry;
@@ -18,7 +19,7 @@ static class MapperRegistry
 
             #region Email
 
-            cfg.CreateMap<Service.Email.Model.SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
+            cfg.CreateMap<SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
                 .ReverseMap();
 
             #endregion
