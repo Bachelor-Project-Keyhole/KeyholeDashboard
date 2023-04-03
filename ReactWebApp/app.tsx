@@ -7,8 +7,8 @@ import Menu from './src/screens/Menu';
 function App() {
 return (
     <WeatherProvider>
-        {/* <Home/> */}
-        <Menu/>
+        <Home/>
+        {/* <Menu/> */}
     </WeatherProvider>
 
 );
