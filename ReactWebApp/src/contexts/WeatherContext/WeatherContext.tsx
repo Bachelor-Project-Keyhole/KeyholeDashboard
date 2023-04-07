@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export interface IWeatherContext {
   temperature: number
-  getTemperature?: () => Promise<any>
+  getTemperature: () => Promise<any>
 }
 
 export const WeatherContext = React.createContext<IWeatherContext>({
@@ -37,4 +37,4 @@ export const WeatherProvider: React.FC<{ children: any }> = props => {
   )
 }
 
-export const useWeatherContext = () => React.useContext(WeatherContext)
+export const useWeatherContext = (): IWeatherContext => React.useContext(WeatherContext)

@@ -7,9 +7,9 @@ import SubHeader from '../../components/SubHeader'
 import Title from '../../components/Title'
 import { useWeatherContext } from '../../contexts/WeatherContext/WeatherContext'
 
-const Home = ({ ...props }: any) => {
+const Home = ({ ...props }: any): any => {
   const { temperature, getTemperature } = useWeatherContext()
-  const [temp, setTemp] = React.useState(0)
+  // const [temp, setTemp] = React.useState(0)
 
   console.log('HI')
 
@@ -24,7 +24,9 @@ const Home = ({ ...props }: any) => {
   }
   , [getTemperature])
 
-  handleTemperature()
+  React.useCallback(async () => {
+    await handleTemperature()
+  }, [handleTemperature])
 
   return (
     <>
