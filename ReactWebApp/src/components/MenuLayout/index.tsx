@@ -1,1 +1,1 @@
-export { default } from './MenuLayout';
+export { default } from './MenuLayout'
