@@ -30,7 +30,7 @@ public class AuthorizationAttribute : Attribute, IAuthorizationFilter
         // Authorization
         // TODO: Create different level of access based on access level enum value
         
-        var user = (User)context.HttpContext.Items["User"];
+        var user = (Domain.DomainEntities.User)context.HttpContext.Items["User"];
         if (user == null)
         {
             context.Result = new JsonResult(new {message = "Unauthorized"})

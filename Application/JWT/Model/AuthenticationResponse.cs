@@ -4,22 +4,16 @@ namespace Application.JWT.Model;
 
 public class AuthenticationResponse
 {
+    public string  Token { get; set; }
+    public DateTime Expiration { get; set; }
+    public string RefreshToken { get; set; }
+    public DateTime RefreshTokenExpiration { get; set; }
+    public UserAuthenticationResponse User { get; set; }
+}
+
+public class UserAuthenticationResponse
+{
     public string Id { get; set; }
     public string Email { get; set; }
-    public string FullName { get; set; }
-    public string? OwnedOrganizationId { get; set; }
-    public string? MemberOfOrganizationId { get; set; }
-    public string JwtToken { get; set; }
-    public string RefreshToken { get; set; }
-
-    public AuthenticationResponse(Domain.DomainEntities.User user, string jwtToken, string refreshToken)
-    {
-        Id = user.Id.ToString();
-        Email = user.Email;
-        FullName = user.FullName;
-        OwnedOrganizationId = user.OwnedOrganizationId;
-        MemberOfOrganizationId = user.MemberOfOrganizationId;
-        JwtToken = jwtToken;
-        RefreshToken = refreshToken;
-    }
+    
 }

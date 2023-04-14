@@ -41,29 +41,6 @@ public class EmailController : BaseApiController
         return Ok();
     }
     
-    
-    
-    
-    // For now I'll leave it here. (need to figure out how to implement this in service)
-    private void SetTokenCookie(string token)
-    {
-        // append cookie with refresh token to the http response
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Expires = DateTime.UtcNow.AddDays(7)
-        };
-        Response.Cookies.Append("refreshToken", token, cookieOptions);
-    }
-
-    private string GetIpAddress()
-    {
-        // Get source ip address for the current request
-        if (Request.Headers.ContainsKey("X-Forwarded-For"))
-            return Request.Headers["X-Forwarded-For"]!;
-        return HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
-    }
-
 }
 
 

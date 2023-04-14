@@ -1,10 +1,11 @@
-﻿using Application.Email.EmailService;
+﻿using Application.Authentication.AuthenticationService;
+using Application.Email.EmailService;
 using Application.JWT.Service;
-using Domain.Repository.UserRepository;
+using Domain.UserRepository;
 using MongoDB.Driver;
-using Repository.User.UserPersistence.ReadModel;
-using Repository.User.UserPersistence.WriteModel;
+using Repository.User.UserReadModel;
 using Repository.User.UserRepository;
+using Repository.User.UserWriteModel;
 
 namespace WebApi.Registry;
 
@@ -16,8 +17,12 @@ static class ServiceRegistry
 
         #region Application Layer
 
+        // Email
         collection.AddTransient<IEmailService, EmailService>();
 
+        // User Authentication
+        collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
+        
         #endregion
 
         #region Repository Layer
