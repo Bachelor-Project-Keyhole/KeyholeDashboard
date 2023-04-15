@@ -8,7 +8,7 @@ export interface ButtonProps {
   icon?: React.ReactNode
 }
 
-const Button = ({ icon, text, solid, style, onClick }: ButtonProps) => {
+const Button = ({ icon, text, solid, style, onClick }: ButtonProps): JSX.Element => {
   return (
         <button style={{ ...buttonStyles, ...style }} onClick={onClick}>
             {icon}

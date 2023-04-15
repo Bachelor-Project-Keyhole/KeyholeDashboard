@@ -5,7 +5,7 @@ export interface MenuLayouotProps {
   children?: React.ReactNode
 }
 
-const MenuLayout = ({ style, ...props }: MenuLayouotProps) => {
+const MenuLayout = ({ style, ...props }: MenuLayouotProps): JSX.Element => {
   document.body.style.margin = '0'
   return (
         <div style={{ ...wrapperStyles, ...style }}>
@@ -20,15 +20,15 @@ const MenuLayout = ({ style, ...props }: MenuLayouotProps) => {
                 <div>
                 <div style={{ backgroundColor: 'rebeccapurple', height: '100%', width: '120px' }} />
                 </div>
-                {/* {props.children} */}
+                {props.children}
             </div>
         </div>
   )
 }
 
-export interface WrapperStyles {
+// export interface WrapperStyles {
 
-}
+// }
 
 export const wrapperStyles: React.CSSProperties = {
   display: 'flex',

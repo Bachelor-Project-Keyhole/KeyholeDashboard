@@ -5,7 +5,7 @@ export interface TitleProps {
   style?: React.CSSProperties
 }
 
-const Title = ({ text, style }: TitleProps) => {
+const Title = ({ text, style }: TitleProps): JSX.Element => {
   return (
         <h1 style={style}>{text}</h1>
   )

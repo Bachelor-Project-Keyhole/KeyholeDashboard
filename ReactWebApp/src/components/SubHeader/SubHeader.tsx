@@ -5,7 +5,7 @@ export interface SubHeaderProps {
   style?: React.CSSProperties
 }
 
-const SubHeader = ({ text, style }: SubHeaderProps) => {
+const SubHeader = ({ text, style }: SubHeaderProps): JSX.Element => {
   return (
         <h3 style={style}>{text}</h3>
   )

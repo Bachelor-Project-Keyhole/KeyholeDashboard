@@ -5,7 +5,7 @@ export interface DescriptionProps {
   style?: React.CSSProperties
 }
 
-const Description = ({ text, style }: DescriptionProps) => {
+const Description = ({ text, style }: DescriptionProps): JSX.Element => {
   return (
         <p style={style}>{text}</p>
   )
