@@ -6,6 +6,7 @@ import PlusIcon from '../../components/PlusIcon'
 import SubHeader from '../../components/SubHeader'
 import Title from '../../components/Title'
 import { useWeatherContext } from '../../contexts/WeatherContext/WeatherContext'
+import Popup from '../../components/Popup'
 
 const Home = ({ ...props }: any): any => {
   const { temperature, getTemperature } = useWeatherContext()
@@ -37,6 +38,13 @@ const Home = ({ ...props }: any): any => {
       <Description text="Description Description Description Description Description Description Description Description" />
       <Button text="Button" icon={<PlusIcon/>} style={{ backgroundColor: 'black', color: 'white' }} />
       <Button text="Button" icon={<PlusIcon color="red"/>} />
+      {/* <Popup>
+        <Title text="Popup" />
+        <Header text="Header" />
+        <SubHeader text="SubHeader" />
+        <Description text="Description Description Description Description Description Description Description Description" />
+        <Button text="Button" icon={<PlusIcon/>} style={{ backgroundColor: 'black', color: 'white' }} />
+      </Popup> */}
     </>
   )
 }

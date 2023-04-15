@@ -1,11 +1,11 @@
 import * as React from 'react'
 import MenuLayout from '../../components/MenuLayout'
+import Popup from '../../components/Popup/Popup'
 
-const Menu = ({ ...props }: any) => {
-  const a = 1
+const Menu = ({ ...props }: any): JSX.Element => {
   return (
         <MenuLayout>
-            <div>Menu</div>
+            {/* <Popup></Popup> */}
         </MenuLayout>
   )
 }

@@ -5,7 +5,7 @@ export interface HeaderProps {
   style?: React.CSSProperties
 }
 
-const Header = ({ text, style }: HeaderProps) => {
+const Header = ({ text, style }: HeaderProps): JSX.Element => {
   return (
         <h2 style={style}>{text}</h2>
   )
