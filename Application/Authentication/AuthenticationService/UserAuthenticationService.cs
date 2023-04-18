@@ -3,6 +3,7 @@ using Application.JWT.Service;
 using Application.User.UserService;
 using AutoMapper;
 using Domain.DomainEntities;
+using Domain.RepositoryInterfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Repository.User.UserRepository;
@@ -12,19 +13,19 @@ namespace Application.Authentication.AuthenticationService;
 public class UserAuthenticationService : IUserAuthenticationService
 {
     private readonly JwtSettings _jwtSettings;
-    private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IJwtTokenGenerator _tokenGenerator;
     private readonly IHttpContextAccessor _contextAccessor;
 
     public UserAuthenticationService(
         IJwtTokenGenerator tokenGenerator,
-        IUserService userService,
+        IUserRepository userRepository,
         IHttpContextAccessor contextAccessor,
         IMapper mapper,
         IOptions<JwtSettings> jwtSettings)
     {
-        _userService = userService;
+        _userRepository = userRepository;
         _tokenGenerator = tokenGenerator;
         _contextAccessor = contextAccessor;
         _mapper = mapper;
@@ -32,7 +33,7 @@ public class UserAuthenticationService : IUserAuthenticationService
     }
     public async Task<AuthenticationResponse> Authenticate(AuthenticateRequest model)
     {
-        var user = await _userService.GetUserByEmail(model.Email);
+        var user = await _userRepository.GetUserByEmail(model.Email);
         if (user == null)
             throw new Exception(); // TODO: Fix exception
         var (tokenInfo, jwtExpiration) = _tokenGenerator.GenerateToken(user);
@@ -47,7 +48,7 @@ public class UserAuthenticationService : IUserAuthenticationService
 
         RemoveOldRefreshTokens(user);
 
-        await _userService.UpdateUser(user);
+        await _userRepository.UpdateUser(user);
         return new AuthenticationResponse
         {
             Token = tokenInfo,
@@ -64,7 +65,7 @@ public class UserAuthenticationService : IUserAuthenticationService
 
     public async Task RefreshToken(string token)
     {
-        var user = await _userService.GetByRefreshToken(token);
+        var user = await _userRepository.GetByRefreshToken(token);
         if(user == null)
             throw new ApplicationException("User missing"); // TODO: Fix exception
 
@@ -76,12 +77,12 @@ public class UserAuthenticationService : IUserAuthenticationService
                 $"Attempted reuse of revoked ancestor token: {token}");
         }
         // TODO: Create response to controller.
-        await _userService.UpdateUser(user);
+        await _userRepository.UpdateUser(user);
     }
 
     public async Task RevokeToken(string token)
     {
-        var user = await _userService.GetByRefreshToken(token);
+        var user = await _userRepository.GetByRefreshToken(token);
         if(user == null)
             throw new ApplicationException("User missing"); // TODO: Fix exception
         
