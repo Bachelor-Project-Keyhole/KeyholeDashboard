@@ -8,4 +8,5 @@ public interface IUserAuthenticationService
     Task<AuthenticationResponse> Authenticate(AuthenticateRequest model);
     Task RefreshToken(string token);
     Task RevokeToken(string token);
+    
 }

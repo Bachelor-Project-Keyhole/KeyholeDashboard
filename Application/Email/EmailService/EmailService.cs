@@ -17,18 +17,18 @@ public class EmailService : IEmailService
         _email = mailkit.Value;
     }
     
-    public async Task SendEmail(SendEmailRequest request)
+    public async Task<string> SendEmail(string toEmail, string emailBody)
     {
         try
         {
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(_email.SupportEmail)); // Just to test it out
-            email.To.Add(MailboxAddress.Parse(request.ToEmail));
+            email.To.Add(MailboxAddress.Parse(toEmail));
             email.Subject = "Test Email Subject";
-            // Create html email body template in html and css 
+            //TODO: Create html email body template in html and css 
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
-                Text = request.EmailBody
+                Text = emailBody
             };
 
             using var smpt = new SmtpClient(); // Use mailKit instead of system package.
@@ -39,12 +39,12 @@ public class EmailService : IEmailService
             await smpt.AuthenticateAsync(_email.SupportEmail, _email.EmailPassword);
             await smpt.SendAsync(email);
             await smpt.DisconnectAsync(true);
-
+            return "Mail was sent";
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            throw;
+            return "Something went wrong, mail was not sent";
         }
         
     }

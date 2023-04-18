@@ -2,6 +2,8 @@
 using Domain.DomainEntities;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+// ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
 
 namespace Repository.User.UserPersistence;
@@ -16,9 +18,7 @@ public class UserPersistenceModel
     
     /* Should decide if these field are required. */
     public string FullName { get; set; }
-    public DateTime Birthday { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? ProfilePictureUrl { get; set; }
+    
     /* Should decide if these field are required. */
     
     public DateTime RegistrationDate { get; set; }

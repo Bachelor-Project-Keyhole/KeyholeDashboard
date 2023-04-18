@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Domain.UserRepository;
+using Domain.RepositoryInterfaces;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Repository.User.UserPersistence;
@@ -55,5 +55,11 @@ public class UserRepository : IUserRepository
     {
         var persistenceUser = _mapper.Map<UserPersistenceModel>(user);
         await _userWriteModel.UpdateUser(persistenceUser);
+    }
+
+    public async Task CreateUser(Domain.DomainEntities.User user)
+    {
+        var persistenceUser = _mapper.Map<UserPersistenceModel>(user);
+        await _userWriteModel.InsertUser(persistenceUser);
     }
 }

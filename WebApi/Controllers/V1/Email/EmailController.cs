@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using Application.Email.EmailService;
+using Application.User.Model;
+using Application.User.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,13 +18,16 @@ public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;
     private readonly IEmailService _emailService;
+    private readonly IUserService _userService;
 
     public EmailController(
         IMapper mapper,
-        IEmailService emailService)
+        IEmailService emailService,
+        IUserService userService)
     {
         _mapper = mapper;
         _emailService = emailService;
+        _userService = userService;
     }
 
     /// <summary>
@@ -36,11 +41,27 @@ public class EmailController : BaseApiController
     [Route("")]
     public async Task<IActionResult> SendEmail(SendEmailRequest request)
     {
-        await _emailService.SendEmail(_mapper.Map<Application.Email.Model.SendEmailRequest>(request));
+        // await _emailService.SendEmail(_mapper.Map<Application.Email.Model.SendEmailRequest>(request));
         // Exception Response from BaseExceptionHandlingService
         return Ok();
     }
-    
+
+    /// <summary>
+    /// Forgot password function
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Forgot password function", typeof(TwoFactorResponse))]
+    [Route("password/reset")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var response = await _userService.ForgotPassword(request);
+        // TODO: Send email with code
+        return Ok(response);
+    }
+
+
 }
 
 

@@ -75,7 +75,7 @@ public class UserAuthenticationService : IUserAuthenticationService
             RevokeAllRefreshTokens(userRefreshToken, user, GetIpAddress(_contextAccessor.HttpContext!),
                 $"Attempted reuse of revoked ancestor token: {token}");
         }
-
+        // TODO: Create response to controller.
         await _userService.UpdateUser(user);
     }
 
@@ -89,7 +89,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (userRefreshToken == null || !userRefreshToken.IsActive)
             throw new ApplicationException("Invalid token");
         
-       RevokeRefreshToken(userRefreshToken, GetIpAddress(_contextAccessor.HttpContext!), "Revoked without replacement"); 
+        RevokeRefreshToken(userRefreshToken, GetIpAddress(_contextAccessor.HttpContext!), "Revoked without replacement"); 
     }
 
     private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.DomainEntities.User user, string ipAddress, string reason)

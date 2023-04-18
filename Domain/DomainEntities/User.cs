@@ -10,19 +10,14 @@ namespace Domain.DomainEntities;
 
 public class User
 {
-    public ObjectId Id { get; set; }
+    public string Id { get; set; }
     public string Email { get; set; }
-    public string Password { get; set; }
     public string? OwnedOrganizationId { get; set; }    // If is organization owner, store the id. (need to discuss if storing id is enough)
     public string? MemberOfOrganizationId { get; set; } // Store organization id of which user is part of.
     
     /* Should decide if these field are required. */
     public string FullName { get; set; }
-    public DateTime Birthday { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? ProfilePictureUrl { get; set; }
-    /* Should decide if these field are required. */
-    
+
     public DateTime RegistrationDate { get; set; }
     public DateTime ModifiedDate { get; set; }
     [BsonRepresentation(BsonType.String)]

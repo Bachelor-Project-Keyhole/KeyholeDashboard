@@ -1,7 +1,7 @@
 ﻿using Application.Authentication.AuthenticationService;
 using Application.Email.EmailService;
 using Application.JWT.Service;
-using Domain.UserRepository;
+using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
 using Repository.User.UserReadModel;
 using Repository.User.UserRepository;

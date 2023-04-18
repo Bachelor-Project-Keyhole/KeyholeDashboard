@@ -17,4 +17,9 @@ public class UserWriteModel : IUserWriteModel
         await _database.GetCollection<UserPersistenceModel>(nameof(Domain.DomainEntities.User))
             .ReplaceOneAsync(x => x.Id == user.Id, user);
     }
+
+    public async Task InsertUser(UserPersistenceModel user)
+    {
+        await _database.GetCollection<UserPersistenceModel>(nameof(Domain.DomainEntities.User)).InsertOneAsync(user);
+    }
 }
