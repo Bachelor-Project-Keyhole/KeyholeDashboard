@@ -1,8 +1,9 @@
 ﻿using System.Net;
+using Application.Email.EmailService;
+using Application.User.Model;
+using Application.User.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Service.Email.EmailService;
-using Service.JWT.Authorization;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 using WebApi.Controllers.V1.Email.Model;
@@ -17,13 +18,16 @@ public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;
     private readonly IEmailService _emailService;
+    private readonly IUserService _userService;
 
     public EmailController(
         IMapper mapper,
-        IEmailService emailService)
+        IEmailService emailService,
+        IUserService userService)
     {
         _mapper = mapper;
         _emailService = emailService;
+        _userService = userService;
     }
 
     /// <summary>
@@ -37,33 +41,26 @@ public class EmailController : BaseApiController
     [Route("")]
     public async Task<IActionResult> SendEmail(SendEmailRequest request)
     {
-        await _emailService.SendEmail(_mapper.Map<Service.Email.Model.SendEmailRequest>(request));
+        // await _emailService.SendEmail(_mapper.Map<Application.Email.Model.SendEmailRequest>(request));
         // Exception Response from BaseExceptionHandlingService
         return Ok();
     }
-    
-    
-    
-    
-    // For now I'll leave it here. (need to figure out how to implement this in service)
-    private void SetTokenCookie(string token)
+
+    /// <summary>
+    /// Forgot password function
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Forgot password function", typeof(TwoFactorResponse))]
+    [Route("password/reset")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        // append cookie with refresh token to the http response
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Expires = DateTime.UtcNow.AddDays(7)
-        };
-        Response.Cookies.Append("refreshToken", token, cookieOptions);
+        var response = await _userService.ForgotPassword(request);
+        // TODO: Send email with code
+        return Ok(response);
     }
 
-    private string GetIpAddress()
-    {
-        // Get source ip address for the current request
-        if (Request.Headers.ContainsKey("X-Forwarded-For"))
-            return Request.Headers["X-Forwarded-For"]!;
-        return HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
-    }
 
 }
 

@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+﻿using Application.Email.Model;
+using AutoMapper;
 using MongoDB.Bson;
+using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
 
@@ -16,9 +18,16 @@ static class MapperRegistry
             cfg.CreateMap<List<ObjectId>, List<string>>().ConvertUsing(o => o.Select(os => os.ToString()).ToList());
             cfg.CreateMap<List<string>, List<ObjectId>>().ConvertUsing(o => o.Select(ObjectId.Parse).ToList());
 
+            #region User
+
+            cfg.CreateMap<Domain.DomainEntities.User, UserPersistenceModel>()
+                .ReverseMap();
+
+            #endregion
+            
             #region Email
 
-            cfg.CreateMap<Service.Email.Model.SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
+            cfg.CreateMap<SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
                 .ReverseMap();
 
             #endregion
