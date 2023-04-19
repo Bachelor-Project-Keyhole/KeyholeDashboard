@@ -1,13 +1,11 @@
 name: Build & Test
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build_test:
     runs-on: windows-latest
 
     steps:
