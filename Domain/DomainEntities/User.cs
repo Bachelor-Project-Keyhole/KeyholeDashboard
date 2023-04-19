@@ -1,6 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable CollectionNeverUpdated.Global
 
@@ -20,7 +18,7 @@ public class User
 
     public DateTime RegistrationDate { get; set; }
     public DateTime ModifiedDate { get; set; }
-    [BsonRepresentation(BsonType.String)]
+    
     public List<UserAccessLevel> AccessLevels { get; set; } // Admin should also have viewer and editor role.
     
     [JsonIgnore]

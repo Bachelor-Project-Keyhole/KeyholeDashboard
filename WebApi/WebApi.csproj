@@ -14,7 +14,6 @@
         <PackageReference Include="Google.Apis.Drive.v3" Version="1.60.0.2986" />
         <PackageReference Include="MailKit" Version="3.6.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-        <PackageReference Include="MongoDB.Bson" Version="2.19.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     </ItemGroup>
