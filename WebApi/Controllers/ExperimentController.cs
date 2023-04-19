@@ -1,30 +1,37 @@
+using Domain.Book;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
-using Repository;
 
 namespace WebApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ExperimentController: ControllerBase   
+public class ExperimentController: ControllerBase
 {
+   private readonly IBookRepository _bookRepository;
+
+   public ExperimentController(IBookRepository bookRepository)
+   {
+      _bookRepository = bookRepository;
+   }
+
    [HttpPost]
    [Route("book")]
-   public async Task<List<BookEntity>> AddBook([FromQuery] string isbn, [FromQuery] string title, [FromQuery] string author)
+   public async Task<Book> AddBook([FromQuery] string isbn, [FromQuery] string title, [FromQuery] string author)
    {
-      var bookEntity = new BookEntity
+      var book = new Book
       {
          ISBN = isbn,
          Title = title,
          Author = author
       };
 
-      var databaseDriver = new DatabaseDriver();
-      var mongoDatabase = databaseDriver.Client.GetDatabase("keyhole-dashboard-db");
-      var mongoCollection = mongoDatabase.GetCollection<BookEntity>("books");
-      await mongoCollection.InsertOneAsync(bookEntity);
-      var result = await mongoCollection.FindAsync(_ => true);
-
-      return result.ToList();
-   }  
+      return await _bookRepository.AddBook(book);
+   }
+   
+   [HttpGet]
+   [Route("book")]
+   public async Task<Book[]> GetAllBooks()
+   {
+      return await _bookRepository.GetAllBooks();
+   }
 }

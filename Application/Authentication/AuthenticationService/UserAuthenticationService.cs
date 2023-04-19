@@ -1,12 +1,10 @@
 ﻿using Application.JWT.Model;
 using Application.JWT.Service;
-using Application.User.UserService;
 using AutoMapper;
 using Domain.DomainEntities;
 using Domain.RepositoryInterfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Repository.User.UserRepository;
 
 namespace Application.Authentication.AuthenticationService;
 

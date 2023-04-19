@@ -107,8 +107,6 @@ builder.Services.AddCors(options =>
 // Enforce routing lowercase
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-
-
 var app = builder.Build();
 
 // Build HTTP request pipeline

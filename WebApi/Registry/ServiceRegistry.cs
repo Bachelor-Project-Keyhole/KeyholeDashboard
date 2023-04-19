@@ -2,8 +2,11 @@
 using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.User.UserService;
+using Domain.Book;
 using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
+using Repository;
+using Repository.Book;
 using Repository.Organization;
 using Repository.Organization.OrganizationReadModel;
 using Repository.Organization.OrganizationWriteModel;
@@ -27,14 +30,10 @@ static class ServiceRegistry
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IUserService, UserService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
-
         
-
         #endregion
         
         #region Repository Layer
-
-        
         
         collection.AddTransient<IUserRepository, UserRepository>();
         collection.AddSingleton<IUserReadModel>(new UserReadModel(database));
@@ -47,7 +46,11 @@ static class ServiceRegistry
         collection.AddTransient<IOrganizationRepository, OrganizationRepository>();
         collection.AddSingleton<IOrganizationReadModel>(new OrganizationReadModel(database));
         collection.AddSingleton<IOrganizationWriteModel>(new OrganizationWriteModel(database));
-        
+
+        collection.AddScoped<IBookRepository, BookRepository>();
+
         #endregion
+
+        collection.AddScoped<IDataAccess, DataAccess>();
     }
 }

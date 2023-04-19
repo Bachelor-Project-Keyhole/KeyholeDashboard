@@ -1,6 +1,5 @@
 ﻿using Application.JWT.Model;
 using Application.User.Model;
-using Repository.User.UserPersistence;
 
 namespace Application.User.UserService;
 

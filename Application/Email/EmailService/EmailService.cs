@@ -1,5 +1,4 @@
 ﻿using Application.Email.Helper;
-using Application.Email.Model;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,4 @@
 ﻿using Application.JWT.Model;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Authentication.AuthenticationService;
 

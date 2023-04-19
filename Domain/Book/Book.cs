@@ -1,12 +1,8 @@
-using MongoDB.Bson.Serialization.Attributes;
+namespace Domain.Book;
 
-namespace Repository;
-
-public class BookEntity
+public class Book
 {
-    [BsonId]
     public string ISBN { get; set; }
     public string Title { get; set; }
-
     public string Author { get; set; }
 }
