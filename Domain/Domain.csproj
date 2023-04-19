@@ -7,11 +7,15 @@
     </PropertyGroup>
     
     <ItemGroup>
-      <PackageReference Include="MongoDB.Bson" Version="2.19.1" />
+      <Compile Remove="DomainService\**" />
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="DomainService\Exceptions" />
+      <EmbeddedResource Remove="DomainService\**" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Remove="DomainService\**" />
     </ItemGroup>
 
 </Project>
