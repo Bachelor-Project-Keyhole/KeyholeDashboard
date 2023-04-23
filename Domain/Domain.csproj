@@ -17,5 +17,9 @@
     <ItemGroup>
       <None Remove="DomainService\**" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="MongoDB.Bson" Version="2.19.1" />
+    </ItemGroup>
 
 </Project>

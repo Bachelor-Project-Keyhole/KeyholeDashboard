@@ -5,7 +5,6 @@ using Application.User.UserService;
 using Domain.Book;
 using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
-using Repository;
 using Repository.Book;
 using Repository.Organization;
 using Repository.Organization.OrganizationReadModel;
@@ -50,7 +49,5 @@ static class ServiceRegistry
         collection.AddScoped<IBookRepository, BookRepository>();
 
         #endregion
-
-        collection.AddScoped<IDataAccess, DataAccess>();
     }
 }

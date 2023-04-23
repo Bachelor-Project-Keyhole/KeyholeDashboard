@@ -21,7 +21,7 @@ public class BookRepository : MongoRepository<BookEntity>, IBookRepository
 
     public async Task<Domain.Book.Book[]> GetAllBooks()
     {
-        var bookEntities = AsQueryable().ToArray();
+        var bookEntities = AsQueryable().Take(10).ToArray();
         return _mapper.Map<Domain.Book.Book[]>(bookEntities);
     }
 }
