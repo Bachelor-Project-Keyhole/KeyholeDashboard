@@ -1,24 +1,21 @@
 using System.Linq.Expressions;
 using System.Security.Authentication;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Repository;
 
-public class MongoRepository<TDocument> : IMongoRepository<TDocument>
-    where TDocument : IDocument
+public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDocument : IDocument
 {
     private readonly IMongoCollection<TDocument> _collection;
-
-    private const string ConnectionString = @"mongodb://keyhole-dashboard-db:1diPD0VVkSVVqfIuWVHGe703gNSuTTI21Ubeg39f3Vodm1Is1AcrXaH7GmEAH7UJGtKv8SZXaDbYACDbJ3ynZA==@keyhole-dashboard-db.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@keyhole-dashboard-db@";
-    private const string DatabaseName = "keyhole-dashboard-db";
-
-    protected MongoRepository()
+    
+    protected MongoRepository(IOptions<DatabaseOptions> dataBaseOptions)
     {
-        var settings = MongoClientSettings.FromUrl(new MongoUrl(ConnectionString));
+        var settings = MongoClientSettings.FromUrl(new MongoUrl(dataBaseOptions.Value.MongoDbConnectionString));
         settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };
         var mongoClient = new MongoClient(settings);
-        var db = mongoClient.GetDatabase(DatabaseName);
+        var db = mongoClient.GetDatabase(dataBaseOptions.Value.MongoDbDatabaseName);
         _collection = db.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
     }
 

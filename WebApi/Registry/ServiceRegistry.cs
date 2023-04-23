@@ -47,7 +47,6 @@ static class ServiceRegistry
         collection.AddSingleton<IOrganizationWriteModel>(new OrganizationWriteModel(database));
 
         collection.AddScoped<IBookRepository, BookRepository>();
-
         #endregion
     }
 }

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Domain.Book;
+using Microsoft.Extensions.Options;
 
 namespace Repository.Book;
 
@@ -7,7 +8,7 @@ public class BookRepository : MongoRepository<BookEntity>, IBookRepository
 {
     private readonly IMapper _mapper;
 
-    public BookRepository(IMapper mapper)
+    public BookRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper): base(dataBaseOptions)
     {
         _mapper = mapper;
     }
