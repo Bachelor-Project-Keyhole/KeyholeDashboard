@@ -17,9 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Microsoft.Extensions.Options">
-        <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.10\Microsoft.Extensions.Options.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Microsoft.Extensions.Options"/>
     </ItemGroup>
 
 </Project>
