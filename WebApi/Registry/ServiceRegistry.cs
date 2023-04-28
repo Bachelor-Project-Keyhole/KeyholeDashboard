@@ -2,10 +2,8 @@
 using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.User.UserService;
-using Domain.Book;
 using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
-using Repository.Book;
 using Repository.Organization;
 using Repository.Organization.OrganizationReadModel;
 using Repository.Organization.OrganizationWriteModel;
@@ -46,7 +44,6 @@ static class ServiceRegistry
         collection.AddSingleton<IOrganizationReadModel>(new OrganizationReadModel(database));
         collection.AddSingleton<IOrganizationWriteModel>(new OrganizationWriteModel(database));
 
-        collection.AddScoped<IBookRepository, BookRepository>();
         #endregion
     }
 }
