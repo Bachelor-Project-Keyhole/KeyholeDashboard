@@ -27,14 +27,10 @@ static class ServiceRegistry
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IUserService, UserService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
-
         
-
         #endregion
         
         #region Repository Layer
-
-        
         
         collection.AddTransient<IUserRepository, UserRepository>();
         collection.AddSingleton<IUserReadModel>(new UserReadModel(database));
@@ -47,7 +43,7 @@ static class ServiceRegistry
         collection.AddTransient<IOrganizationRepository, OrganizationRepository>();
         collection.AddSingleton<IOrganizationReadModel>(new OrganizationReadModel(database));
         collection.AddSingleton<IOrganizationWriteModel>(new OrganizationWriteModel(database));
-        
+
         #endregion
     }
 }

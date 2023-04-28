@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using Repository;
 using WebApi.Registry;
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -32,8 +33,9 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json").Build();
 
-// DB connections when we have them
-// TODO: Fix connection string in appsettings
+// Configure database options
+builder.Services.Configure<DatabaseOptions>(configuration.GetSection("DatabaseOptions"));
+
 var client = new MongoClient(configuration.GetConnectionString("MongoDbConnString"));
 var database = client.GetDatabase(configuration.GetConnectionString("MongoDbConnSchema"));
 
@@ -106,8 +108,6 @@ builder.Services.AddCors(options =>
 
 // Enforce routing lowercase
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
-
-
 
 var app = builder.Build();
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace Infrastructure.Middlewares;
+﻿namespace Infrastructure.Middlewares;
 
 public class JwtMiddleware
 {

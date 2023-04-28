@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Domain.RepositoryInterfaces;
 using MongoDB.Bson;
-using MongoDB.Driver;
 using Repository.User.UserPersistence;
 using Repository.User.UserReadModel;
 using Repository.User.UserWriteModel;

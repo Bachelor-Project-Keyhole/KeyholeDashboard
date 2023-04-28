@@ -1,6 +1,4 @@
-﻿using Application.Email.Model;
-
-namespace Application.Email.EmailService;
+﻿namespace Application.Email.EmailService;
 
 public interface IEmailService
 {
