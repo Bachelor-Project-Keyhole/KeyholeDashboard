@@ -1,13 +1,19 @@
+using Domain.Book;
 using FluentAssertions;
+using Newtonsoft.Json;
 
 namespace WebApi.Tests;
 
-public class UnitTest1
+public class UnitTest1 : IntegrationTest
 {
     [Fact]
-    public void Test1()
+    public async Task Test1()
     {
-        var result = 42;
-        result.Should().Be(42);
+        await TestClient.PostAsync(new Uri("experiment/book?isbn=123&title=456&author=789", UriKind.Relative), null);
+        var httpResponseMessage = 
+            await TestClient.GetAsync(new Uri("experiment/book", UriKind.Relative));
+        var deserializeObject = 
+            JsonConvert.DeserializeObject<Book[]>(await httpResponseMessage.Content.ReadAsStringAsync());
+        deserializeObject.Should().HaveCount(1);
     }
 }
