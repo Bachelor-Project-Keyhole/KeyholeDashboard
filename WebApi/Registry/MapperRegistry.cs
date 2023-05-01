@@ -1,8 +1,6 @@
 ﻿using Application.Email.Model;
 using AutoMapper;
-using Domain.Book;
 using MongoDB.Bson;
-using Repository.Book;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
@@ -33,10 +31,6 @@ static class MapperRegistry
                 .ReverseMap();
 
             #endregion
-            
-            cfg.CreateMap<Book, BookEntity>().ReverseMap();
-
-
         });
         collection.AddSingleton(config.CreateMapper()); 
     }
