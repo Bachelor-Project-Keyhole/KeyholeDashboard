@@ -9,8 +9,8 @@ namespace Repository;
 public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDocument : IDocument
 {
     private readonly IMongoCollection<TDocument> _collection;
-    
-    protected MongoRepository(IOptions<DatabaseOptions> dataBaseOptions)
+
+    public MongoRepository(IOptions<DatabaseOptions> dataBaseOptions)
     {
         var settings = MongoClientSettings.FromUrl(new MongoUrl(dataBaseOptions.Value.MongoDbConnectionString));
         settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };

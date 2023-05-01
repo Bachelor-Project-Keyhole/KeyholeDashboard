@@ -31,7 +31,6 @@ static class MapperRegistry
                 .ReverseMap();
 
             #endregion
-
         });
         collection.AddSingleton(config.CreateMapper()); 
     }
