@@ -8,9 +8,8 @@ namespace WebApi.Tests;
 
 public class IntegrationTest : IDisposable
 {
-    protected HttpClient TestClient;
-    protected  WebApplicationFactory<Program> AppFactory;
-    private IMongoRunner _runner;
+    protected readonly HttpClient TestClient;
+    private readonly IMongoRunner _runner;
 
     protected IntegrationTest()
     {
@@ -20,7 +19,7 @@ public class IntegrationTest : IDisposable
         };
         _runner = MongoRunner.Run(options);
 
-        AppFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        var appFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -33,7 +32,7 @@ public class IntegrationTest : IDisposable
             });
         });
         
-        TestClient = AppFactory.CreateClient();
+        TestClient = appFactory.CreateClient();
     }
 
     public void Dispose()
