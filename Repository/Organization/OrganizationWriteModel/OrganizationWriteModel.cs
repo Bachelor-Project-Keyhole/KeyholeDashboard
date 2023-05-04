@@ -13,7 +13,7 @@ public class OrganizationWriteModel : IOrganizationWriteModel
     
     public async Task Insert(OrganizationPersistenceModel organization)
     {
-        await _database.GetCollection<OrganizationPersistenceModel>(nameof(Domain.DomainEntities.Organization))
+        await _database.GetCollection<OrganizationPersistenceModel>(nameof(Domain.Organization.Organization))
             .InsertOneAsync(organization);
     }
 }

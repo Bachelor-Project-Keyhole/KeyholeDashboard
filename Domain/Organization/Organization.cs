@@ -1,5 +1,7 @@
-﻿#pragma warning disable CS8618
-namespace Domain.DomainEntities;
+﻿using Domain.DomainEntities;
+
+#pragma warning disable CS8618
+namespace Domain.Organization;
 
 public class Organization
 {

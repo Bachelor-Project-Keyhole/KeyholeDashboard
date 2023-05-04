@@ -1,28 +1,23 @@
-﻿using AutoMapper;
 using Domain.RepositoryInterfaces;
-using Repository.Organization.OrganizationReadModel;
-using Repository.Organization.OrganizationWriteModel;
+using Microsoft.Extensions.Options;
 
 namespace Repository.Organization;
 
-public class OrganizationRepository : IOrganizationRepository
+public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrganizationRepository 
 {
-    private readonly IMapper _mapper;
-    private readonly IOrganizationReadModel _organizationReadModel;
-    private readonly IOrganizationWriteModel _organizationWriteModel;
-
-    public OrganizationRepository(
-        IMapper mapper,
-        IOrganizationReadModel organizationReadModel,
-        IOrganizationWriteModel organizationWriteModel)
+    public OrganizationRepository(IOptions<DatabaseOptions> dataBaseOptions) : base(dataBaseOptions)
     {
-        _mapper = mapper;
-        _organizationReadModel = organizationReadModel;
-        _organizationWriteModel = organizationWriteModel;
     }
-    public async Task Insert(Domain.DomainEntities.Organization organization)
+
+    public Task Insert(Domain.Organization.Organization organization)
     {
-        var persistenceOrganization = _mapper.Map<OrganizationPersistenceModel>(organization);
-        await _organizationWriteModel.Insert(persistenceOrganization);
+        throw new NotImplementedException();
+    }
+
+    public async Task<bool> OrganizationExists(string organizationId)
+    {
+        var result = await FindByIdAsync(organizationId);
+        return result is not null;
+
     }
 }

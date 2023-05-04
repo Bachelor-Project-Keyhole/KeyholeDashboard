@@ -50,7 +50,7 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
         return await _collection.Find(filterExpression).FirstOrDefaultAsync();
     }
     
-    public virtual async Task<TDocument> FindByIdAsync(string id)
+    public virtual async Task<TDocument?> FindByIdAsync(string id)
     {
         var objectId = new ObjectId(id);
         var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, objectId);

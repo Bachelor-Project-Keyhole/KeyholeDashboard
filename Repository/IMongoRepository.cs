@@ -20,7 +20,7 @@ public interface IMongoRepository<TDocument> where TDocument : IDocument
     Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
     
     [UsedImplicitly]
-    Task<TDocument> FindByIdAsync(string id);
+    Task<TDocument?> FindByIdAsync(string id);
     
     [UsedImplicitly]
     Task InsertOneAsync(TDocument document);
