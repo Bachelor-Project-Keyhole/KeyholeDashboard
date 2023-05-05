@@ -6,6 +6,7 @@ public class DataPoint
     public string OrganizationId { get; set; }
     public string Key { get; set; }
     public double Value { get; set; }
+    public DateTime Time { get; set; }
     
     public DataPoint(string organizationId, string key, double value)
     {

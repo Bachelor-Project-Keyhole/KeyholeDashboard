@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Contracts;
 using Domain;
 using FluentAssertions;
@@ -82,14 +83,46 @@ public class DataPointControllerTests : IntegrationTest
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{nonExistingOrganizationId}",UriKind.Relative));
+        var httpResponseMessage = 
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{nonExistingOrganizationId}",UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
-    public async Task PostDataPoint_PersistsEntryIntoDatabase(){}
-    
-    
+    public async Task PostDataPoint_PersistsEntryIntoDatabase()
+    {
+        //Arrange
+        var organizationId = IdGenerator.GenerateId();
+        var organizationEntity = new OrganizationEntity()
+        {
+            Id = new ObjectId(organizationId),
+            OrganizationName = "Organization"
+        };
+        await PopulateDatabase(new []{organizationEntity});
+
+        var dataPointEntryDto = 
+            new DataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
+        
+        var stringContent = 
+            new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
+        
+        //Act
+        var httpResponseMessage = 
+            await TestClient.PostAsync(new Uri("/api/v1/DataPoint/Entries",UriKind.Relative), stringContent);
+        
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
+        httpResponseMessage = 
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}",UriKind.Relative));
+        var result = JsonConvert.DeserializeObject<DataPointDto[]>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result.Should().NotBeNull();
+        var dataPointDto = result!.Single();
+        dataPointDto.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
+        dataPointDto.Key.Should().Be(dataPointEntryDto.Key);
+        dataPointDto.Value.Should().Be(dataPointEntryDto.Value);
+        dataPointDto.Time.Should().Be(dataPointEntryDto.Time);
+    }
 }
