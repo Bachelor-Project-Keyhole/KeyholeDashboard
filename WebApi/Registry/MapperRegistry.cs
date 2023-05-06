@@ -37,6 +37,8 @@ static class MapperRegistry
 
             cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
             cfg.CreateMap<DatapointEntity, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
         });
         collection.AddSingleton(config.CreateMapper()); 
     }

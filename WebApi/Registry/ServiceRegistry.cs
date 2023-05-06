@@ -5,6 +5,7 @@ using Application.User.UserService;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
+using Repository.Datapoint;
 using Repository.Organization;
 using Repository.Organization.OrganizationReadModel;
 using Repository.Organization.OrganizationWriteModel;
@@ -48,6 +49,8 @@ static class ServiceRegistry
         #endregion
         
         collection.AddScoped<IOrganizationRepository, OrganizationRepository>();
+        collection.AddScoped<IDataPointEntryRepository, DataPointEntryRepository>();
+        collection.AddScoped<IDatapointRepository, DatapointRepository>();
         collection.AddScoped<IDataPointDomainService, DataPointDomainService>();
     }
 }
