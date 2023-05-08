@@ -18,4 +18,11 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         var dataPointEntryEntity = _mapper.Map<DataPointEntryEntity>(dataPointEntry);
         await InsertOneAsync(dataPointEntryEntity);
     }
+
+    public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string key)
+    {
+        var result = 
+            await FilterByAsync(d => d.OrganizationId == organizationId && d.Key == key);
+        return _mapper.Map<DataPointEntry[]>(result);
+    }
 }

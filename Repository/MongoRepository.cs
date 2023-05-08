@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace Repository;
 
@@ -31,11 +32,11 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
     {
         return _collection.AsQueryable();
     }
-
-    public virtual IEnumerable<TDocument> FilterBy(
-        Expression<Func<TDocument, bool>> filterExpression)
+    
+    public virtual async Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> predicate)
     {
-        return _collection.Find(filterExpression).ToEnumerable();
+        var filter =  _collection.AsQueryable().Where(predicate);
+        return await filter.ToListAsync();
     }
 
     public virtual IEnumerable<TProjected> FilterBy<TProjected>(

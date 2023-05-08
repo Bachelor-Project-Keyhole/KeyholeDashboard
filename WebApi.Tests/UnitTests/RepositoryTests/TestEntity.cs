@@ -1,6 +1,6 @@
 using Repository;
 
-namespace WebApi.Tests.RepositoryTests;
+namespace WebApi.Tests.UnitTests.RepositoryTests;
 
 [BsonCollection("test-document")]
 public class TestEntity : Document

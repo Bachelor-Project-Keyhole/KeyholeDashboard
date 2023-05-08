@@ -9,7 +9,7 @@ public interface IMongoRepository<TDocument> where TDocument : IDocument
     IQueryable<TDocument> AsQueryable();
     
     [UsedImplicitly]
-    IEnumerable<TDocument> FilterBy(Expression<Func<TDocument, bool>> filterExpression);
+    Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> filterExpression);
     
     [UsedImplicitly]
     IEnumerable<TProjected> FilterBy<TProjected>(

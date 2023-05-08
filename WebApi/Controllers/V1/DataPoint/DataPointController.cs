@@ -46,4 +46,26 @@ public class DataPointController : ControllerBase
             return NotFound(exception.Message);
         }
     }
+    
+    [HttpGet("{organizationId}/{key}")]
+    public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
+    {
+        try
+        {
+            var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
+            return _mapper.Map<DataPointEntryDto[]>(allDataPoints);
+        }
+        catch (OrganizationNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+        catch (Exception exception)
+        {
+            return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
+        }
+    }
 }
