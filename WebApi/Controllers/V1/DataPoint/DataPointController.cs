@@ -59,7 +59,7 @@ public class DataPointController : ControllerBase
         {
             return NotFound(exception.Message);
         }
-        catch (KeyNotFoundException exception)
+        catch (DataPointKeyNotFoundException exception)
         {
             return NotFound(exception.Message);
         }

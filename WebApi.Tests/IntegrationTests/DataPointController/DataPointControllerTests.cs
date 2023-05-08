@@ -17,7 +17,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity()
+        var organizationEntity = new OrganizationEntity
         {
             Id = new ObjectId(organizationId),
             OrganizationName = "Organization"
@@ -47,7 +47,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity()
+        var organizationEntity = new OrganizationEntity
         {
             Id = new ObjectId(organizationId),
             OrganizationName = "Organization"
@@ -74,7 +74,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPoints_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
-        var organizationEntity = new OrganizationEntity()
+        var organizationEntity = new OrganizationEntity
         {
             Id = new ObjectId(IdGenerator.GenerateId()),
             OrganizationName = "Organization"
@@ -95,7 +95,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity()
+        var organizationEntity = new OrganizationEntity
         {
             Id = new ObjectId(organizationId),
             OrganizationName = "Organization"
@@ -143,5 +143,105 @@ public class DataPointControllerTests : IntegrationTest
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
         dataPointEntryEntities.Should().BeEmpty();
+    }
+    
+    [Fact]
+    public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
+    {
+        //Arrange
+        var organizationId = IdGenerator.GenerateId();
+        var key = "TestKey";
+        var organizationEntity = new OrganizationEntity
+        {
+            Id = new ObjectId(organizationId),
+            OrganizationName = "Organization"
+        };
+        await PopulateDatabase(new []{organizationEntity});
+        
+        var expectedEntities = new DataPointEntryEntity[]
+        {
+            new(organizationId, key, 23, DateTime.Now),
+            new(organizationId, key, 23, DateTime.MinValue),
+        };
+
+        await PopulateDatabase(expectedEntities);
+        
+        var testEntities = new[]
+        {
+            new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+        };
+        await PopulateDatabase(testEntities);
+
+        //Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}",UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = JsonConvert.DeserializeObject<DataPointEntryDto[]>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result.Should().NotBeNull();
+        AssertDataPointEntries(expectedEntities, result!);
+    }
+    
+    [Fact]
+    public async Task GetAllDataPointEntries_ReturnsNotFound_WhenOrganizationIsNotFound()
+    {
+        //Arrange
+        var key = "TestKey";
+        var testEntities = new[]
+        {
+            new DataPointEntryEntity(IdGenerator.GenerateId(), "notTestKey", 23, DateTime.Now),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+        };
+        await PopulateDatabase(testEntities);
+
+        //Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{IdGenerator.GenerateId()}/{key}",UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
+    {
+        //Arrange
+        var organizationId = IdGenerator.GenerateId();
+        var key = "TestKey";
+        var organizationEntity = new OrganizationEntity
+        {
+            Id = new ObjectId(organizationId),
+            OrganizationName = "Organization"
+        };
+        await PopulateDatabase(new []{organizationEntity});
+        
+        var testEntities = new[]
+        {
+            new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
+            new DataPointEntryEntity(organizationId, "other", 23, DateTime.Now),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+        };
+        await PopulateDatabase(testEntities);
+
+        //Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}",UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private void AssertDataPointEntries(DataPointEntryEntity[] expected, DataPointEntryDto[] actual)
+    {
+        actual.Should().HaveCount(expected.Length);
+        foreach (var dataPointEntry in actual.Zip(expected, (a,e) => (a, e)))
+        {
+            dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
+            dataPointEntry.a.Key.Should().Be(dataPointEntry.e.Key);
+            dataPointEntry.a.Value.Should().Be(dataPointEntry.e.Value);
+            dataPointEntry.a.Time.Should().BeCloseTo(dataPointEntry.e.Time, TimeSpan.FromSeconds(1));
+        }
     }
 }
