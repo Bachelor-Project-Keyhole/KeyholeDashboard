@@ -1,7 +1,9 @@
-﻿namespace Domain.RepositoryInterfaces;
+﻿using Domain.Organization;
+
+namespace Domain.RepositoryInterfaces;
 
 public interface IOrganizationRepository
 {
-    Task Insert(Organization.Organization organization);
+    Task Insert(TempOrganization organization);
     Task<bool> OrganizationExists(string organizationId);
 }

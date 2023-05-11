@@ -46,7 +46,7 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
         return _collection.Find(filterExpression).Project(projectionExpression).ToEnumerable();
     }
     
-    public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression)
+    public virtual async Task<TDocument?> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression)
     {
         return await _collection.Find(filterExpression).FirstOrDefaultAsync();
     }

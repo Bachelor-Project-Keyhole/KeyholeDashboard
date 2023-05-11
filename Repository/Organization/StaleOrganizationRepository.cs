@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Repository.Organization.OrganizationReadModel;
 using Repository.Organization.OrganizationWriteModel;
@@ -24,6 +25,11 @@ public class StaleOrganizationRepository : IOrganizationRepository
     {
         var persistenceOrganization = _mapper.Map<OrganizationPersistenceModel>(organization);
         await _organizationWriteModel.Insert(persistenceOrganization);
+    }
+
+    public Task Insert(TempOrganization organization)
+    {
+        throw new NotImplementedException();
     }
 
     public Task<bool> OrganizationExists(string organizationId)

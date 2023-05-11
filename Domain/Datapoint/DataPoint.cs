@@ -1,26 +1,29 @@
 namespace Domain.Datapoint;
 
 public class DataPoint
-{ 
-    public string Id { get; set; }
+{
+    public string? Id { get; set; }
     public string OrganizationId { get; set; }
     public string Key { get; set; }
-    public double Value { get; set; }
-    public DateTime Time { get; set; }
+    public string DisplayName { get; set; }
+    public bool DirectionIsUp { get; set; }
+    public bool ComparisonIsAbsolute { get; set; }
     
-    public DataPoint(string organizationId, string key, double value)
+    public DataPoint(string organizationId, string key, bool directionIsUp = true, bool comparisonIsAbsolute = false)
     {
-        Id = IdGenerator.GenerateId();
         OrganizationId = organizationId;
         Key = key;
-        Value = value;
+        DisplayName = key;
+        DirectionIsUp = directionIsUp;
+        ComparisonIsAbsolute = comparisonIsAbsolute;
     }
 
-    public DataPoint(string id, string organizationId, string key, double value)
+    public DataPoint(string organizationId, string key,  string displayName, bool directionIsUp = true, bool comparisonIsAbsolute = false)
     {
-        Id = id;
         OrganizationId = organizationId;
         Key = key;
-        Value = value;
+        DirectionIsUp = directionIsUp;
+        DisplayName = displayName;
+        ComparisonIsAbsolute = comparisonIsAbsolute;
     }
 }

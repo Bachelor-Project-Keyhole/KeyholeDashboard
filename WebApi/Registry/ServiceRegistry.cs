@@ -50,7 +50,7 @@ static class ServiceRegistry
         
         collection.AddScoped<IOrganizationRepository, OrganizationRepository>();
         collection.AddScoped<IDataPointEntryRepository, DataPointEntryRepository>();
-        collection.AddScoped<IDatapointRepository, DatapointRepository>();
+        collection.AddScoped<IDataPointRepository, DataPointRepository>();
         collection.AddScoped<IDataPointDomainService, DataPointDomainService>();
     }
 }

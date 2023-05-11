@@ -12,6 +12,37 @@ namespace WebApi.Tests.IntegrationTests.DataPointController;
 
 public class DataPointControllerTests : IntegrationTest
 {
+
+    [Fact]
+    public async Task CreateDataPoint_HappyPath()
+    {
+        //Arrange
+        
+        //Act
+
+        //Assert
+    }
+    
+    [Fact]
+    public async Task CreateDataPoint_ReturnsNotFound_WhenOrganizationIdDoesNotExist()
+    {
+        //Arrange
+        
+        //Act
+
+        //Assert
+    }
+    
+    [Fact]
+    public async Task CreateDataPoint_ReturnsNotFound_WhenValueDoesNotExistIn()
+    {
+        //Arrange
+        
+        //Act
+
+        //Assert
+    }
+    
     [Fact]
     public async Task GetAllDataPoints_ReturnsAllDataPointsBelongingToOrganization()
     {
@@ -25,10 +56,10 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new []{organizationEntity});
         var datapointEntities = new[]
         {
-            new DatapointEntity(organizationId, "key", 23),
-            new DatapointEntity(organizationId, "key", 23),
-            new DatapointEntity(IdGenerator.GenerateId(), "key", 23),
-            new DatapointEntity(IdGenerator.GenerateId(), "key", 23),
+            new DataPointEntity(organizationId, "key", "DisplayName"),
+            new DataPointEntity(organizationId, "key", "DisplayName"),
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName")
         };
         await PopulateDatabase(datapointEntities);
 
@@ -55,8 +86,8 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new []{organizationEntity});
         var datapointEntities = new[]
         {
-            new DatapointEntity(IdGenerator.GenerateId(), "key", 23),
-            new DatapointEntity(IdGenerator.GenerateId(), "key", 23),
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
         };
         await PopulateDatabase(datapointEntities);
 

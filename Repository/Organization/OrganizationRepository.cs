@@ -1,17 +1,28 @@
+using AutoMapper;
+using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
 
 namespace Repository.Organization;
 
-public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrganizationRepository 
+public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrganizationRepository
 {
-    public OrganizationRepository(IOptions<DatabaseOptions> dataBaseOptions) : base(dataBaseOptions)
+    private readonly IMapper _mapper;
+    public OrganizationRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper) : base(dataBaseOptions)
     {
+        _mapper = mapper;
     }
 
-    public Task Insert(Domain.Organization.Organization organization)
+    public async Task Insert(Domain.Organization.Organization organization)
     {
-        throw new NotImplementedException();
+        var organizationEntity = _mapper.Map<OrganizationEntity>(organization);
+        await InsertOneAsync(organizationEntity);
+    }
+
+    public async Task Insert(TempOrganization organization)
+    {
+        var organizationEntity = _mapper.Map<OrganizationEntity>(organization);
+        await InsertOneAsync(organizationEntity);
     }
 
     public async Task<bool> OrganizationExists(string organizationId)

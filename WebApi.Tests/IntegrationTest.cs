@@ -51,8 +51,8 @@ public class IntegrationTest : IDisposable
 
         services.AddScoped<IOrganizationRepository, OrganizationRepository>();
         services.AddScoped<IDataPointDomainService, DataPointDomainService>();
-        services.AddScoped<IDatapointRepository, DatapointRepository>();
-        services.AddScoped<IDatapointRepository, DatapointRepository>();
+        services.AddScoped<IDataPointRepository, DataPointRepository>();
+        services.AddScoped<IDataPointRepository, DataPointRepository>();
     }
 
     protected async Task PopulateDatabase<TDocument>(TDocument[] documents) where TDocument : IDocument

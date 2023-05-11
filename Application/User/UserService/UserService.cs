@@ -96,7 +96,7 @@ public class UserService : IUserService
         
         userToInsert.PasswordHash = PasswordHelper.GetHashedPassword(request.Password);
         await _userRepository.CreateUser(userToInsert);
-        await _organizationRepository.Insert(organizationToInsert);
+        //await _organizationRepository.Insert(organizationToInsert);
 
         return new AdminAndOrganizationCreateResponse
         {

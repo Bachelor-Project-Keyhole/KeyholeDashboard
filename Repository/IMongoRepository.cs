@@ -17,7 +17,7 @@ public interface IMongoRepository<TDocument> where TDocument : IDocument
         Expression<Func<TDocument, TProjected>> projectionExpression);
     
     [UsedImplicitly]
-    Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
+    Task<TDocument?> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
     
     [UsedImplicitly]
     Task<TDocument?> FindByIdAsync(string id);

@@ -2,8 +2,10 @@
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
+using Domain.Organization;
 using MongoDB.Bson;
 using Repository.Datapoint;
+using Repository.Organization;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
@@ -36,9 +38,12 @@ static class MapperRegistry
             #endregion
 
             cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
-            cfg.CreateMap<DatapointEntity, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
+            cfg.CreateMap<Organization, OrganizationEntity>().ReverseMap();
+            cfg.CreateMap<TempOrganization, OrganizationEntity>().ReverseMap();
+            cfg.CreateMap<TempOrganization, OrganizationDto>().ReverseMap();
         });
         collection.AddSingleton(config.CreateMapper()); 
     }
