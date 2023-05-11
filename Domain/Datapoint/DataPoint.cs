@@ -11,6 +11,7 @@ public class DataPoint
     
     public DataPoint(string organizationId, string key, bool directionIsUp = true, bool comparisonIsAbsolute = false)
     {
+        Id = IdGenerator.GenerateId();
         OrganizationId = organizationId;
         Key = key;
         DisplayName = key;
@@ -20,6 +21,7 @@ public class DataPoint
 
     public DataPoint(string organizationId, string key,  string displayName, bool directionIsUp = true, bool comparisonIsAbsolute = false)
     {
+        Id = IdGenerator.GenerateId();
         OrganizationId = organizationId;
         Key = key;
         DirectionIsUp = directionIsUp;

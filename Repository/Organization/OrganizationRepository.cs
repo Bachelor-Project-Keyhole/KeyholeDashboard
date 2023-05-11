@@ -1,5 +1,4 @@
 using AutoMapper;
-using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
 
@@ -18,13 +17,7 @@ public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrga
         var organizationEntity = _mapper.Map<OrganizationEntity>(organization);
         await InsertOneAsync(organizationEntity);
     }
-
-    public async Task Insert(TempOrganization organization)
-    {
-        var organizationEntity = _mapper.Map<OrganizationEntity>(organization);
-        await InsertOneAsync(organizationEntity);
-    }
-
+    
     public async Task<bool> OrganizationExists(string organizationId)
     {
         var result = await FindByIdAsync(organizationId);
