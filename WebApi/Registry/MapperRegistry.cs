@@ -20,9 +20,9 @@ static class MapperRegistry
 
             #region User
 
-            cfg.CreateMap<Domain.DomainEntities.User, UserPersistenceModel>()
-                .ReverseMap();
-
+            cfg.CreateMap<Domain.DomainEntities.User, UserPersistenceModel>().ReverseMap();
+            cfg.CreateMap<Domain.DomainEntities.RefreshToken, PersistenceRefreshToken>().ReverseMap();
+            cfg.CreateMap<Domain.DomainEntities.RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
             #endregion
             
             #region Email

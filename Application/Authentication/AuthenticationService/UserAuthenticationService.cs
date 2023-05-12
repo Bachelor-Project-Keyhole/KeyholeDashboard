@@ -37,8 +37,8 @@ public class UserAuthenticationService : IUserAuthenticationService
         var (tokenInfo, jwtExpiration) = _tokenGenerator.GenerateToken(user);
         var refreshToken = _tokenGenerator.GenerateRefreshToken(GetIpAddress(_contextAccessor.HttpContext)); // Not sure if it is possible to have in-active context at this point.
 
-        var refreshTokenFromDb = _mapper.Map<RefreshToken>(user);
-        
+        var refreshTokenFromDb = _mapper.Map<RefreshToken>(refreshToken);
+
         if (!(user.RefreshTokens?.Count > 0))
             user.RefreshTokens = new List<RefreshToken> {refreshTokenFromDb};
         else

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Application.Email.Helper;
 using Application.JWT.Model;
+using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
@@ -112,6 +113,8 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 var app = builder.Build();
 
 // Build HTTP request pipeline
+app.UseMiddleware<JwtMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();

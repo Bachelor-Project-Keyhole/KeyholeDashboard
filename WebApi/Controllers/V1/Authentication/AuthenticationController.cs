@@ -5,12 +5,12 @@ using Application.JWT.Model;
 using Application.User.Model;
 using Application.User.UserService;
 using AutoMapper;
+using Domain.DomainEntities;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 
 namespace WebApi.Controllers.V1.Authentication;
-
 [Route("api/v1/[controller]")]
 public class AuthenticationController : BaseApiController
 {
@@ -46,7 +46,7 @@ public class AuthenticationController : BaseApiController
     /// <summary>
     /// Login/Authenticate
     /// </summary>
-    /// <param name="loginRequest"> Credentials </param>
+    /// <param name="loginRequest"> Credentials </param>z
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
@@ -61,8 +61,9 @@ public class AuthenticationController : BaseApiController
     /// <summary>
     /// Logout / Revoke token
     /// </summary>
-    /// <param name="request"> If cookies qre disabled, token can be given manually </param>
+    /// <param name="request"> Refresh token(this is null in case the token can be retrieved from cookies)</param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Logout / Revoke token", typeof(AuthenticationResponse))]
     [Route("logout")]

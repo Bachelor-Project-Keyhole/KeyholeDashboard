@@ -39,7 +39,12 @@ public class UserService : IUserService
         _emailService = emailService;
         _httpContextAccessor = httpContextAccessor;
     }
-    
+
+    public async Task<Domain.DomainEntities.User?> GetUserById(string id)
+    {
+        return await _userRepository.GetUserById(id);
+    }
+
     public async Task<Domain.DomainEntities.User?> GetUserByEmail(string email)
     {
         return await _userRepository.GetUserByEmail(email);
