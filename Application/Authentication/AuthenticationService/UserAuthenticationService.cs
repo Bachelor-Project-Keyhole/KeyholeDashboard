@@ -88,7 +88,8 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (userRefreshToken == null || !userRefreshToken.IsActive)
             throw new ApplicationException("Invalid token");
         
-        RevokeRefreshToken(userRefreshToken, GetIpAddress(_contextAccessor.HttpContext!), "Revoked without replacement"); 
+        RevokeRefreshToken(userRefreshToken, GetIpAddress(_contextAccessor.HttpContext!), "Revoked without replacement");
+        await _userRepository.UpdateUser(user);
     }
 
     private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.DomainEntities.User user, string ipAddress, string reason)

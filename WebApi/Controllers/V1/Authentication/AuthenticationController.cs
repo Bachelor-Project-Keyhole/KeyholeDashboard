@@ -29,21 +29,6 @@ public class AuthenticationController : BaseApiController
     }
 
     /// <summary>
-    /// Register an user alongside the organization
-    /// </summary>
-    /// <param name="request"> User and company registration parameters </param>
-    /// <returns></returns>
-    [AllowAnonymous]
-    [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Register an user alongside the organization", typeof(AdminAndOrganizationCreateResponse))]
-    [Route("register")]
-    public async Task<IActionResult> CreateAdminUser([FromBody] CreateAdminAndOrganizationRequest request)
-    {
-        var response = await _userService.CreateAdminUserAndOrganization(request);
-        return Ok(response);
-    }
-
-    /// <summary>
     /// Login/Authenticate
     /// </summary>
     /// <param name="loginRequest"> Credentials </param>z

@@ -80,8 +80,6 @@ public class UserService : IUserService
         {
             Id = ObjectId.GenerateNewId().ToString(),
             OrganizationName = request.OrganizationName,
-            Country = request.Country,
-            Address = request.Address,
             Dashboards = new List<OrganizationDashboards>(),
             Members = new List<OrganizationMembers>(),
             CreationDate = DateTime.UtcNow,
@@ -112,8 +110,6 @@ public class UserService : IUserService
 
             OrganizationId = organizationToInsert.Id,
             OrganizationName = organizationToInsert.OrganizationName,
-            Country = organizationToInsert.Country,
-            Address = organizationToInsert.Address,
             OrganizationCreationTime = organizationToInsert.CreationDate
         };
 
@@ -127,7 +123,6 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(token))
             // TODO: Custom exceptions
             throw new ApplicationException("Token is required");
-        
 
         await _userAuthentication.RevokeToken(token);
     }

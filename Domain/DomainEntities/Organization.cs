@@ -1,4 +1,5 @@
-﻿#pragma warning disable CS8618
+﻿// ReSharper disable UnusedAutoPropertyAccessor.Global
+#pragma warning disable CS8618
 namespace Domain.DomainEntities;
 
 public class Organization
@@ -6,8 +7,7 @@ public class Organization
     public string Id { get; set; }
     public string OrganizationOwnerId { get; set; }
     public string OrganizationName { get; set; }
-    public string Country { get; set; }
-    public string Address { get; set; }
+    // ReSharper disable once CollectionNeverQueried.Global
     public List<OrganizationMembers>? Members { get; set; }
     public List<OrganizationDashboards>? Dashboards { get; set; }
     public DateTime CreationDate { get; set; }
