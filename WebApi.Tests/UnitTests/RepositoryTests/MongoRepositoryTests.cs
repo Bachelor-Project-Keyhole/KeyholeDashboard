@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using Repository;
 
-namespace WebApi.Tests.RepositoryTests;
+namespace WebApi.Tests.UnitTests.RepositoryTests;
 
 public class MongoRepositoryTests : IDisposable
 {

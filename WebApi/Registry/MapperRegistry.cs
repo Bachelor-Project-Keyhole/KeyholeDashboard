@@ -1,6 +1,9 @@
 ﻿using Application.Email.Model;
 using AutoMapper;
+using Contracts;
+using Domain.Datapoint;
 using MongoDB.Bson;
+using Repository.Datapoint;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
@@ -31,6 +34,11 @@ static class MapperRegistry
                 .ReverseMap();
 
             #endregion
+
+            cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
         });
         collection.AddSingleton(config.CreateMapper()); 
     }

@@ -2,8 +2,10 @@
 using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.User.UserService;
+using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using MongoDB.Driver;
+using Repository.Datapoint;
 using Repository.Organization;
 using Repository.Organization.OrganizationReadModel;
 using Repository.Organization.OrganizationWriteModel;
@@ -40,10 +42,15 @@ static class ServiceRegistry
         collection.AddSingleton<ITwoFactorReadModel>(new TwoFactorReadModel(database));
         collection.AddSingleton<ITwoFactorWriteModel>(new TwoFactorWriteModel(database));
         
-        collection.AddTransient<IOrganizationRepository, OrganizationRepository>();
+        //collection.AddTransient<IOrganizationRepository, StaleOrganizationRepository>();
         collection.AddSingleton<IOrganizationReadModel>(new OrganizationReadModel(database));
         collection.AddSingleton<IOrganizationWriteModel>(new OrganizationWriteModel(database));
 
         #endregion
+        
+        collection.AddScoped<IOrganizationRepository, OrganizationRepository>();
+        collection.AddScoped<IDataPointEntryRepository, DataPointEntryRepository>();
+        collection.AddScoped<IDataPointRepository, DataPointRepository>();
+        collection.AddScoped<IDataPointDomainService, DataPointDomainService>();
     }
 }

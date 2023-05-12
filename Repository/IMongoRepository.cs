@@ -9,7 +9,7 @@ public interface IMongoRepository<TDocument> where TDocument : IDocument
     IQueryable<TDocument> AsQueryable();
     
     [UsedImplicitly]
-    IEnumerable<TDocument> FilterBy(Expression<Func<TDocument, bool>> filterExpression);
+    Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> filterExpression);
     
     [UsedImplicitly]
     IEnumerable<TProjected> FilterBy<TProjected>(
@@ -17,10 +17,10 @@ public interface IMongoRepository<TDocument> where TDocument : IDocument
         Expression<Func<TDocument, TProjected>> projectionExpression);
     
     [UsedImplicitly]
-    Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
+    Task<TDocument?> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
     
     [UsedImplicitly]
-    Task<TDocument> FindByIdAsync(string id);
+    Task<TDocument?> FindByIdAsync(string id);
     
     [UsedImplicitly]
     Task InsertOneAsync(TDocument document);

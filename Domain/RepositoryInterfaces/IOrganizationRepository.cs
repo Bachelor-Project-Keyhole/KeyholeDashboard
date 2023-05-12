@@ -2,5 +2,6 @@
 
 public interface IOrganizationRepository
 {
-    Task Insert(Domain.DomainEntities.Organization organization);
+    Task<bool> OrganizationExists(string organizationId);
+    Task Insert(Organization.Organization organizationToInsert);
 }
