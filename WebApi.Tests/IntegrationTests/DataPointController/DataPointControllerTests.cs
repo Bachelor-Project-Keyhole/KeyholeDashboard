@@ -281,6 +281,45 @@ public class DataPointControllerTests : IntegrationTest
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task UpdateDataPoint_UpdatesDataPointWithProperValues()
+    {
+        //Arrange
+        var organizationId = IdGenerator.GenerateId();
+        var organizationEntity = new OrganizationEntity
+        {
+            Id = new ObjectId(organizationId),
+            OrganizationName = "Organization"
+        };
+        await PopulateDatabase(new []{organizationEntity});
+
+        var key = "TestKey";
+        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name");
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        var dataPointDto = 
+            new DataPointDto(IdGenerator.GenerateId(), organizationId, key, "New Display Name", false, true);
+        var stringContent = 
+            new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");
+
+        //Act
+        var httpResponseMessage = await TestClient.PatchAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
+        AssertDataPoint(updatedDataPointEntity, dataPointDto);
+    }
+
+    private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
+    {
+        result.OrganizationId.Should().Be(expected.OrganizationId);
+        result.Key.Should().Be(expected.Key);
+        result.DisplayName.Should().Be(expected.DisplayName);
+        result.ComparisonIsAbsolute.Should().Be(expected.ComparisonIsAbsolute);
+        result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
+    }
+
     private void AssertDataPointEntries(DataPointEntryEntity[] expected, DataPointEntryDto[] actual)
     {
         actual.Should().HaveCount(expected.Length);
