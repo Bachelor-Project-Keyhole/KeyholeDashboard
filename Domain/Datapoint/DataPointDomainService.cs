@@ -64,13 +64,18 @@ public class DataPointDomainService : IDataPointDomainService
             throw new DataPointKeyNotFoundException($"Data point key with value: \'{dataPoint.Key}\' was not found");
         }
 
-        if (dataPoint.Id != dataPointByKey.Id)
-        {
-            throw new EntityWithIdDoesNotExistException($"Data point with id: {dataPoint.Id} does not exist");
-        }
-
-        await _dataPointRepository.UpdateDataPoint(dataPoint);
+        var updatedDataPoint = new DataPoint(
+            dataPointByKey.Id!,
+            dataPoint.OrganizationId,
+            dataPoint.Key,
+            dataPoint.DisplayName,
+            dataPoint.DirectionIsUp,
+            dataPoint.ComparisonIsAbsolute);
+        
+        await _dataPointRepository.UpdateDataPoint(updatedDataPoint);
     }
+    
+    
 
     private async Task ValidateOrganization(string organizationId)
     {

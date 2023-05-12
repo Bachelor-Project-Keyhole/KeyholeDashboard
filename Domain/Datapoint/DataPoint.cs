@@ -19,9 +19,9 @@ public class DataPoint
         ComparisonIsAbsolute = comparisonIsAbsolute;
     }
 
-    public DataPoint(string organizationId, string key,  string displayName, bool directionIsUp = true, bool comparisonIsAbsolute = false)
+    public DataPoint(string id, string organizationId, string key,  string displayName, bool directionIsUp = true, bool comparisonIsAbsolute = false)
     {
-        Id = IdGenerator.GenerateId();
+        Id = id;
         OrganizationId = organizationId;
         Key = key;
         DirectionIsUp = directionIsUp;
