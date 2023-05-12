@@ -1,6 +1,8 @@
-﻿// ReSharper disable UnusedAutoPropertyAccessor.Global
+using Domain.DomainEntities;
+
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
-namespace Domain.DomainEntities;
+namespace Domain.Organization;
 
 public class Organization
 {

@@ -5,6 +5,7 @@ using Application.JWT.Model;
 using Application.User.Model;
 using AutoMapper;
 using Domain.DomainEntities;
+using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
@@ -76,7 +77,7 @@ public class UserService : IUserService
             ModifiedDate = DateTime.UtcNow
         };
 
-        var organizationToInsert = new Domain.DomainEntities.Organization
+        var organizationToInsert = new Organization
         {
             Id = ObjectId.GenerateNewId().ToString(),
             OrganizationName = request.OrganizationName,
