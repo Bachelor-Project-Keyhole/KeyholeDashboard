@@ -84,7 +84,8 @@ public class DataPointController : ControllerBase
     [HttpGet("entries/{organizationId}/{dataPointKey}")]
     public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
-        await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
+        var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
+        return _mapper.Map<DataPointEntryDto>(dataPointEntry);
     }
 
     [HttpGet("{organizationId}/{key}")]

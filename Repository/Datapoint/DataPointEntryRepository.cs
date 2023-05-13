@@ -1,6 +1,7 @@
 using AutoMapper;
 using Domain.Datapoint;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace Repository.Datapoint;
 
@@ -26,8 +27,12 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         return _mapper.Map<DataPointEntry[]>(result);
     }
 
-    public Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
-        throw new NotImplementedException();
+        var latestDataPointEntry = await Collection
+            .Find(dpe => dpe.OrganizationId == organizationId && dpe.Key == dataPointKey)
+            .SortByDescending(entry => entry.Time)
+            .FirstOrDefaultAsync();
+        return _mapper.Map<DataPointEntry>(latestDataPointEntry);
     }
 }

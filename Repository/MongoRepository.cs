@@ -9,7 +9,7 @@ namespace Repository;
 
 public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDocument : IDocument
 {
-    private readonly IMongoCollection<TDocument> _collection;
+    protected readonly IMongoCollection<TDocument> Collection;
 
     public MongoRepository(IOptions<DatabaseOptions> dataBaseOptions)
     {
@@ -17,7 +17,7 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
         settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };
         var mongoClient = new MongoClient(settings);
         var db = mongoClient.GetDatabase(dataBaseOptions.Value.MongoDbDatabaseName);
-        _collection = db.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
+        Collection = db.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
     }
 
     private string GetCollectionName(Type documentType)
@@ -30,12 +30,12 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
 
     public virtual IQueryable<TDocument> AsQueryable()
     {
-        return _collection.AsQueryable();
+        return Collection.AsQueryable();
     }
     
     public virtual async Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> predicate)
     {
-        var filter =  _collection.AsQueryable().Where(predicate);
+        var filter =  Collection.AsQueryable().Where(predicate);
         return await filter.ToListAsync();
     }
 
@@ -43,51 +43,51 @@ public class MongoRepository<TDocument> : IMongoRepository<TDocument> where TDoc
         Expression<Func<TDocument, bool>> filterExpression,
         Expression<Func<TDocument, TProjected>> projectionExpression)
     {
-        return _collection.Find(filterExpression).Project(projectionExpression).ToEnumerable();
+        return Collection.Find(filterExpression).Project(projectionExpression).ToEnumerable();
     }
     
     public virtual async Task<TDocument?> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression)
     {
-        return await _collection.Find(filterExpression).FirstOrDefaultAsync();
+        return await Collection.Find(filterExpression).FirstOrDefaultAsync();
     }
     
     public virtual async Task<TDocument?> FindByIdAsync(string id)
     {
         var objectId = new ObjectId(id);
         var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, objectId);
-        return await _collection.Find(filter).SingleOrDefaultAsync();
+        return await Collection.Find(filter).SingleOrDefaultAsync();
     }
     
     public virtual async Task InsertOneAsync(TDocument document)
     {
-        await _collection.InsertOneAsync(document);
+        await Collection.InsertOneAsync(document);
     }
     
     public virtual async Task InsertManyAsync(ICollection<TDocument> documents)
     {
-        await _collection.InsertManyAsync(documents);
+        await Collection.InsertManyAsync(documents);
     }
     
     public virtual async Task ReplaceOneAsync(TDocument document)
     {
         var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, document.Id);
-        await _collection.FindOneAndReplaceAsync(filter, document);
+        await Collection.FindOneAndReplaceAsync(filter, document);
     }
     
     public async Task DeleteOneAsync(Expression<Func<TDocument, bool>> filterExpression)
     { 
-        await _collection.FindOneAndDeleteAsync(filterExpression);
+        await Collection.FindOneAndDeleteAsync(filterExpression);
     }
     
     public async Task DeleteByIdAsync(string id)
     { 
         var objectId = new ObjectId(id); 
         var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, objectId); 
-        await _collection.FindOneAndDeleteAsync(filter);
+        await Collection.FindOneAndDeleteAsync(filter);
     }
     
     public async Task DeleteManyAsync(Expression<Func<TDocument, bool>> filterExpression)
     {
-        await _collection.DeleteManyAsync(filterExpression);
+        await Collection.DeleteManyAsync(filterExpression);
     }
 }
