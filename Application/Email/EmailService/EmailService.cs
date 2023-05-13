@@ -12,14 +12,12 @@ namespace Application.Email.EmailService;
 public class EmailService : IEmailService
 {
     private readonly EmailAuth _email;
-    private readonly IUrlHelper _urlHelper;
 
     public EmailService(
-        IOptions<EmailAuth> mailkit,
-        IUrlHelper urlHelper)
+        IOptions<EmailAuth> mailkit)
     {
         _email = mailkit.Value;
-        _urlHelper = urlHelper;
+
     }
     
     public async Task<string> SendEmail(string toEmail, string emailBody)
@@ -30,7 +28,6 @@ public class EmailService : IEmailService
             email.From.Add(MailboxAddress.Parse(_email.SupportEmail)); // Just to test it out
             email.To.Add(MailboxAddress.Parse(toEmail));
             email.Subject = "Test Email Subject";
-            var registrationLink = _urlHelper.Action("InviteUserToOrganization", "Organization");
             //TODO: Create html email body template in html and css 
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {

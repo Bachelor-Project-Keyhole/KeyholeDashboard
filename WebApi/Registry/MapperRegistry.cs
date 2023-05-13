@@ -35,6 +35,13 @@ static class MapperRegistry
 
             #endregion
 
+            #region Organization
+
+            cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationEntity>().ReverseMap();
+
+
+            #endregion
+
             cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();

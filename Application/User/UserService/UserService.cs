@@ -2,6 +2,7 @@
 using Application.Email.EmailService;
 using Application.JWT.Helper;
 using Application.JWT.Model;
+using Application.Organization.Model;
 using Application.User.Model;
 using AutoMapper;
 using Domain.DomainEntities;
@@ -77,26 +78,16 @@ public class UserService : IUserService
             ModifiedDate = DateTime.UtcNow
         };
 
-        var organizationToInsert = new Organization
+        var organizationToInsert = new Domain.Organization.Organization
         {
             Id = ObjectId.GenerateNewId().ToString(),
             OrganizationName = request.OrganizationName,
-            Dashboards = new List<OrganizationDashboards>(),
-            Members = new List<OrganizationMembers>(),
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };
 
         userToInsert.OwnedOrganizationId = organizationToInsert.Id;
         organizationToInsert.OrganizationOwnerId = userToInsert.Id;
-        organizationToInsert.Members.Add(new OrganizationMembers
-            {
-                Id = userToInsert.Id,
-                Email = userToInsert.Email,
-                Name = userToInsert.FullName,
-                AccessLevel = userToInsert.AccessLevels
-            });
-        
         userToInsert.PasswordHash = PasswordHelper.GetHashedPassword(request.Password);
         await _userRepository.CreateUser(userToInsert);
         await _organizationRepository.Insert(organizationToInsert);

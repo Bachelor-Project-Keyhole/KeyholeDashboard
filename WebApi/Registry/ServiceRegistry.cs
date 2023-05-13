@@ -24,10 +24,10 @@ static class ServiceRegistry
     {
 
         #region Application-Service Layer
-
+        
+        collection.AddSingleton<IUserService, UserService>();
         collection.AddTransient<IEmailService, EmailService>();
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
-        collection.AddTransient<IUserService, UserService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
         
         #endregion
@@ -48,9 +48,9 @@ static class ServiceRegistry
 
         #endregion
         
-        collection.AddScoped<IOrganizationRepository, OrganizationRepository>();
-        collection.AddScoped<IDataPointEntryRepository, DataPointEntryRepository>();
-        collection.AddScoped<IDataPointRepository, DataPointRepository>();
-        collection.AddScoped<IDataPointDomainService, DataPointDomainService>();
+        collection.AddTransient<IOrganizationRepository, OrganizationRepository>();
+        collection.AddTransient<IDataPointEntryRepository, DataPointEntryRepository>();
+        collection.AddTransient<IDataPointRepository, DataPointRepository>();
+        collection.AddTransient<IDataPointDomainService, DataPointDomainService>();
     }
 }

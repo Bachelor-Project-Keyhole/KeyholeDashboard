@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Application.JWT.Authorization;
+using Application.Organization.Model;
 using Application.User.Model;
 using Application.User.UserService;
 using Domain.DomainEntities;

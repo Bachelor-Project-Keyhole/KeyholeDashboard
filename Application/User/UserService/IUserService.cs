@@ -1,4 +1,5 @@
 ﻿using Application.JWT.Model;
+using Application.Organization.Model;
 using Application.User.Model;
 using Repository.User.UserPersistence;
 
