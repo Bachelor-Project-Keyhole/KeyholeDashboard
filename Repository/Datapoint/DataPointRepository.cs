@@ -35,7 +35,7 @@ public class DataPointRepository : MongoRepository<DataPointEntity>, IDataPointR
     public async Task<DataPoint?> FindDataPointByKey(string key, string organizationId)
     {
         var dataPointEntity = 
-            await FindOneAsync(dp => dp.OrganizationId == organizationId && dp.Key == key);
+            await FindOneAsync(dp => dp.OrganizationId == organizationId && dp.DataPointKey == key);
         return _mapper.Map<DataPoint>(dataPointEntity);
     }
 }

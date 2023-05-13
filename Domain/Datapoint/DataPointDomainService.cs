@@ -28,10 +28,10 @@ public class DataPointDomainService : IDataPointDomainService
     public async Task AddDataPointEntry(DataPointEntry dataPointEntry)
     {
         await ValidateOrganization(dataPointEntry.OrganizationId);
-        var dataPoint = await _dataPointRepository.FindDataPointByKey(dataPointEntry.Key, dataPointEntry.OrganizationId);
+        var dataPoint = await _dataPointRepository.FindDataPointByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
         if (dataPoint is null)
         {
-            await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.Key);
+            await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.DataPointKey);
         }
         await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
     }
@@ -58,16 +58,16 @@ public class DataPointDomainService : IDataPointDomainService
     {
         await ValidateOrganization(dataPoint.OrganizationId);
 
-        var dataPointByKey = await _dataPointRepository.FindDataPointByKey(dataPoint.Key, dataPoint.OrganizationId);
+        var dataPointByKey = await _dataPointRepository.FindDataPointByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
         if (dataPointByKey is null)
         {
-            throw new DataPointKeyNotFoundException($"Data point key with value: \'{dataPoint.Key}\' was not found");
+            throw new DataPointKeyNotFoundException($"Data point key with value: \'{dataPoint.DataPointKey}\' was not found");
         }
 
         var updatedDataPoint = new DataPoint(
             dataPointByKey.Id!,
             dataPoint.OrganizationId,
-            dataPoint.Key,
+            dataPoint.DataPointKey,
             dataPoint.DisplayName,
             dataPoint.DirectionIsUp,
             dataPoint.ComparisonIsAbsolute);

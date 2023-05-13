@@ -3,7 +3,7 @@ namespace Contracts;
 public record DataPointDto(
     string Id,
     string OrganizationId,
-    string Key, 
+    string DataPointKey, 
     string DisplayName,
     bool DirectionIsUp,
     bool ComparisonIsAbsolute);

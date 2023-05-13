@@ -23,14 +23,14 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
     public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string key)
     {
         var result = 
-            await FilterByAsync(d => d.OrganizationId == organizationId && d.Key == key);
+            await FilterByAsync(d => d.OrganizationId == organizationId && d.DataPointKey == key);
         return _mapper.Map<DataPointEntry[]>(result);
     }
 
     public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         var latestDataPointEntry = await Collection
-            .Find(dpe => dpe.OrganizationId == organizationId && dpe.Key == dataPointKey)
+            .Find(dpe => dpe.OrganizationId == organizationId && dpe.DataPointKey == dataPointKey)
             .SortByDescending(entry => entry.Time)
             .FirstOrDefaultAsync();
         return _mapper.Map<DataPointEntry>(latestDataPointEntry);

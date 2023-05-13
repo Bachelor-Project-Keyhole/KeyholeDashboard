@@ -40,7 +40,7 @@ public class DataPointControllerTests : IntegrationTest
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
         result!.OrganizationId.Should().Be(organizationId);
-        result.Key.Should().Be(key);
+        result.DataPointKey.Should().Be(key);
         result.Value.Should().Be(expectedValue);
         result.Time.Should().BeCloseTo(expectedTime, TimeSpan.FromSeconds(1));
     }
@@ -130,15 +130,15 @@ public class DataPointControllerTests : IntegrationTest
         dataPointEntryEntities.Should().NotBeNull();
         var dataPointEntryEntity = dataPointEntryEntities.Single();
         dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.Key.Should().Be(dataPointEntryDto.Key);
+        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
         dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
 
         var dataPointEntities = await GetAll<DataPointEntity>();
         var dataPointEntity = dataPointEntities.Single();
         dataPointEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntity.Key.Should().Be(dataPointEntryDto.Key);
-        dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.Key);
+        dataPointEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
+        dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
         dataPointEntity.DirectionIsUp.Should().BeTrue();
     }
@@ -168,7 +168,7 @@ public class DataPointControllerTests : IntegrationTest
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
         var dataPointEntryEntity = dataPointEntryEntities.Single();
         dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.Key.Should().Be(dataPointEntryDto.Key);
+        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
         dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
 
@@ -301,7 +301,7 @@ public class DataPointControllerTests : IntegrationTest
     private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
     {
         result.OrganizationId.Should().Be(expected.OrganizationId);
-        result.Key.Should().Be(expected.Key);
+        result.DataPointKey.Should().Be(expected.DataPointKey);
         result.DisplayName.Should().Be(expected.DisplayName);
         result.ComparisonIsAbsolute.Should().Be(expected.ComparisonIsAbsolute);
         result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
@@ -313,7 +313,7 @@ public class DataPointControllerTests : IntegrationTest
         foreach (var dataPointEntry in actual.Zip(expected, (a,e) => (a, e)))
         {
             dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
-            dataPointEntry.a.Key.Should().Be(dataPointEntry.e.Key);
+            dataPointEntry.a.DataPointKey.Should().Be(dataPointEntry.e.DataPointKey);
             dataPointEntry.a.Value.Should().Be(dataPointEntry.e.Value);
             dataPointEntry.a.Time.Should().BeCloseTo(dataPointEntry.e.Time, TimeSpan.FromSeconds(1));
         }
