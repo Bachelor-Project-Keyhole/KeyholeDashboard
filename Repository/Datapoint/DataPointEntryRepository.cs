@@ -25,4 +25,9 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
             await FilterByAsync(d => d.OrganizationId == organizationId && d.Key == key);
         return _mapper.Map<DataPointEntry[]>(result);
     }
+
+    public Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -80,7 +80,13 @@ public class DataPointController : ControllerBase
             return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
         }
     }
-    
+
+    [HttpGet("entries/{organizationId}/{dataPointKey}")]
+    public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    {
+        await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
+    }
+
     [HttpGet("{organizationId}/{key}")]
     public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
     {

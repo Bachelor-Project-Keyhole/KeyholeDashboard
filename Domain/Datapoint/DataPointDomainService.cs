@@ -74,8 +74,13 @@ public class DataPointDomainService : IDataPointDomainService
         
         await _dataPointRepository.UpdateDataPoint(updatedDataPoint);
     }
-    
-    
+
+    public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    {
+        await ValidateOrganization(organizationId);
+        return await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
+    }
+
 
     private async Task ValidateOrganization(string organizationId)
     {
