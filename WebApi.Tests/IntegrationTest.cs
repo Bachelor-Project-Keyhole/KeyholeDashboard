@@ -1,10 +1,12 @@
 using System.Security.Authentication;
+using Domain;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using EphemeralMongo;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Repository;
 using Repository.Datapoint;
@@ -55,6 +57,18 @@ public class IntegrationTest : IDisposable
         services.AddScoped<IDataPointRepository, DataPointRepository>();
     }
 
+    protected async Task<string> SetupOrganization()
+    {
+        var organizationId = IdGenerator.GenerateId();
+        var organizationEntity = new OrganizationEntity
+        {
+            Id = new ObjectId(organizationId),
+            OrganizationName = "Organization"
+        };
+        await PopulateDatabase(new []{organizationEntity});
+        return organizationId;
+    }
+
     protected async Task PopulateDatabase<TDocument>(TDocument[] documents) where TDocument : IDocument
     {
         var collection = _database.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
@@ -64,7 +78,8 @@ public class IntegrationTest : IDisposable
     protected async Task<TDocument[]> GetAll<TDocument>() where TDocument : IDocument
     {
         var collection = _database.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
-        return collection.AsQueryable().ToArray();
+        var result = await collection.AsQueryable().ToListAsync();    
+        return result.ToArray();
     }
     
     private string GetCollectionName(Type documentType)

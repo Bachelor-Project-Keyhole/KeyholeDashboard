@@ -1,5 +1,5 @@
 namespace Contracts;
 
-public record DataPointEntryDto(string OrganizationId, string Key, double Value, DateTime? Time)
+public record DataPointEntryDto(string OrganizationId, string DataPointKey, double Value, DateTime? Time)
 {
 }
