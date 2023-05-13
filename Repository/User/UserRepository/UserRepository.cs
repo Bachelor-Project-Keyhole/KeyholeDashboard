@@ -1,64 +1,59 @@
 ﻿using AutoMapper;
+using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using Repository.User.UserPersistence;
-using Repository.User.UserReadModel;
-using Repository.User.UserWriteModel;
 
 namespace Repository.User.UserRepository;
 
-public class UserRepository : IUserRepository
+public class UserRepository : MongoRepository<UserPersistenceModel>, IUserRepository
 {
 
     private readonly IMapper _mapper;
-    private readonly IUserReadModel _userReadModel;
-    private readonly IUserWriteModel _userWriteModel;
-    
-    public UserRepository(
-        IMapper mapper,
-        IUserReadModel userReadModel,
-        IUserWriteModel userWriteModel)
+
+    public UserRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper) : base(dataBaseOptions)
     {
         _mapper = mapper;
-        _userReadModel = userReadModel;
-        _userWriteModel = userWriteModel;
     }
 
-    public async Task<Domain.DomainEntities.User?> GetUserById(string id)
+    public async Task<Domain.User.User?> GetUserById(string id)
     {
-        var user = await _userReadModel.GetUserById(ObjectId.Parse(id));
+        // single or default async could be better in this instance i believe
+        var user = await FindOneAsync(x => x.Id == ObjectId.Parse(id)); 
         if (user == null)
-            throw new Exception(); // TODO: Fix this with real exceptions
+            throw new UserNotFoundException($"User with given email: {id} was not found");
+        var response = _mapper.Map<UserPersistenceModel, Domain.User.User>(user);
+        return response;
         
-        var response = _mapper.Map<UserPersistenceModel, Domain.DomainEntities.User>(user);
+        
+    }
+
+    public async Task<Domain.User.User?> GetUserByEmail(string email)
+    {
+        var user = await FindOneAsync(x => x.Email == email);
+        if (user == null)
+            throw new UserNotFoundException($"User with given email: {email} was not found");
+        
+        var response = _mapper.Map<UserPersistenceModel, Domain.User.User>(user);
         return response;
     }
 
-    public async Task<Domain.DomainEntities.User?> GetUserByEmail(string email)
+    public async Task<Domain.User.User?> GetByRefreshToken(string token)
     {
-        var user = await _userReadModel.GetUserByEmail(email);
-        if (user == null)
-            throw new Exception(); // TODO: Fix this with real exceptions
-        
-        var response = _mapper.Map<UserPersistenceModel, Domain.DomainEntities.User>(user);
-        return response;
+        var user = await FindOneAsync(x => x.RefreshTokens!.Any(y => y.Token == token));
+        return user != null ? _mapper.Map<Domain.User.User>(user) : null;
     }
 
-    public async Task<Domain.DomainEntities.User?> GetByRefreshToken(string token)
-    {
-        var user = await _userReadModel.GetByRefreshToken(token);
-        return user != null ? _mapper.Map<Domain.DomainEntities.User>(user) : null;
-    }
-
-    public async Task UpdateUser(Domain.DomainEntities.User user)
+    public async Task UpdateUser(Domain.User.User user)
     {
         var persistenceUser = _mapper.Map<UserPersistenceModel>(user);
-        await _userWriteModel.UpdateUser(persistenceUser);
+        await ReplaceOneAsync(persistenceUser);
     }
 
-    public async Task CreateUser(Domain.DomainEntities.User user)
+    public async Task CreateUser(Domain.User.User user)
     {
         var persistenceUser = _mapper.Map<UserPersistenceModel>(user);
-        await _userWriteModel.InsertUser(persistenceUser);
+        await InsertOneAsync(persistenceUser);
     }
 }

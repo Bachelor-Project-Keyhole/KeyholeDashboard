@@ -1,10 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable CollectionNeverUpdated.Global
 
 #pragma warning disable CS8618
 
-namespace Domain.DomainEntities;
+namespace Domain.User;
 
 public class User
 {

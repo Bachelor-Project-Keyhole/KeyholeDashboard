@@ -5,7 +5,7 @@ using Application.JWT.Model;
 using Application.User.Model;
 using Application.User.UserService;
 using AutoMapper;
-using Domain.DomainEntities;
+using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
@@ -54,7 +54,7 @@ public class AuthenticationController : BaseApiController
     [Route("logout")]
     public async Task<IActionResult> Logout(LogoutRequest request)
     {
-        await _userService.Revoke(request);
+        //await _userService.Revoke(request);
         return Ok(new {message = "Token revoked"});
     }
 

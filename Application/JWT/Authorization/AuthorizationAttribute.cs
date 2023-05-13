@@ -1,4 +1,4 @@
-﻿using Domain.DomainEntities;
+﻿using Domain.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -30,7 +30,7 @@ public class AuthorizationAttribute : Attribute, IAuthorizationFilter
         // Authorization
         // TODO: Create different level of access based on access level enum value
         
-        var user = (Domain.DomainEntities.User) context.HttpContext.Items["User"];
+        var user = (Domain.User.User) context.HttpContext.Items["User"];
         if (user == null || !_accessLevels.Any(requiredLevels => user.AccessLevels.Contains(requiredLevels)))
         {
             context.Result = new JsonResult(new {message = "Unauthorized"})

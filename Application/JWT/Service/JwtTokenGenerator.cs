@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.JWT.Model;
-using Domain.DomainEntities;
+using Domain.User;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -18,7 +18,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings.Value;
     }
     
-    public (string, DateTime) GenerateToken(Domain.DomainEntities.User user)
+    public (string, DateTime) GenerateToken(Domain.User.User user)
     {
         // create claims and add user Access Levels
         var claims = new List<Claim>

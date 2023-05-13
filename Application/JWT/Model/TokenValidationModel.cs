@@ -1,4 +1,4 @@
-﻿using Domain.DomainEntities;
+﻿using Domain.User;
 
 namespace Application.JWT.Model;
 

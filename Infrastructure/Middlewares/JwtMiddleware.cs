@@ -2,9 +2,9 @@
 using Application.JWT.Model;
 using Application.JWT.Service;
 using Application.User.UserService;
-using Domain.DomainEntities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Middlewares;
@@ -30,23 +30,26 @@ public class JwtMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        var user = _jwtTokenGenerator.ValidateToken(token);
-        if (user != null)
+        using (var scope = context.RequestServices.CreateScope())
         {
-            // attach user and access level information to context on successful jwt validation
-            context.Items["User"] = await _userService.GetUserById(user.Id);
-            // check access level
-            var accessLevels = user.AccessLevel;
-            var authorizeAttribute = context.GetEndpoint()?.Metadata.GetMetadata<AuthorizationAttribute>()?.GetAccessLevel();
-            if (authorizeAttribute != null && !accessLevels.Any(x => authorizeAttribute.Contains(x)))
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var user = _jwtTokenGenerator.ValidateToken(token);
+            if (user != null)
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Unauthorized");
-                return;
+                // attach user and access level information to context on successful jwt validation
+                context.Items["User"] = await _userService.GetUserById(user.Id);
+                // check access level
+                var accessLevels = user.AccessLevel;
+                var authorizeAttribute = context.GetEndpoint()?.Metadata.GetMetadata<AuthorizationAttribute>()?.GetAccessLevel();
+                if (authorizeAttribute != null && !accessLevels.Any(x => authorizeAttribute.Contains(x)))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsync("Unauthorized");
+                    return;
+                }
             }
         }
-
+        
         await _next(context);
     }
 

@@ -1,4 +1,8 @@
 using System.Security.Authentication;
+using Application.Authentication.AuthenticationService;
+using Application.Email.EmailService;
+using Application.JWT.Service;
+using Application.User.UserService;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using EphemeralMongo;
@@ -9,6 +13,8 @@ using MongoDB.Driver;
 using Repository;
 using Repository.Datapoint;
 using Repository.Organization;
+using Repository.TwoFactor;
+using Repository.User.UserRepository;
 
 namespace WebApi.Tests;
 
@@ -49,7 +55,13 @@ public class IntegrationTest : IDisposable
             databaseOptions.MongoDbDatabaseName = TestDatabaseName;
         });
 
-        services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+        services.AddTransient<IUserService, UserService>();
+        services.AddTransient<IEmailService, EmailService>();
+        services.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
+        services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddTransient<IUserRepository, UserRepository>();
+        services.AddTransient<ITwoFactorRepository, TwoFactorRepository>();
+        services.AddTransient<IOrganizationRepository, OrganizationRepository>();
         services.AddScoped<IDataPointDomainService, DataPointDomainService>();
         services.AddScoped<IDataPointRepository, DataPointRepository>();
         services.AddScoped<IDataPointRepository, DataPointRepository>();

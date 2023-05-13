@@ -1,8 +1,8 @@
 ﻿using Application.JWT.Model;
 using Application.JWT.Service;
 using AutoMapper;
-using Domain.DomainEntities;
 using Domain.RepositoryInterfaces;
+using Domain.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -92,7 +92,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         await _userRepository.UpdateUser(user);
     }
 
-    private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.DomainEntities.User user, string ipAddress, string reason)
+    private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.User.User user, string ipAddress, string reason)
     {
         if (!string.IsNullOrEmpty(refreshToken.ReplacementToken))
         {
@@ -113,7 +113,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         token.ReplacementToken = replacedByToken;
     }
     
-    private void RemoveOldRefreshTokens(Domain.DomainEntities.User user)
+    private void RemoveOldRefreshTokens(Domain.User.User user)
     {
         // remove old inactive refresh tokens from user based on TTL in app settings
         user?.RefreshTokens?.RemoveAll(x => 

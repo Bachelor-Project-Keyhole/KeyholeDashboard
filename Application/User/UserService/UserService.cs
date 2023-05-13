@@ -5,9 +5,11 @@ using Application.JWT.Model;
 using Application.Organization.Model;
 using Application.User.Model;
 using AutoMapper;
-using Domain.DomainEntities;
+using Domain.Exceptions;
 using Domain.Organization;
 using Domain.RepositoryInterfaces;
+using Domain.TwoFactor;
+using Domain.User;
 using Microsoft.AspNetCore.Http;
 using MongoDB.Bson;
 
@@ -31,7 +33,8 @@ public class UserService : IUserService
         IUserAuthenticationService userAuthentication,
         ITwoFactorRepository twoFactorRepository,
         IEmailService emailService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor
+        )
     {
         _mapper = mapper;
         _userRepository = userRepository;
@@ -42,22 +45,22 @@ public class UserService : IUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Domain.DomainEntities.User?> GetUserById(string id)
+    public async Task<Domain.User.User?> GetUserById(string id)
     {
         return await _userRepository.GetUserById(id);
     }
 
-    public async Task<Domain.DomainEntities.User?> GetUserByEmail(string email)
+    public async Task<Domain.User.User?> GetUserByEmail(string email)
     {
         return await _userRepository.GetUserByEmail(email);
     }
 
-    public async Task<Domain.DomainEntities.User?> GetByRefreshToken(string token)
+    public async Task<Domain.User.User?> GetByRefreshToken(string token)
     {
         return await _userRepository.GetByRefreshToken(token);
     }
 
-    public async Task UpdateUser(Domain.DomainEntities.User user)
+    public async Task UpdateUser(Domain.User.User user)
     {
         await _userRepository.UpdateUser(user);
     }
@@ -67,7 +70,11 @@ public class UserService : IUserService
         if (request.Password.Length < 8)
             throw new ApplicationException("Password too short");
 
-        var userToInsert = new Domain.DomainEntities.User
+        var user = await _userRepository.GetUserByEmail(request.Email);
+        if (user != null)
+            throw new UserEmailTakenException($"This email: {request.Email} is already taken");
+
+        var userToInsert = new Domain.User.User
         {
             Id = ObjectId.GenerateNewId().ToString(),
             Email = request.Email,
@@ -111,11 +118,11 @@ public class UserService : IUserService
     {
         // Accept refresh token either from cookies or request body
         var token = request.Token ?? _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
-
+    
         if (string.IsNullOrEmpty(token))
             // TODO: Custom exceptions
             throw new ApplicationException("Token is required");
-
+    
         await _userAuthentication.RevokeToken(token);
     }
 

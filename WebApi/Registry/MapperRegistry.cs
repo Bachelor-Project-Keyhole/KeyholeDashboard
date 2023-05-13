@@ -2,6 +2,7 @@
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
+using Domain.User;
 using MongoDB.Bson;
 using Repository.Datapoint;
 using Repository.User.UserPersistence;
@@ -23,9 +24,9 @@ static class MapperRegistry
 
             #region User
 
-            cfg.CreateMap<Domain.DomainEntities.User, UserPersistenceModel>().ReverseMap();
-            cfg.CreateMap<Domain.DomainEntities.RefreshToken, PersistenceRefreshToken>().ReverseMap();
-            cfg.CreateMap<Domain.DomainEntities.RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
+            cfg.CreateMap<User, UserPersistenceModel>().ReverseMap();
+            cfg.CreateMap<RefreshToken, PersistenceRefreshToken>().ReverseMap();
+            cfg.CreateMap<RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
             #endregion
             
             #region Email

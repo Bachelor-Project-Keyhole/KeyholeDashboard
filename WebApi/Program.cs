@@ -35,16 +35,14 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json").Build();
 
 // Configure database options
-builder.Services.Configure<DatabaseOptions>(configuration.GetSection("ConnectionStrings"));
+builder.Services.Configure<DatabaseOptions>(configuration.GetSection("DatabaseOptions"));
 
-var client = new MongoClient(configuration.GetConnectionString("MongoDbConnectionString"));
-var database = client.GetDatabase(configuration.GetConnectionString("MongoDbDatabaseName"));
 #endregion
 
 #region Register dependecy injections and automapper
 
 builder.Services.RegisterAutoMapper();
-builder.Services.RegisterPersistence(database);
+builder.Services.RegisterPersistence();
 
 #endregion
 

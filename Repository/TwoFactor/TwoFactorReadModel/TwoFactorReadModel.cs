@@ -14,7 +14,7 @@ public class TwoFactorReadModel : ITwoFactorReadModel
 
     public async Task<TwoFactorPersistence?> GetByIdentifier(string identifier)
     {
-        return await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.DomainEntities.TwoFactor))
+        return await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.TwoFactor.TwoFactor))
             .AsQueryable().Where(x => x.Identifier == identifier).SingleOrDefaultAsync();
     }
 }

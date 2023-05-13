@@ -3,7 +3,6 @@ using Application.JWT.Authorization;
 using Application.Organization.Model;
 using Application.User.Model;
 using Application.User.UserService;
-using Domain.DomainEntities;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
@@ -36,13 +35,13 @@ public class OrganizationController : BaseApiController
         return Ok(response);
     }
 
-    [Authorization(UserAccessLevel.Admin)]
-    [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Invite user into the organization")]
-    [Route("invite")]
-    public async Task<IActionResult> InviteUserToOrganization()
-    {
-        return Ok();
-    }
+    // [Authorization(UserAccessLevel.Admin)]
+    // [HttpPost]
+    // [SwaggerResponse((int) HttpStatusCode.OK, "Invite user into the organization")]
+    // [Route("invite")]
+    // public async Task<IActionResult> InviteUserToOrganization()
+    // {
+    //     return Ok();
+    // }
     
 }

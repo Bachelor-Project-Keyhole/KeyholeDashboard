@@ -1,6 +1,6 @@
 ﻿// ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
-namespace Domain.DomainEntities;
+namespace Domain.TwoFactor;
 
 public class TwoFactor
 {
