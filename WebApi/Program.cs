@@ -1,6 +1,7 @@
 using System.Reflection;
 using Application.Email.Helper;
 using Application.JWT.Model;
+using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
@@ -115,6 +116,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
+app.UseErrorHandlerMiddleware();
 app.UseCors(myAllowSpecificOrigins);
 app.UseAuthorization();
 app.MapControllers();
