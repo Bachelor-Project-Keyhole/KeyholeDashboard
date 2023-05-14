@@ -31,11 +31,12 @@ public class UserAuthenticationService : IUserAuthenticationService
     }
     public async Task<AuthenticationResponse> Authenticate(AuthenticateRequest model)
     {
+        var httpContext = _contextAccessor.HttpContext;
         var user = await _userRepository.GetUserByEmail(model.Email);
         if (user == null)
             throw new Exception(); // TODO: Fix exception
         var (tokenInfo, jwtExpiration) = _tokenGenerator.GenerateToken(user);
-        var refreshToken = _tokenGenerator.GenerateRefreshToken(GetIpAddress(_contextAccessor.HttpContext)); // Not sure if it is possible to have in-active context at this point.
+        var refreshToken = _tokenGenerator.GenerateRefreshToken(GetIpAddress(httpContext)); // Not sure if it is possible to have in-active context at this point.
 
         var refreshTokenFromDb = _mapper.Map<RefreshToken>(refreshToken);
 
@@ -132,7 +133,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         response.Cookies.Append("refreshToken", token, cookieOptions);
     }
 
-    private string GetIpAddress(HttpContext httpContext)
+    private string GetIpAddress(HttpContext? httpContext)
     {
         // Get source ip address for the current request
         if (httpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
