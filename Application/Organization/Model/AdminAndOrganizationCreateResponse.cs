@@ -1,8 +1,9 @@
-﻿using Domain.DomainEntities;
+﻿using Domain.User;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
 
-namespace Application.User.Model;
+namespace Application.Organization.Model;
 
 public class AdminAndOrganizationCreateResponse
 {

@@ -1,45 +1,40 @@
 ﻿using AutoMapper;
 using Domain.RepositoryInterfaces;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using Repository.TwoFactor.TwoFactorReadModel;
 using Repository.TwoFactor.TwoFactorWriteModel;
 
 namespace Repository.TwoFactor;
 
-public class TwoFactorRepository : ITwoFactorRepository
+public class TwoFactorRepository : MongoRepository<TwoFactorPersistence>, ITwoFactorRepository
 {
-    private readonly ITwoFactorReadModel _twoFactorReadModel;
-    private readonly ITwoFactorWriteModel _twoFactorWriteModel;
+
     private readonly IMapper _mapper;
 
-    public TwoFactorRepository(
-        ITwoFactorReadModel twoFactorReadModel,
-        ITwoFactorWriteModel twoFactorWriteModel,
-        IMapper mapper)
+    public TwoFactorRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper) : base(dataBaseOptions)
     {
-        _twoFactorReadModel = twoFactorReadModel;
-        _twoFactorWriteModel = twoFactorWriteModel;
         _mapper = mapper;
     }
-    public async Task<Domain.DomainEntities.TwoFactor?> GetByIdentifier(string email)
+    public async Task<Domain.TwoFactor.TwoFactor?> GetByIdentifier(string email)
     {
-        var twoFactorPersistence =  await _twoFactorReadModel.GetByIdentifier(email);
+        var twoFactorPersistence = await FindOneAsync(x => x.Identifier == email);
         if (twoFactorPersistence == null)
             return null;
 
-        var twoFactor = _mapper.Map<Domain.DomainEntities.TwoFactor>(twoFactorPersistence);
+        var twoFactor = _mapper.Map<Domain.TwoFactor.TwoFactor>(twoFactorPersistence);
         return twoFactor;
 
     }
 
     public async Task Delete(string id)
     {
-        await _twoFactorWriteModel.Delete(ObjectId.Parse(id));
+        await DeleteOneAsync(x => x.Id == ObjectId.Parse(id));
     }
 
-    public async Task Insert(Domain.DomainEntities.TwoFactor twoFactor)
+    public async Task Insert(Domain.TwoFactor.TwoFactor twoFactor)
     {
         var twoFactorPersistence = _mapper.Map<TwoFactorPersistence>(twoFactor);
-        await _twoFactorWriteModel.Insert(twoFactorPersistence);
+        await InsertOneAsync(twoFactorPersistence);
     }
 }

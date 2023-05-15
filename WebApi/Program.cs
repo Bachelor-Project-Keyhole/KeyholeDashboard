@@ -37,15 +37,12 @@ var configuration = new ConfigurationBuilder()
 // Configure database options
 builder.Services.Configure<DatabaseOptions>(configuration.GetSection("DatabaseOptions"));
 
-var client = new MongoClient(configuration.GetConnectionString("MongoDbConnString"));
-var database = client.GetDatabase(configuration.GetConnectionString("MongoDbConnSchema"));
-
 #endregion
 
 #region Register dependecy injections and automapper
 
 builder.Services.RegisterAutoMapper();
-builder.Services.RegisterPersistence(database);
+builder.Services.RegisterPersistence();
 
 #endregion
 
@@ -113,8 +110,13 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 var app = builder.Build();
 
 // Build HTTP request pipeline
+
+app.UseMiddleware<JwtMiddleware>();
+
+
 app.UseSwagger();
 app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
 app.UseCors(myAllowSpecificOrigins);

@@ -1,18 +1,19 @@
 ﻿using System.Text.Json.Serialization;
-using Domain.DomainEntities;
+using Domain.User;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 // ReSharper disable CollectionNeverUpdated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable CollectionNeverQueried.Global
 #pragma warning disable CS8618
 
 namespace Repository.User.UserPersistence;
 
-public class UserPersistenceModel
+[BsonCollection("user")]
+public class UserPersistenceModel : Document
 {
-    public ObjectId Id { get; set; }
+    // TODO: find all usages where id is being send, instead of being generated here
     public string Email { get; set; }
-    public string Password { get; set; }
     public string? OwnedOrganizationId { get; set; }    // If is organization owner, store the id. (need to discuss if storing id is enough)
     public string? MemberOfOrganizationId { get; set; } // Store organization id of which user is part of.
     
@@ -40,9 +41,9 @@ public class PersistenceRefreshToken
     public DateTime CreationTime { get; set; }                      // Date of token creation
     public string CreatedByIpAddress { get; set; }                  // Ip on which token was created
     public DateTime? Revoked { get; set; }                          // Time when token got revoked
-    public string RevokedByIpAddress { get; set; }                  // Ip on which token was revoked
-    public string ReplacementToken { get; set; }                    // If token was replaced due to rotation
-    public string ReasonOfRevoke { get; set; }                      // Why token got revoked
+    public string? RevokedByIpAddress { get; set; }                  // Ip on which token was revoked
+    public string? ReplacementToken { get; set; }                    // If token was replaced due to rotation
+    public string? ReasonOfRevoke { get; set; }                      // Why token got revoked
     private bool IsExpired => DateTime.UtcNow >= ExpirationTime;    // did the token expired due to TTL (Time-To-Live) time
     public bool IsRevoked => Revoked != null;                       // Was token revoked ?
     public bool IsActive => !IsRevoked && !IsExpired;               // Is token still active.
