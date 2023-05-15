@@ -47,12 +47,18 @@ public class UserService : IUserService
 
     public async Task<Domain.User.User?> GetUserById(string id)
     {
-        return await _userRepository.GetUserById(id);
+        var user = await _userRepository.GetUserById(id);
+        if (user == null)
+            throw new UserNotFoundException($"User with given email: {id} was not found");
+        return user;
     }
 
     public async Task<Domain.User.User?> GetUserByEmail(string email)
     {
-        return await _userRepository.GetUserByEmail(email);
+        var user = await _userRepository.GetUserByEmail(email);
+        if (user == null)
+            throw new UserNotFoundException($"User with given email: {email} was not found");
+        return user;
     }
 
     public async Task<Domain.User.User?> GetByRefreshToken(string token)
@@ -118,10 +124,9 @@ public class UserService : IUserService
     {
         // Accept refresh token either from cookies or request body
         var token = request.Token ?? _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
-    
+
         if (string.IsNullOrEmpty(token))
-            // TODO: Custom exceptions
-            throw new ApplicationException("Token is required");
+            throw new RevokeTokenBadRequest("Token is required");
     
         await _userAuthentication.RevokeToken(token);
     }
@@ -130,31 +135,29 @@ public class UserService : IUserService
     {
         // We could could try to get admin user by refresh token that could be in the cookies, but if cookies are disable that might be a problem
         var adminUser = await _userRepository.GetUserById(request.AdminUserId);
-        if (adminUser == null || !adminUser.AccessLevels.Contains(UserAccessLevel.Admin))
-            // TODO: Use overwritten exceptions
-            throw new ApplicationException("Admin user was not found");
-        
-        if (!adminUser.AccessLevels.Contains(UserAccessLevel.Admin))
-            // TODO: Use overwritten exceptions
-            throw new ApplicationException("Admin user seems that it does not have admin privileges");
+        if (adminUser == null)
+            throw new UserNotFoundException("Admin user was not found");
+            
         
         var user = await _userRepository.GetUserById(request.UserId);
         if (user == null)
-            // TODO: Use overwritten exceptions
-            throw new ApplicationException("User not found");
-        
-        if(adminUser.OwnedOrganizationId != user.MemberOfOrganizationId || adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
-            // TODO: Use overwritten exceptions
-            throw new ApplicationException("Admin and user are not in the same organization");
+            throw new UserNotFoundException("User not found");
 
-        //TODO: Stop wanted set access level is the same as the user has
+        if (user.AccessLevels.Contains(UserAccessLevel.Admin) && adminUser.OwnedOrganizationId == null)
+            throw new AccessLevelForbiddenException("Only owner of organization can change other admins access");
+
+        if (adminUser.OwnedOrganizationId != user.MemberOfOrganizationId || adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
+            throw new AccessLevelForbiddenException("Admin and user are not in the same organization");
+            
+
+   
         
         user.AccessLevels = request.SetAccessLevel switch
         {
             UserAccessLevel.Admin => new List<UserAccessLevel> {UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer},
             UserAccessLevel.Editor => new List<UserAccessLevel> {UserAccessLevel.Editor, UserAccessLevel.Viewer},
             UserAccessLevel.Viewer => new List<UserAccessLevel> {UserAccessLevel.Viewer},
-            _ => throw new Exception("Access level does not exist") // TODO: Use overwritten exceptions
+            _ => throw new AccessLevelForbiddenException("Access level does not exist")
         };
 
         await _userRepository.UpdateUser(user);
@@ -176,8 +179,7 @@ public class UserService : IUserService
         var twoFactor = await twoFactorTask;
 
         if (user == null) 
-            //TODO: User overwritten exceptions
-            throw new ApplicationException("User not found");
+            throw new UserNotFoundException($"User was not found with email: {request.Email}");
 
         var generator = new Random();
         var token = generator.Next(0, 1000000).ToString("D6");
