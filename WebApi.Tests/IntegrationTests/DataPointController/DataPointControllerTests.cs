@@ -32,7 +32,7 @@ public class DataPointControllerTests : IntegrationTest
         
         //Act
         var httpResponseMessage = 
-            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/{organizationId}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/last/{organizationId}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -46,17 +46,22 @@ public class DataPointControllerTests : IntegrationTest
     }
     
     [Fact]
-    public async Task GetAllDataPoints_ReturnsAllDataPointsBelongingToOrganization()
+    public async Task GetAllDataPointsWithLatestValues_ReturnsAllDataPointsBelongingToOrganization()
     {
         //Arrange
         var organizationId = await SetupOrganization();
+        var expectedKeys = new[]
+        {
+            "testKey1",
+            "testKey2"
+        };
         
         var datapointEntities = new[]
         {
-            new DataPointEntity(organizationId, "key", "DisplayName"),
-            new DataPointEntity(organizationId, "key", "DisplayName"),
-            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
-            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName")
+            new DataPointEntity(organizationId, expectedKeys[0], "DisplayName", latestValue: 42),
+            new DataPointEntity(organizationId, expectedKeys[1], "DisplayName", latestValue: 23),
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60),
+            new DataPointEntity(IdGenerator.GenerateId(), "otherKey", "DisplayName", latestValue: 100)
         };
         await PopulateDatabase(datapointEntities);
 
@@ -65,13 +70,17 @@ public class DataPointControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointDto[]>(
+        var result = JsonConvert.DeserializeObject<DataPointWithValueDto[]>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().HaveCount(2);
+        var dataPointWithValueDto = result?.First(dto => dto.DataPointKey == expectedKeys[0]);
+        dataPointWithValueDto?.LatestValue.Should().Be(42);
+        var dataPointWithValueDto2 = result?.First(dto => dto.DataPointKey == expectedKeys[1]);
+        dataPointWithValueDto2?.LatestValue.Should().Be(23);
     }
     
     [Fact]
-    public async Task GetAllDataPoints_ReturnsEmptyArray_WhenNoDataPointsArePresent()
+    public async Task GetAllDataPointsWithLatestValues_ReturnsEmptyArray_WhenNoDataPointsArePresent()
     {
         //Arrange
         var organizationId = await SetupOrganization();
@@ -87,13 +96,13 @@ public class DataPointControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointDto[]>(
+        var result = JsonConvert.DeserializeObject<DataPointWithValueDto[]>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().BeEmpty();
     }
     
     [Fact]
-    public async Task GetAllDataPoints_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
+    public async Task GetAllDataPointsWithLatestValues_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
         await SetupOrganization();
@@ -141,6 +150,7 @@ public class DataPointControllerTests : IntegrationTest
         dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
         dataPointEntity.DirectionIsUp.Should().BeTrue();
+        dataPointEntity.LatestValue.Should().Be(dataPointEntryDto.Value);
     }
     
     [Fact]
@@ -174,6 +184,7 @@ public class DataPointControllerTests : IntegrationTest
 
         var dataPointEntities = await GetAll<DataPointEntity>();
         dataPointEntities.Should().HaveCount(1);
+        dataPointEntities.Single().LatestValue.Should().Be(dataPointEntryDto.Value);
     }
     
     [Fact]
@@ -222,7 +233,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(testEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}",UriKind.Relative));
+        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organizationId}/{key}",UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
