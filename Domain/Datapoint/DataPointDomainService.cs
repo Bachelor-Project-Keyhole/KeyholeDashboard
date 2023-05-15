@@ -31,14 +31,22 @@ public class DataPointDomainService : IDataPointDomainService
         var dataPoint = await _dataPointRepository.FindDataPointByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
         if (dataPoint is null)
         {
-            await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.DataPointKey);
+            await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.DataPointKey, dataPointEntry.Value);
+        }
+        else
+        {
+            dataPoint.LatestValue = dataPointEntry.Value;
+            await UpdateDataPoint(dataPoint);
         }
         await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
     }
 
-    private async Task CreateDataPoint(string organizationId, string key)
+    private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
     {
-        var dataPoint = new DataPoint(organizationId, key);
+        var dataPoint = new DataPoint(organizationId, key)
+        {
+            LatestValue = dataPointLatestValue
+        };
         await _dataPointRepository.CreateDataPoint(dataPoint);
     }
 
@@ -69,6 +77,7 @@ public class DataPointDomainService : IDataPointDomainService
             dataPoint.OrganizationId,
             dataPoint.DataPointKey,
             dataPoint.DisplayName,
+            dataPoint.LatestValue,
             dataPoint.DirectionIsUp,
             dataPoint.ComparisonIsAbsolute);
         
@@ -80,7 +89,6 @@ public class DataPointDomainService : IDataPointDomainService
         await ValidateOrganization(organizationId);
         return await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
     }
-
 
     private async Task ValidateOrganization(string organizationId)
     {
