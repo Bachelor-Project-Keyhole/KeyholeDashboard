@@ -18,6 +18,4 @@ public class CreateAdminAndOrganizationRequest
     
     // Organization
     public string OrganizationName { get; set; }
-    public string Country { get; set; }
-    public string Address { get; set; }
 }

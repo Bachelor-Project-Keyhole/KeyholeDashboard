@@ -1,10 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable CollectionNeverUpdated.Global
 
 #pragma warning disable CS8618
 
-namespace Domain.DomainEntities;
+namespace Domain.User;
 
 public class User
 {
@@ -35,9 +36,9 @@ public class RefreshToken
     public DateTime CreationTime { get; set; }                      // Date of token creation
     public string CreatedByIpAddress { get; set; }                  // Ip on which token was created
     public DateTime? Revoked { get; set; }                          // Time when token got revoked
-    public string RevokedByIpAddress { get; set; }                  // Ip on which token was revoked
-    public string ReplacementToken { get; set; }                    // If token was replaced due to rotation
-    public string ReasonOfRevoke { get; set; }                      // Why token got revoked
+    public string? RevokedByIpAddress { get; set; }                  // Ip on which token was revoked
+    public string? ReplacementToken { get; set; }                    // If token was replaced due to rotation
+    public string? ReasonOfRevoke { get; set; }  
     private bool IsExpired => DateTime.UtcNow >= ExpirationTime;    // did the token expired due to TTL (Time-To-Live) time
     public bool IsRevoked => Revoked != null;                       // Was token revoked ?
     public bool IsActive => !IsRevoked && !IsExpired;               // Is token still active.

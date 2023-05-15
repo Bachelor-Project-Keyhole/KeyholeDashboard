@@ -14,13 +14,13 @@ public class TwoFactorWriteModel : ITwoFactorWriteModel
 
     public async Task Insert(TwoFactorPersistence twoFactor)
     {
-        await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.DomainEntities.TwoFactor))
+        await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.TwoFactor.TwoFactor))
             .InsertOneAsync(twoFactor);
     }
 
     public async Task Delete(ObjectId id)
     {
-        await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.DomainEntities.TwoFactor))
+        await _database.GetCollection<TwoFactorPersistence>(nameof(Domain.TwoFactor.TwoFactor))
             .DeleteOneAsync(x => x.Id == id);
     }
 }

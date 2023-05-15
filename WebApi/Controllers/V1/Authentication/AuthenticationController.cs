@@ -5,12 +5,12 @@ using Application.JWT.Model;
 using Application.User.Model;
 using Application.User.UserService;
 using AutoMapper;
+using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 
 namespace WebApi.Controllers.V1.Authentication;
-
 [Route("api/v1/[controller]")]
 public class AuthenticationController : BaseApiController
 {
@@ -29,24 +29,9 @@ public class AuthenticationController : BaseApiController
     }
 
     /// <summary>
-    /// Register an user alongside the organization
-    /// </summary>
-    /// <param name="request"> User and company registration parameters </param>
-    /// <returns></returns>
-    [AllowAnonymous]
-    [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Register an user alongside the organization", typeof(AdminAndOrganizationCreateResponse))]
-    [Route("register")]
-    public async Task<IActionResult> CreateAdminUser([FromBody] CreateAdminAndOrganizationRequest request)
-    {
-        var response = await _userService.CreateAdminUserAndOrganization(request);
-        return Ok(response);
-    }
-
-    /// <summary>
     /// Login/Authenticate
     /// </summary>
-    /// <param name="loginRequest"> Credentials </param>
+    /// <param name="loginRequest"> Credentials </param>z
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
@@ -57,12 +42,43 @@ public class AuthenticationController : BaseApiController
         var response = await _userAuthenticationService.Authenticate(loginRequest);
         return Ok(response);
     }
+    
+    /// <summary>
+    /// Rotate Refresh token if it is still active (refresh token has to be in cookies)
+    /// </summary>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [Route("token/refresh")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+        var response = await _userAuthenticationService.RefreshToken(refreshToken);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Refresh token when cookies disabled
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [Route("token/refresh/cookie")]
+    public async Task<IActionResult> RefreshTokenNonCookie(AddNonRefreshTokenRequest request)
+    {
+        var response = await _userAuthenticationService.RefreshToken(request.Token);
+        return Ok(response);
+    }
 
     /// <summary>
     /// Logout / Revoke token
     /// </summary>
-    /// <param name="request"> If cookies qre disabled, token can be given manually </param>
+    /// <param name="request"> Refresh token(this is null in case the token can be retrieved from cookies)</param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Logout / Revoke token", typeof(AuthenticationResponse))]
     [Route("logout")]
@@ -71,6 +87,7 @@ public class AuthenticationController : BaseApiController
         await _userService.Revoke(request);
         return Ok(new {message = "Token revoked"});
     }
+    
 
     /// <summary>
     /// Change access level to user
@@ -81,6 +98,7 @@ public class AuthenticationController : BaseApiController
     /// SetAccessLevel -> to level the user access should be set
     /// </param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Change access level to user",typeof(UserChangeAccessResponse))]
     [Route("access/{id}")]

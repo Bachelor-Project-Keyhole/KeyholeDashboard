@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.JWT.Model;
+using Domain.User;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -17,7 +18,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings.Value;
     }
     
-    public (string, DateTime) GenerateToken(Domain.DomainEntities.User user)
+    public (string, DateTime) GenerateToken(Domain.User.User user)
     {
         // create claims and add user Access Levels
         var claims = new List<Claim>
@@ -46,7 +47,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         return (tokenHandler.WriteToken(token), expiration);
     }
 
-    public string ValidateToken(string? token)
+    public TokenValidationModel? ValidateToken(string? token)
     {
         if (token == null)
             return null;
@@ -66,8 +67,16 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken) validatedToken;
-            var userId = jwtToken.Claims.First(x => x.Type == "id").Value;
-            return userId;
+            var userId = jwtToken.Claims.First(x => x.Type == "nameid").Value;
+            // var userEmail = jwtToken.Claims.First(x => x.Type == "Email").Value;
+            var accessLevels = jwtToken.Claims.Where(x => x.Type == "role").Select(x => x.Value);
+
+
+            return new TokenValidationModel
+            {
+                Id = userId,
+                AccessLevel = accessLevels.Select(Enum.Parse<UserAccessLevel>).ToList()
+            };
         }
         catch (Exception e)
         {
@@ -76,9 +85,9 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         }
     }
 
-    public JwtRefreshToken GenerateRefreshToken(string ipAddress)
+    public RefreshToken GenerateRefreshToken(string ipAddress)
     {
-        var refreshToken = new JwtRefreshToken
+        var refreshToken = new RefreshToken
         {
             Token = GenerateUniqueToken(),
             ExpirationTime = DateTime.UtcNow.AddDays(7),
@@ -88,6 +97,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
         return refreshToken;
     }
+    
 
     private string GenerateUniqueToken()
     {

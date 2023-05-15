@@ -1,9 +1,11 @@
 ﻿using Application.Email.Helper;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Application.Email.EmailService;
 
@@ -11,9 +13,11 @@ public class EmailService : IEmailService
 {
     private readonly EmailAuth _email;
 
-    public EmailService(IOptions<EmailAuth> mailkit)
+    public EmailService(
+        IOptions<EmailAuth> mailkit)
     {
         _email = mailkit.Value;
+
     }
     
     public async Task<string> SendEmail(string toEmail, string emailBody)
@@ -27,6 +31,7 @@ public class EmailService : IEmailService
             //TODO: Create html email body template in html and css 
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
+                // integrate html reading
                 Text = emailBody
             };
 

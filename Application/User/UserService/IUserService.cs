@@ -1,13 +1,16 @@
 ﻿using Application.JWT.Model;
+using Application.Organization.Model;
 using Application.User.Model;
+using Repository.User.UserPersistence;
 
 namespace Application.User.UserService;
 
 public interface IUserService
 {
-    Task<Domain.DomainEntities.User?> GetUserByEmail(string email);
-    Task<Domain.DomainEntities.User?> GetByRefreshToken(string token);
-    Task UpdateUser(Domain.DomainEntities.User user);
+    Task<Domain.User.User?> GetUserById(string id);
+    Task<Domain.User.User?> GetUserByEmail(string email);
+    Task<Domain.User.User?> GetByRefreshToken(string token);
+    Task UpdateUser(Domain.User.User user);
     Task<AdminAndOrganizationCreateResponse> CreateAdminUserAndOrganization(CreateAdminAndOrganizationRequest request);
     Task Revoke(LogoutRequest request);
     Task<UserChangeAccessResponse> SetAccessLevel(ChangeUserAccessRequest request);
