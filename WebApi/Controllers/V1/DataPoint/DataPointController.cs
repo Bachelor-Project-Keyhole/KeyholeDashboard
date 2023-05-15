@@ -42,14 +42,14 @@ public class DataPointController : ControllerBase
         
     }
 
-    [HttpGet("entries/{organizationId}/{dataPointKey}")]
+    [HttpGet("entries/last/{organizationId}/{dataPointKey}")]
     public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
         return _mapper.Map<DataPointEntryDto>(dataPointEntry);
     }
 
-    [HttpGet("{organizationId}/{key}")]
+    [HttpGet("entries/{organizationId}/{key}")]
     public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
     {
         var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);

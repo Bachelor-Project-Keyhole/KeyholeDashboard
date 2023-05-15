@@ -32,7 +32,7 @@ public class DataPointControllerTests : IntegrationTest
         
         //Act
         var httpResponseMessage = 
-            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/{organizationId}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/last/{organizationId}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -233,7 +233,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(testEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}",UriKind.Relative));
+        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organizationId}/{key}",UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
