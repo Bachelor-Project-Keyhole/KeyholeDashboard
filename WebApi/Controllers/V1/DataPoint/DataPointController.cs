@@ -1,7 +1,6 @@
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
-using Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers.V1.DataPoint;
@@ -21,86 +20,40 @@ public class DataPointController : ControllerBase
     [HttpGet("{organizationId}")]
     public async Task<ActionResult<DataPointDto[]>> GetAllDataPoints(string organizationId)
     {
-        try
-        {
-            var allDataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
-            return _mapper.Map<DataPointDto[]>(allDataPoints);
-        }
-        catch (OrganizationNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception.Message);
-            return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
-        }
+        var allDataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
+        return _mapper.Map<DataPointDto[]>(allDataPoints);
+        
     }
 
     [HttpPatch]
     public async Task<IActionResult> UpdateDataPoint([FromBody] DataPointDto dataPointDto)
     {
-        try
-        {
-            var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(dataPointDto);
-            await _dataPointDomainService.UpdateDataPoint(dataPoint);
-            return Ok();
-        }
-        catch (OrganizationNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (DataPointKeyNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception.Message);
-            return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
-        }
+        var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(dataPointDto);
+        await _dataPointDomainService.UpdateDataPoint(dataPoint);
+        return Ok();
+        
     }
     
     [HttpPost("entries")]
     public async Task<IActionResult> PostDataPointEntry([FromBody] DataPointEntryDto dataPointEntryDto)
     {
-        try
-        {
-            var dataPointEntry = _mapper.Map<DataPointEntry>(dataPointEntryDto);
-            await _dataPointDomainService.AddDataPointEntry(dataPointEntry);
-            return Ok();
-        }
-        catch (OrganizationNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception.Message);
-            return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
-        }
+        var dataPointEntry = _mapper.Map<DataPointEntry>(dataPointEntryDto);
+        await _dataPointDomainService.AddDataPointEntry(dataPointEntry);
+        return Ok();
+        
     }
-    
+
+    [HttpGet("entries/{organizationId}/{dataPointKey}")]
+    public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    {
+        var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
+        return _mapper.Map<DataPointEntryDto>(dataPointEntry);
+    }
+
     [HttpGet("{organizationId}/{key}")]
     public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
     {
-        try
-        {
-            var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
-            return _mapper.Map<DataPointEntryDto[]>(allDataPoints);
-        }
-        catch (OrganizationNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (DataPointKeyNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception.Message);
-            return StatusCode(500, $"An unexpected error occurred.\n {exception.Message}");
-        }
+        var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
+        return _mapper.Map<DataPointEntryDto[]>(allDataPoints);
     }
 }

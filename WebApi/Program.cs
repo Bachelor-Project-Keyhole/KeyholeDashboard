@@ -118,6 +118,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseErrorHandlerMiddleware();
 app.UseCors(myAllowSpecificOrigins);
 app.UseAuthorization();
 app.MapControllers();

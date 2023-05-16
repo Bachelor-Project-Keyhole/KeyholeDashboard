@@ -85,9 +85,9 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         }
     }
 
-    public JwtRefreshToken GenerateRefreshToken(string ipAddress)
+    public RefreshToken GenerateRefreshToken(string ipAddress)
     {
-        var refreshToken = new JwtRefreshToken
+        var refreshToken = new RefreshToken
         {
             Token = GenerateUniqueToken(),
             ExpirationTime = DateTime.UtcNow.AddDays(7),

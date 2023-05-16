@@ -3,27 +3,54 @@ using System.Text;
 using Contracts;
 using Domain;
 using FluentAssertions;
-using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
-using Repository.Organization;
 
 namespace WebApi.Tests.IntegrationTests.DataPointController;
 
 public class DataPointControllerTests : IntegrationTest
 {
+    [Fact]
+    public async Task GetLatestDataPointEntry_ReturnsProperValue()
+    {
+        //Arrange
+        var organizationId = await SetupOrganization();
+
+        var key = "TestKey";
+        var expectedTime = DateTime.Now;
+        var expectedValue = 23.42;
+        
+        var dataPointEntryEntities = new DataPointEntryEntity[]
+        {
+            new(organizationId, key, expectedValue, expectedTime),
+            new(organizationId, key, 0, expectedTime.AddDays(-1)),
+            new(organizationId, key, 10, expectedTime.AddDays(-2)),
+            new(organizationId, key, -50000.25, expectedTime.AddMinutes(-5)),
+            new(organizationId, key, 1.563, expectedTime.AddHours(-2)),
+        };
+        await PopulateDatabase(dataPointEntryEntities);
+        
+        //Act
+        var httpResponseMessage = 
+            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/{organizationId}/{key}", UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = JsonConvert.DeserializeObject<DataPointEntryDto>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result.Should().NotBeNull();
+        result!.OrganizationId.Should().Be(organizationId);
+        result.DataPointKey.Should().Be(key);
+        result.Value.Should().Be(expectedValue);
+        result.Time.Should().BeCloseTo(expectedTime, TimeSpan.FromSeconds(1));
+    }
     
     [Fact]
     public async Task GetAllDataPoints_ReturnsAllDataPointsBelongingToOrganization()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
+        
         var datapointEntities = new[]
         {
             new DataPointEntity(organizationId, "key", "DisplayName"),
@@ -47,13 +74,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPoints_ReturnsEmptyArray_WhenNoDataPointsArePresent()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
         var datapointEntities = new[]
         {
             new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
@@ -75,12 +96,8 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPoints_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(IdGenerator.GenerateId()),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        await SetupOrganization();
+
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
         //Act
@@ -95,13 +112,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task PostDataPointEntry_PersistsEntryIntoDatabase_AndCreatesNewDataPoint()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
 
         var dataPointEntryDto = 
             new DataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
@@ -119,15 +130,15 @@ public class DataPointControllerTests : IntegrationTest
         dataPointEntryEntities.Should().NotBeNull();
         var dataPointEntryEntity = dataPointEntryEntities.Single();
         dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.Key.Should().Be(dataPointEntryDto.Key);
+        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
         dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
 
         var dataPointEntities = await GetAll<DataPointEntity>();
         var dataPointEntity = dataPointEntities.Single();
         dataPointEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntity.Key.Should().Be(dataPointEntryDto.Key);
-        dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.Key);
+        dataPointEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
+        dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
         dataPointEntity.DirectionIsUp.Should().BeTrue();
     }
@@ -136,13 +147,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task PostDataPointEntry_PersistsEntryIntoDatabase_DoesNotCreateDuplicateDataPoint()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organizationId, key, key);
@@ -163,7 +168,7 @@ public class DataPointControllerTests : IntegrationTest
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
         var dataPointEntryEntity = dataPointEntryEntities.Single();
         dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.Key.Should().Be(dataPointEntryDto.Key);
+        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
         dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
 
@@ -197,15 +202,9 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
+        var organizationId = await SetupOrganization();
         var key = "TestKey";
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
-        
+
         var expectedEntities = new DataPointEntryEntity[]
         {
             new(organizationId, key, 23, DateTime.Now),
@@ -257,15 +256,9 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var key = "TestKey";
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
         
+        var key = "TestKey";
         var testEntities = new[]
         {
             new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
@@ -285,13 +278,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task UpdateDataPoint_UpdatesDataPointWithProperValues()
     {
         //Arrange
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
-        {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
-        };
-        await PopulateDatabase(new []{organizationEntity});
+        var organizationId = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name");
@@ -314,7 +301,7 @@ public class DataPointControllerTests : IntegrationTest
     private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
     {
         result.OrganizationId.Should().Be(expected.OrganizationId);
-        result.Key.Should().Be(expected.Key);
+        result.DataPointKey.Should().Be(expected.DataPointKey);
         result.DisplayName.Should().Be(expected.DisplayName);
         result.ComparisonIsAbsolute.Should().Be(expected.ComparisonIsAbsolute);
         result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
@@ -326,7 +313,7 @@ public class DataPointControllerTests : IntegrationTest
         foreach (var dataPointEntry in actual.Zip(expected, (a,e) => (a, e)))
         {
             dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
-            dataPointEntry.a.Key.Should().Be(dataPointEntry.e.Key);
+            dataPointEntry.a.DataPointKey.Should().Be(dataPointEntry.e.DataPointKey);
             dataPointEntry.a.Value.Should().Be(dataPointEntry.e.Value);
             dataPointEntry.a.Time.Should().BeCloseTo(dataPointEntry.e.Time, TimeSpan.FromSeconds(1));
         }

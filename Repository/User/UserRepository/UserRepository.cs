@@ -19,23 +19,15 @@ public class UserRepository : MongoRepository<UserPersistenceModel>, IUserReposi
 
     public async Task<Domain.User.User?> GetUserById(string id)
     {
-        // single or default async could be better in this instance i believe
-        var user = await FindOneAsync(x => x.Id == ObjectId.Parse(id)); 
-        if (user == null)
-            throw new UserNotFoundException($"User with given email: {id} was not found");
-        var response = _mapper.Map<UserPersistenceModel, Domain.User.User>(user);
+        var user = await FindOneAsync(x => x.Id == ObjectId.Parse(id));
+        var response = _mapper.Map<Domain.User.User>(user);
         return response;
-        
-        
     }
 
     public async Task<Domain.User.User?> GetUserByEmail(string email)
     {
         var user = await FindOneAsync(x => x.Email == email);
-        if (user == null)
-            throw new UserNotFoundException($"User with given email: {email} was not found");
-        
-        var response = _mapper.Map<UserPersistenceModel, Domain.User.User>(user);
+        var response = _mapper.Map<Domain.User.User>(user);
         return response;
     }
 

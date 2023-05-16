@@ -1,6 +1,7 @@
 ﻿using Application.JWT.Model;
 using Application.JWT.Service;
 using AutoMapper;
+using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
 using Domain.User;
 using Microsoft.AspNetCore.Http;
@@ -62,11 +63,14 @@ public class UserAuthenticationService : IUserAuthenticationService
         };
     }
 
-    public async Task RefreshToken(string token)
+    public async Task<AuthenticationResponse> RefreshToken(string? token)
     {
+        if (token == null)
+            throw new InvalidTokenException("Token was not found in cookies");
+        
         var user = await _userRepository.GetByRefreshToken(token);
-        if(user == null)
-            throw new ApplicationException("User missing"); // TODO: Fix exception
+        if (user == null)
+            throw new UserNotFoundException("User with given token was not found");
 
         var userRefreshToken = user.RefreshTokens?.Single(x => x.Token == token);
         if (userRefreshToken != null && userRefreshToken.IsRevoked)
@@ -75,8 +79,31 @@ public class UserAuthenticationService : IUserAuthenticationService
             RevokeAllRefreshTokens(userRefreshToken, user, GetIpAddress(_contextAccessor.HttpContext!),
                 $"Attempted reuse of revoked ancestor token: {token}");
         }
-        // TODO: Create response to controller.
+
+        if (userRefreshToken != null && !userRefreshToken.IsActive)
+            throw new InvalidTokenException("Invalid token");
+        
+        // Replace old refresh token to new one(rotate)
+        var refreshToken = RotateRefreshToken(userRefreshToken!, GetIpAddress(_contextAccessor.HttpContext!));
+        user.RefreshTokens?.Add(refreshToken);
+        
+        RemoveOldRefreshTokens(user);
         await _userRepository.UpdateUser(user);
+        
+        // generate new JWT token
+        var (jwtToken, jwtExpiration) = _tokenGenerator.GenerateToken(user);
+        return new AuthenticationResponse
+        {
+            Token = jwtToken,
+            Expiration = jwtExpiration,
+            RefreshToken = refreshToken.Token,
+            RefreshTokenExpiration = refreshToken.ExpirationTime,
+            User = new UserAuthenticationResponse
+            {
+                Id = user.Id,
+                Email = user.Email
+            }
+        };
     }
 
     public async Task RevokeToken(string token)
@@ -120,6 +147,13 @@ public class UserAuthenticationService : IUserAuthenticationService
         user?.RefreshTokens?.RemoveAll(x => 
             !x.IsActive && 
             x.CreationTime.AddDays(_jwtSettings.RefreshTokenTtl) <= DateTime.UtcNow);
+    }
+
+    private RefreshToken RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
+    {
+        var newRefreshToken = _tokenGenerator.GenerateRefreshToken(ipAddress);
+        RevokeRefreshToken(refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
+        return newRefreshToken;
     }
 
     private void SetTokenCookie(HttpResponse response, string token)

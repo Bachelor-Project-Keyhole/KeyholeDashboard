@@ -42,6 +42,36 @@ public class AuthenticationController : BaseApiController
         var response = await _userAuthenticationService.Authenticate(loginRequest);
         return Ok(response);
     }
+    
+    /// <summary>
+    /// Rotate Refresh token if it is still active (refresh token has to be in cookies)
+    /// </summary>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [Route("token/refresh")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+        var response = await _userAuthenticationService.RefreshToken(refreshToken);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Refresh token when cookies disabled
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [Route("token/refresh/cookie")]
+    public async Task<IActionResult> RefreshTokenNonCookie(AddNonRefreshTokenRequest request)
+    {
+        var response = await _userAuthenticationService.RefreshToken(request.Token);
+        return Ok(response);
+    }
 
     /// <summary>
     /// Logout / Revoke token
@@ -54,9 +84,10 @@ public class AuthenticationController : BaseApiController
     [Route("logout")]
     public async Task<IActionResult> Logout(LogoutRequest request)
     {
-        //await _userService.Revoke(request);
+        await _userService.Revoke(request);
         return Ok(new {message = "Token revoked"});
     }
+    
 
     /// <summary>
     /// Change access level to user
@@ -67,6 +98,7 @@ public class AuthenticationController : BaseApiController
     /// SetAccessLevel -> to level the user access should be set
     /// </param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Change access level to user",typeof(UserChangeAccessResponse))]
     [Route("access/{id}")]
