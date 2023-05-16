@@ -4,10 +4,9 @@ using MongoDB.Bson;
 #pragma warning disable CS8618
 
 namespace Repository.Organization;
-
-public class OrganizationPersistenceModel
+[BsonCollection("organization")]
+public class OrganizationPersistenceModel : Document
 {
-    public ObjectId Id { get; set; }
     public string OrganizationOwnerId { get; set; }
     public string OrganizationName { get; set; }
     public string Country { get; set; }

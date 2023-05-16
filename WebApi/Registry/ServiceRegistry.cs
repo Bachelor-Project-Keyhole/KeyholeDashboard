@@ -1,14 +1,13 @@
 ﻿using Application.Authentication.AuthenticationService;
 using Application.Email.EmailService;
 using Application.JWT.Service;
+using Application.Organization;
 using Application.User.UserService;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.TwoFactor;
-using Repository.TwoFactor.TwoFactorReadModel;
-using Repository.TwoFactor.TwoFactorWriteModel;
 using Repository.User.UserRepository;
 
 namespace WebApi.Registry;
@@ -24,7 +23,8 @@ static class ServiceRegistry
         collection.AddTransient<IEmailService, EmailService>();
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
-        
+        collection.AddScoped<IOrganizationService, OrganizationService>();
+
         #endregion
         
         #region Repository Layer
