@@ -4,5 +4,5 @@ namespace Application.Organization;
 
 public interface IOrganizationService
 {
-    Task InviteUser(OrganizationUserInviteRequest request);
+    Task<(string, string)> InviteUser(OrganizationUserInviteRequest request);
 }

@@ -111,7 +111,6 @@ var app = builder.Build();
 
 // Build HTTP request pipeline
 
-app.UseMiddleware<JwtMiddleware>();
 
 
 app.UseSwagger();
@@ -119,6 +118,8 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
+app.UseMiddleware<JwtMiddleware>();
+
 app.UseCors(myAllowSpecificOrigins);
 app.UseAuthorization();
 app.MapControllers();

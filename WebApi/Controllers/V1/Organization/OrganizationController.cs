@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Application.Email.EmailService;
 using Application.JWT.Authorization;
 using Application.Organization;
 using Application.Organization.Model;
@@ -17,13 +18,16 @@ public class OrganizationController : BaseApiController
 {
     private readonly IOrganizationService _organizationService;
     private readonly IUserService _userService;
+    private readonly IEmailService _emailService;
 
     public OrganizationController(
         IOrganizationService organizationService,
-        IUserService userService)
+        IUserService userService,
+        IEmailService emailService)
     {
         _organizationService = organizationService;
         _userService = userService;
+        _emailService = emailService;
     }
     
     /// <summary>
@@ -41,13 +45,20 @@ public class OrganizationController : BaseApiController
         return Ok(response);
     }
 
+
+    /// <summary>
+    /// Invite user via email
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [Authorization(UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Invite user into the organization", typeof(OrganizationUserInviteResponse))]
     [Route("invite")]
-    public async Task<IActionResult> InviteUserToOrganization(string userId, OrganizationUserInviteRequest request)
+    public async Task<IActionResult> InviteUserToOrganization(OrganizationUserInviteRequest request)
     {
-        await _organizationService.InviteUser(request);
+        var link = await _organizationService.InviteUser(request);
+        await _emailService.SendInvitationEmail(request.ReceiverEmailAddress, request.Message, link.Item1, link.Item2);
         return Ok();
     }
     

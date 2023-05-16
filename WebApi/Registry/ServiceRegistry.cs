@@ -7,6 +7,7 @@ using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using Repository.Datapoint;
 using Repository.Organization;
+using Repository.OrganizationUserInvite;
 using Repository.TwoFactor;
 using Repository.User.UserRepository;
 
@@ -23,7 +24,7 @@ static class ServiceRegistry
         collection.AddTransient<IEmailService, EmailService>();
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
-        collection.AddScoped<IOrganizationService, OrganizationService>();
+        collection.AddTransient<IOrganizationService, OrganizationService>();
 
         #endregion
         
@@ -31,7 +32,8 @@ static class ServiceRegistry
         
         collection.AddTransient<IUserRepository, UserRepository>();
         collection.AddTransient<ITwoFactorRepository, TwoFactorRepository>();
-        
+        collection.AddTransient<IOrganizationUserInviteRepository, OrganizationUserInviteRepository>();
+
 
         #endregion
         

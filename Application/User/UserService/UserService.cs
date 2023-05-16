@@ -198,7 +198,7 @@ public class UserService : IUserService
 
         await _twoFactorRepository.Insert(twoFactorToInsert);
 
-        var response = await _emailService.SendEmail(request.Email, token);
+        var response = await _emailService.SendPasswordRecoveryTokenEmail(request.Email, token);
         
         return _mapper.Map<Repository.TwoFactor.TwoFactorPersistence>(twoFactorToInsert);
 
