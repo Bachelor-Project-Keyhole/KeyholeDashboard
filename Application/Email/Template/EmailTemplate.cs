@@ -13,11 +13,12 @@ public class EmailTemplate
         return reader.ReadToEnd();
     }
 
-    internal static string InviteUser(string message)
+    internal static string InviteUser(string message, string link)
     {
-        var html = ReadResources("KeyholeDashboard.Application.Email.Template.InviteUserTemplate.txt");
+        var html = ReadResources("Application.Email.Template.InviteUserTemplate.txt");
         var modifiedHtml =
             html.Replace("{{message}}", message)
+                .Replace("{{link}}", link)
                 .Replace("{{unsubscribe}}", "");
         return modifiedHtml;
     }

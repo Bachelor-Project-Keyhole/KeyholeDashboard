@@ -33,7 +33,7 @@ public class EmailService : IEmailService
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
                 // integrate html reading
-                Text = EmailTemplate.InviteUser($"Password recovery code: {token}")
+                Text = EmailTemplate.InviteUser($"Password recovery code: {token}", "https://www.google.com")
             };
 
             using var smpt = new SmtpClient(); // Use mailKit instead of system package.
@@ -71,7 +71,7 @@ public class EmailService : IEmailService
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
                 // integrate html reading
-                Text = EmailTemplate.InviteUser(message)
+                Text = EmailTemplate.InviteUser(message, link)
             };
 
             using var smpt = new SmtpClient(); // Use mailKit instead of system package.

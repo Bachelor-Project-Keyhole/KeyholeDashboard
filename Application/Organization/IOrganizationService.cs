@@ -5,4 +5,5 @@ namespace Application.Organization;
 public interface IOrganizationService
 {
     Task<(string, string)> InviteUser(OrganizationUserInviteRequest request);
+    Task<Domain.Organization.OrganizationUserInvites> TokenValidity(string token);
 }

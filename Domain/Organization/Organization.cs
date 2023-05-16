@@ -37,9 +37,4 @@ public class OrganizationDashboards
 
 
 
-public enum InviteStatus
-{
-    Pending,
-    Accepted,
-    Expired
-}
+

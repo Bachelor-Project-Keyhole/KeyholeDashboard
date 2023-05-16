@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Transactions;
 using Application.Email.EmailService;
 using Application.JWT.Authorization;
 using Application.Organization;
@@ -59,7 +60,42 @@ public class OrganizationController : BaseApiController
     {
         var link = await _organizationService.InviteUser(request);
         await _emailService.SendInvitationEmail(request.ReceiverEmailAddress, request.Message, link.Item1, link.Item2);
-        return Ok();
+        return Ok(link.Item1);
+    }
+
+    /// <summary>
+    /// Complete user registration (Note for now do not use the link and just pass the token from mail
+    /// </summary>
+    /// <param name="token"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "User registration completion", typeof(UserRegistrationResponse))]
+    [Route("register/{token}")]
+    public async Task<IActionResult> CompleteUserRegistration(string token, [FromBody] UserRegistrationRequest request)
+    {
+        // Define transaction
+        using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                // Start
+                var invitation = await _organizationService.TokenValidity(token);
+                var response = await _userService.CreateUser(invitation.OrganizationId, invitation.ReceiverEmail, invitation.AccessLevels, request);
+                
+                // Compete transaction
+                transactionScope.Complete();
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                // How do we handle this part? 
+                transactionScope.Dispose();
+                Console.WriteLine("Registration of a user was not successful \n" +  e);
+                throw;
+            }
+        }
     }
     
 }

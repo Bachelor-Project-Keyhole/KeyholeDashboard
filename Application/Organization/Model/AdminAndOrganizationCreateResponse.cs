@@ -15,7 +15,6 @@ public class AdminAndOrganizationCreateResponse
 
     public string OrganizationId { get; set; }
     public string OrganizationName { get; set; }
-    public string Country { get; set; }
-    public string Address { get; set; }
+
     public DateTime OrganizationCreationTime { get; set; }
 }

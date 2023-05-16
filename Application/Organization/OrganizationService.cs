@@ -31,20 +31,35 @@ public class OrganizationService : IOrganizationService
 
         var insert = new Domain.Organization.OrganizationUserInvites
         {
-            Id = null,
             OrganizationId = request.OrganizationId,
             Token = alphaNumericToken,
             ReceiverEmail = request.ReceiverEmailAddress,
-            InviteStatus = InviteStatus.Pending,
+            hasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
+            RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
             AccessLevels = request.AccessLevels,
             InvitedByUserId = request.UserId
         };
 
         await _organizationUserInvite.InsertInviteUser(insert);
 
-        var link = " https://keyholedashboard.azurewebsites.net/organization/register/{alphaNumericToken}";
+        var link = $"https://keyholedashboard.azurewebsites.net/organization/register/{alphaNumericToken}";
         return (link, organization.OrganizationName);
+    }
+
+    public async Task<Domain.Organization.OrganizationUserInvites> TokenValidity(string token)
+    {
+        var invitation = await _organizationUserInvite.GetByToken(token);
+        if (invitation == null)
+            throw new InvitationTokenException($"Invitation token: {token} was not found ");
+        if(invitation.TokenExpirationTime < DateTime.UtcNow )
+            throw new InvitationTokenException($"Invitation token: {token} has already expired");
+        if(invitation.hasAccepted)
+            throw new InvitationTokenException($"Invitation token: {token} was already used ");
+
+        invitation.hasAccepted = true;
+        await _organizationUserInvite.UpdateUserInvite(invitation);
+        return invitation;
     }
 
     private string GenerateAlphaNumeric()

@@ -95,9 +95,23 @@ public class UserService : IUserService
         {
             Id = ObjectId.GenerateNewId().ToString(),
             OrganizationName = request.OrganizationName,
+            Members = new List<OrganizationMembers>()
+            {
+                new OrganizationMembers
+                {
+                    Id = userToInsert.Id,
+                    AccessLevel = userToInsert.AccessLevels,
+                    Email = userToInsert.Email,
+                    Name = userToInsert.FullName
+                }
+            },
+            Dashboards = new List<OrganizationDashboards>(),
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };
+
+        userToInsert.MemberOfOrganizationId = organizationToInsert.Id;
+        
 
         userToInsert.OwnedOrganizationId = organizationToInsert.Id;
         organizationToInsert.OrganizationOwnerId = userToInsert.Id;
@@ -120,6 +134,40 @@ public class UserService : IUserService
 
     }
 
+    public async Task<UserRegistrationResponse> CreateUser(string organizationId, string email, List<UserAccessLevel> accessLevels, UserRegistrationRequest request)
+    {
+        if (request.Password.Length < 8)
+            throw new ApplicationException("Password too short");
+
+        var user = await _userRepository.GetUserByEmail(email);
+        if (user != null)
+            throw new UserEmailTakenException($"This email: {email} is already taken");
+        
+        var userToInsert = new Domain.User.User
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Email = email,
+            FullName = request.FullName,
+            AccessLevels = accessLevels,
+            OwnedOrganizationId = null,
+            MemberOfOrganizationId = organizationId,
+            RegistrationDate = DateTime.UtcNow,
+            ModifiedDate = DateTime.UtcNow,
+            PasswordHash = PasswordHelper.GetHashedPassword(request.Password)
+        };
+
+        await _userRepository.CreateUser(userToInsert);
+
+        return new UserRegistrationResponse
+        {
+            Email = userToInsert.Email,
+            FullName = userToInsert.FullName,
+            OrganizationId = userToInsert.MemberOfOrganizationId,
+            RegistrationDate = DateTime.UtcNow.ToString("f")
+        };
+        
+    }
+    
     public async Task Revoke(LogoutRequest request)
     {
         // Accept refresh token either from cookies or request body
