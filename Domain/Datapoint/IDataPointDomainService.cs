@@ -7,4 +7,5 @@ public interface IDataPointDomainService
     Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string dataPointKey);
     Task UpdateDataPoint(DataPoint dataPoint);
     Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey);
+    Task<DataPoint> CreateDataPoint(DataPoint dataPoint);
 }

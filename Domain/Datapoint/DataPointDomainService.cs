@@ -19,6 +19,15 @@ public class DataPointDomainService : IDataPointDomainService
         _dataPointEntryRepository = dataPointEntryRepository;
     }
 
+    public async Task<DataPoint> CreateDataPoint(DataPoint dataPoint)
+    {
+        await ValidateOrganization(dataPoint.OrganizationId);
+        await UpdateDataPointLatestValue(dataPoint);
+        dataPoint.Id = IdGenerator.GenerateId();
+        await _dataPointRepository.CreateDataPoint(dataPoint);
+        return dataPoint;
+    }
+
     public async Task<DataPoint[]> GetAllDataPoints(string organizationId)
     {
         await ValidateOrganization(organizationId);
@@ -83,16 +92,20 @@ public class DataPointDomainService : IDataPointDomainService
 
     private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
     {
-        var dataPoint = new DataPoint(organizationId, key)
-        {
-            LatestValue = dataPointLatestValue
-        };
+        var dataPoint = new DataPoint(organizationId, key);
+        dataPoint.SetLatestValueBasedOnFormula(dataPointLatestValue);
         await _dataPointRepository.CreateDataPoint(dataPoint);
     }
 
     private async Task UpdateDataPointLatestValue(DataPoint dataPoint)
     {
-        var latestDataPointEntry = await GetLatestDataPointEntry(dataPoint.OrganizationId, dataPoint.DataPointKey);
+        var latestDataPointEntry =
+            await _dataPointEntryRepository.GetLatestDataPointEntry(dataPoint.OrganizationId, dataPoint.DataPointKey);
+        if (latestDataPointEntry is null)
+        {
+            throw new DataPointKeyNotFoundException(dataPoint.DataPointKey);
+        }
+
         dataPoint.SetLatestValueBasedOnFormula(latestDataPointEntry.Value);
     }
 

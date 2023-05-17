@@ -17,6 +17,14 @@ public class DataPointController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost]
+    public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointDto createDataPointDto)
+    {
+        var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(createDataPointDto);
+        var result = await _dataPointDomainService.CreateDataPoint(dataPoint);
+        return Ok(result);
+    }
+
     [HttpGet("{organizationId}")]
     public async Task<ActionResult<DataPointWithValueDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
     {
