@@ -46,14 +46,14 @@ public class DataPointDomainService : IDataPointDomainService
         await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
     }
 
-    public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string key)
+    public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string dataPointKey)
     {
         await ValidateOrganization(organizationId);
 
-        var allDataPointEntries = await _dataPointEntryRepository.GetAllDataPointEntries(organizationId, key);
+        var allDataPointEntries = await _dataPointEntryRepository.GetAllDataPointEntries(organizationId, dataPointKey);
         if (allDataPointEntries.Length == 0)
         {
-            throw new DataPointKeyNotFoundException($"Data point key with value: \'{organizationId}\' was not found");
+            throw new DataPointKeyNotFoundException(dataPointKey);
         }
 
         return allDataPointEntries;
@@ -75,7 +75,7 @@ public class DataPointDomainService : IDataPointDomainService
             await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
         if (latestDataPointEntry is null)
         {
-            throw new DataPointKeyNotFoundException($"Data point key with value: \'{organizationId}\' was not found");
+            throw new DataPointKeyNotFoundException(dataPointKey);
         }
 
         return latestDataPointEntry;
@@ -101,7 +101,7 @@ public class DataPointDomainService : IDataPointDomainService
         var organizationExists = await _organizationRepository.OrganizationExists(organizationId);
         if (!organizationExists)
         {
-            throw new OrganizationNotFoundException($"Organization with Id: {organizationId} was not found");
+            throw new OrganizationNotFoundException(organizationId);
         }
     }
 }
