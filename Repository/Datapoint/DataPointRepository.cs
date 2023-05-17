@@ -32,10 +32,10 @@ public class DataPointRepository : MongoRepository<DataPointEntity>, IDataPointR
         await ReplaceOneAsync(dataPointEntity);
     }
 
-    public async Task<DataPoint?> FindDataPointByKey(string key, string organizationId)
+    public async Task<DataPoint[]> FindDataPointsByKey(string key, string organizationId)
     {
         var dataPointEntity = 
-            await FindOneAsync(dp => dp.OrganizationId == organizationId && dp.DataPointKey == key);
-        return _mapper.Map<DataPoint>(dataPointEntity);
+            await FilterByAsync(dp => dp.OrganizationId == organizationId && dp.DataPointKey == key);
+        return _mapper.Map<DataPoint[]>(dataPointEntity);
     }
 }

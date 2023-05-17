@@ -12,12 +12,15 @@ public class DataPointWithValueDto
 
     public double LatestValue {get; set;}
 
+    public FormulaDto Formula { get; set; }
+
     public DataPointWithValueDto(
         string id,
         string organizationId,
         string dataPointKey,
         string displayName,
         double latestValue,
+        FormulaDto formula,
         bool directionIsUp = true,
         bool comparisonIsAbsolute = false
     )
@@ -27,6 +30,7 @@ public class DataPointWithValueDto
         DataPointKey = dataPointKey;
         DisplayName = displayName;
         LatestValue = latestValue;
+        Formula = formula;
         DirectionIsUp = directionIsUp;
         ComparisonIsAbsolute = comparisonIsAbsolute;
     }

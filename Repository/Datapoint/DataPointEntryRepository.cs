@@ -27,7 +27,7 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         return _mapper.Map<DataPointEntry[]>(result);
     }
 
-    public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    public async Task<DataPointEntry?> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         var latestDataPointEntry = await Collection
             .Find(dpe => dpe.OrganizationId == organizationId && dpe.DataPointKey == dataPointKey)

@@ -5,5 +5,6 @@ public record DataPointDto(
     string OrganizationId,
     string DataPointKey, 
     string DisplayName,
+    FormulaDto Formula,
     bool DirectionIsUp,
     bool ComparisonIsAbsolute);

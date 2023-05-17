@@ -28,26 +28,22 @@ public class DataPointDomainService : IDataPointDomainService
     public async Task AddDataPointEntry(DataPointEntry dataPointEntry)
     {
         await ValidateOrganization(dataPointEntry.OrganizationId);
-        var dataPoint = await _dataPointRepository.FindDataPointByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
-        if (dataPoint is null)
+        var dataPoints =
+            await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
+        if (dataPoints.Length == 0)
         {
             await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.DataPointKey, dataPointEntry.Value);
         }
         else
         {
-            dataPoint.LatestValue = dataPointEntry.Value;
-            await UpdateDataPoint(dataPoint);
+            foreach (var dataPoint in dataPoints)
+            {
+                dataPoint.SetLatestValueBasedOnFormula(dataPointEntry.Value);
+                await _dataPointRepository.UpdateDataPoint(dataPoint);
+            }
         }
-        await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
-    }
 
-    private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
-    {
-        var dataPoint = new DataPoint(organizationId, key)
-        {
-            LatestValue = dataPointLatestValue
-        };
-        await _dataPointRepository.CreateDataPoint(dataPoint);
+        await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
     }
 
     public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string key)
@@ -59,6 +55,7 @@ public class DataPointDomainService : IDataPointDomainService
         {
             throw new DataPointKeyNotFoundException($"Data point key with value: \'{organizationId}\' was not found");
         }
+
         return allDataPointEntries;
     }
 
@@ -66,28 +63,37 @@ public class DataPointDomainService : IDataPointDomainService
     {
         await ValidateOrganization(dataPoint.OrganizationId);
 
-        var dataPointByKey = await _dataPointRepository.FindDataPointByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
-        if (dataPointByKey is null)
-        {
-            throw new DataPointKeyNotFoundException($"Data point key with value: \'{dataPoint.DataPointKey}\' was not found");
-        }
-
-        var updatedDataPoint = new DataPoint(
-            dataPointByKey.Id!,
-            dataPoint.OrganizationId,
-            dataPoint.DataPointKey,
-            dataPoint.DisplayName,
-            dataPoint.LatestValue,
-            dataPoint.DirectionIsUp,
-            dataPoint.ComparisonIsAbsolute);
-        
-        await _dataPointRepository.UpdateDataPoint(updatedDataPoint);
+        // Update latest value to match the newest formula
+        await UpdateDataPointLatestValue(dataPoint);
+        await _dataPointRepository.UpdateDataPoint(dataPoint);
     }
 
     public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         await ValidateOrganization(organizationId);
-        return await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
+        var latestDataPointEntry =
+            await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
+        if (latestDataPointEntry is null)
+        {
+            throw new DataPointKeyNotFoundException($"Data point key with value: \'{organizationId}\' was not found");
+        }
+
+        return latestDataPointEntry;
+    }
+
+    private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
+    {
+        var dataPoint = new DataPoint(organizationId, key)
+        {
+            LatestValue = dataPointLatestValue
+        };
+        await _dataPointRepository.CreateDataPoint(dataPoint);
+    }
+
+    private async Task UpdateDataPointLatestValue(DataPoint dataPoint)
+    {
+        var latestDataPointEntry = await GetLatestDataPointEntry(dataPoint.OrganizationId, dataPoint.DataPointKey);
+        dataPoint.SetLatestValueBasedOnFormula(latestDataPointEntry.Value);
     }
 
     private async Task ValidateOrganization(string organizationId)

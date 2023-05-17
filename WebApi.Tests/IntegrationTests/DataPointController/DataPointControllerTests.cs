@@ -2,7 +2,9 @@ using System.Net;
 using System.Text;
 using Contracts;
 using Domain;
+using Domain.Datapoint;
 using FluentAssertions;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
 
@@ -19,7 +21,7 @@ public class DataPointControllerTests : IntegrationTest
         var key = "TestKey";
         var expectedTime = DateTime.Now;
         var expectedValue = 23.42;
-        
+
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
             new(organizationId, key, expectedValue, expectedTime),
@@ -29,10 +31,11 @@ public class DataPointControllerTests : IntegrationTest
             new(organizationId, key, 1.563, expectedTime.AddHours(-2)),
         };
         await PopulateDatabase(dataPointEntryEntities);
-        
+
         //Act
-        var httpResponseMessage = 
-            await TestClient.GetAsync(new Uri($"api/v1/DataPoint/entries/last/{organizationId}/{key}", UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(
+                new Uri($"api/v1/DataPoint/entries/last/{organizationId}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -44,7 +47,7 @@ public class DataPointControllerTests : IntegrationTest
         result.Value.Should().Be(expectedValue);
         result.Time.Should().BeCloseTo(expectedTime, TimeSpan.FromSeconds(1));
     }
-    
+
     [Fact]
     public async Task GetAllDataPointsWithLatestValues_ReturnsAllDataPointsBelongingToOrganization()
     {
@@ -55,7 +58,7 @@ public class DataPointControllerTests : IntegrationTest
             "testKey1",
             "testKey2"
         };
-        
+
         var datapointEntities = new[]
         {
             new DataPointEntity(organizationId, expectedKeys[0], "DisplayName", latestValue: 42),
@@ -66,7 +69,8 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(datapointEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -78,7 +82,7 @@ public class DataPointControllerTests : IntegrationTest
         var dataPointWithValueDto2 = result?.First(dto => dto.DataPointKey == expectedKeys[1]);
         dataPointWithValueDto2?.LatestValue.Should().Be(23);
     }
-    
+
     [Fact]
     public async Task GetAllDataPointsWithLatestValues_ReturnsEmptyArray_WhenNoDataPointsArePresent()
     {
@@ -92,7 +96,8 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(datapointEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -100,7 +105,7 @@ public class DataPointControllerTests : IntegrationTest
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().BeEmpty();
     }
-    
+
     [Fact]
     public async Task GetAllDataPointsWithLatestValues_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
@@ -110,8 +115,8 @@ public class DataPointControllerTests : IntegrationTest
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
         //Act
-        var httpResponseMessage = 
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{nonExistingOrganizationId}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{nonExistingOrganizationId}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -123,16 +128,16 @@ public class DataPointControllerTests : IntegrationTest
         //Arrange
         var organizationId = await SetupOrganization();
 
-        var dataPointEntryDto = 
+        var dataPointEntryDto =
             new DataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
-        
-        var stringContent = 
+
+        var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-        
+
         //Act
-        var httpResponseMessage = 
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries",UriKind.Relative), stringContent);
-        
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
@@ -152,7 +157,7 @@ public class DataPointControllerTests : IntegrationTest
         dataPointEntity.DirectionIsUp.Should().BeTrue();
         dataPointEntity.LatestValue.Should().Be(dataPointEntryDto.Value);
     }
-    
+
     [Fact]
     public async Task PostDataPointEntry_PersistsEntryIntoDatabase_DoesNotCreateDuplicateDataPoint()
     {
@@ -163,16 +168,16 @@ public class DataPointControllerTests : IntegrationTest
         var dataPointEntity = new DataPointEntity(organizationId, key, key);
         await PopulateDatabase(new[] { dataPointEntity });
 
-        var dataPointEntryDto = 
+        var dataPointEntryDto =
             new DataPointEntryDto(organizationId, key, 500, DateTime.Now);
-        
-        var stringContent = 
+
+        var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-        
+
         //Act
-        var httpResponseMessage = 
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries",UriKind.Relative), stringContent);
-        
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
@@ -186,29 +191,29 @@ public class DataPointControllerTests : IntegrationTest
         dataPointEntities.Should().HaveCount(1);
         dataPointEntities.Single().LatestValue.Should().Be(dataPointEntryDto.Value);
     }
-    
+
     [Fact]
     public async Task PostDataPointEntry_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
-        var dataPointEntryDto = 
+        var dataPointEntryDto =
             new DataPointEntryDto(nonExistingOrganizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
-        
-        var stringContent = 
+
+        var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-        
+
         //Act
-        var httpResponseMessage = 
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries",UriKind.Relative), stringContent);
-        
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
         var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
         dataPointEntryEntities.Should().BeEmpty();
     }
-    
+
     [Fact]
     public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
     {
@@ -223,7 +228,7 @@ public class DataPointControllerTests : IntegrationTest
         };
 
         await PopulateDatabase(expectedEntities);
-        
+
         var testEntities = new[]
         {
             new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
@@ -233,7 +238,8 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(testEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organizationId}/{key}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organizationId}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -242,7 +248,7 @@ public class DataPointControllerTests : IntegrationTest
         result.Should().NotBeNull();
         AssertDataPointEntries(expectedEntities, result!);
     }
-    
+
     [Fact]
     public async Task GetAllDataPointEntries_ReturnsNotFound_WhenOrganizationIsNotFound()
     {
@@ -257,18 +263,19 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(testEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{IdGenerator.GenerateId()}/{key}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{IdGenerator.GenerateId()}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
     {
         //Arrange
         var organizationId = await SetupOrganization();
-        
+
         var key = "TestKey";
         var testEntities = new[]
         {
@@ -279,7 +286,8 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(testEntities);
 
         //Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}",UriKind.Relative));
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -292,28 +300,43 @@ public class DataPointControllerTests : IntegrationTest
         var organizationId = await SetupOrganization();
 
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name");
+        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
         await PopulateDatabase(new[] { dataPointEntity });
 
-        var dataPointDto = 
-            new DataPointDto(IdGenerator.GenerateId(), organizationId, key, "New Display Name", false, true);
-        var stringContent = 
+        var dataPointEntryEntity =
+            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+        await PopulateDatabase(new[] { dataPointEntryEntity });
+
+        var dataPointDto =
+            new DataPointDto(dataPointEntity.Id.ToString(), organizationId, key, "New Display Name",
+                new FormulaDto() { Operation = MathOperation.Multiply.ToString(), Factor = 1.2 }, false, true);
+        var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");
 
         //Act
-        var httpResponseMessage = await TestClient.PatchAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
+        var httpResponseMessage =
+            await TestClient.PatchAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
+        updatedDataPointEntity.LatestValue.Should().Be(12);
         AssertDataPoint(updatedDataPointEntity, dataPointDto);
     }
 
     private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
     {
+        result.Id.Should().Be(new ObjectId(expected.Id));
         result.OrganizationId.Should().Be(expected.OrganizationId);
         result.DataPointKey.Should().Be(expected.DataPointKey);
         result.DisplayName.Should().Be(expected.DisplayName);
+        result.Formula.Operation.Should().Be(Enum.Parse<MathOperation>(expected.Formula.Operation));
+        result.Formula.Factor.Should().Be(expected.Formula.Factor);
         result.ComparisonIsAbsolute.Should().Be(expected.ComparisonIsAbsolute);
         result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
     }
@@ -321,7 +344,7 @@ public class DataPointControllerTests : IntegrationTest
     private void AssertDataPointEntries(DataPointEntryEntity[] expected, DataPointEntryDto[] actual)
     {
         actual.Should().HaveCount(expected.Length);
-        foreach (var dataPointEntry in actual.Zip(expected, (a,e) => (a, e)))
+        foreach (var dataPointEntry in actual.Zip(expected, (a, e) => (a, e)))
         {
             dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
             dataPointEntry.a.DataPointKey.Should().Be(dataPointEntry.e.DataPointKey);
