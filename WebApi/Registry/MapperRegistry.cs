@@ -42,7 +42,6 @@ static class MapperRegistry
             
             cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationPersistenceModel>().ReverseMap();
             cfg.CreateMap<Domain.Organization.OrganizationMembers, Repository.Organization.PersistenceOrganizationMembers>().ReverseMap();
-            cfg.CreateMap<Domain.Organization.OrganizationDashboards, Repository.Organization.PersistenceOrganizationDashboards>().ReverseMap();
             cfg.CreateMap<Domain.Organization.OrganizationUserInvites, Repository.OrganizationUserInvite.OrganizationUserInvitePersistence>().ReverseMap();
 
 

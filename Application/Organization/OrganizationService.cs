@@ -62,6 +62,26 @@ public class OrganizationService : IOrganizationService
         return invitation;
     }
 
+    public async Task<AllUsersOfOrganizationResponse> GetAllUsers(string id)
+    {
+        var organization = await _organizationRepository.GetOrganizationById(id);
+        if (organization == null)
+            throw new OrganizationNotFoundException($"organization with id: {id} was not found");
+
+        return new AllUsersOfOrganizationResponse
+        {
+            OrganizationId = organization.Id,
+            OrganizationName = organization.OrganizationName,
+            Users = organization.Members?.Select(x => new OrganizationUsersResponse
+            {
+                Name = x.Name,
+                Email = x.Email,
+                AccessLevels = x.AccessLevel
+            }).ToList()
+        };
+        
+    }
+
     private string GenerateAlphaNumeric()
     {
         var length = 8;

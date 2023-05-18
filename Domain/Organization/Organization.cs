@@ -14,7 +14,6 @@ public class Organization
     public string OrganizationName { get; set; }
     // ReSharper disable once CollectionNeverQueried.Global
     public List<OrganizationMembers>? Members { get; set; }
-    public List<OrganizationDashboards>? Dashboards { get; set; }
     public DateTime CreationDate { get; set; }
     public DateTime ModificationDate { get; set; }
 
@@ -29,11 +28,6 @@ public class OrganizationMembers
     public List<UserAccessLevel> AccessLevel { get; set; }
 }
 
-public class OrganizationDashboards
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-}
 
 
 

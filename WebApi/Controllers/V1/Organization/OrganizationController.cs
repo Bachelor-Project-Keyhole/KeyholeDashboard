@@ -66,7 +66,7 @@ public class OrganizationController : BaseApiController
     /// <summary>
     /// Complete user registration (Note for now do not use the link and just pass the token from mail
     /// </summary>
-    /// <param name="token"></param>
+    /// <param name="token"> Token, that get attached to the end of a query </param>
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
@@ -97,5 +97,19 @@ public class OrganizationController : BaseApiController
             }
         }
     }
-    
+
+    /// <summary>
+    /// Get all users of the organization
+    /// </summary>
+    /// <param name="organizationId"> id of an organization, the users are assigned to</param>
+    /// <returns></returns>
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Get all users of the organization", typeof(AllUsersOfOrganizationResponse))]
+    [Route("users/{organizationId}")]
+    public async Task<IActionResult> GetAllUsersOfOrganization(string organizationId)
+    {
+        var response = await _organizationService.GetAllUsers(organizationId);
+        return Ok(response);
+    }
+
 }

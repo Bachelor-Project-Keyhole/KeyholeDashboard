@@ -105,7 +105,6 @@ public class UserService : IUserService
                     Name = userToInsert.FullName
                 }
             },
-            Dashboards = new List<OrganizationDashboards>(),
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };
