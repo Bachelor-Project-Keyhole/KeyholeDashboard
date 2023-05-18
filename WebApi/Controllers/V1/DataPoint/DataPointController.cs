@@ -17,13 +17,36 @@ public class DataPointController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpGet("{organizationId}")]
-    public async Task<ActionResult<DataPointWithValueDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
+    /// <summary>
+    /// Create Data Point
+    /// </summary>
+    /// <param name="createDataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointDto createDataPointDto)
     {
-        var allDataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
-        return _mapper.Map<DataPointWithValueDto[]>(allDataPoints);
+        var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(createDataPointDto);
+        var result = await _dataPointDomainService.CreateDataPoint(dataPoint);
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Get all data points belonging to the organization
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
+    [HttpGet("{organizationId}")]
+    public async Task<ActionResult<DataPointDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
+    {
+        var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
+        return _mapper.Map<DataPointDto[]>(dataPoints);
+    }
+
+    /// <summary>
+    /// Update Data Point
+    /// </summary>
+    /// <param name="dataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
+    /// <returns></returns>
     [HttpPatch]
     public async Task<IActionResult> UpdateDataPoint([FromBody] DataPointDto dataPointDto)
     {
@@ -33,6 +56,11 @@ public class DataPointController : ControllerBase
         
     }
     
+    /// <summary>
+    /// Post Data Point entry. If data point key is unique, new data point will be created with this key
+    /// </summary>
+    /// <param name="dataPointEntryDto"></param>
+    /// <returns></returns>
     [HttpPost("entries")]
     public async Task<IActionResult> PostDataPointEntry([FromBody] DataPointEntryDto dataPointEntryDto)
     {

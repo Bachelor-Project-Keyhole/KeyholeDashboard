@@ -4,8 +4,13 @@ namespace Domain;
 
 public static class IdGenerator
 {
+    private static readonly object IdLock = new();
+    
     public static string GenerateId()
     {
-        return ObjectId.GenerateNewId().ToString();
+        lock (IdLock)
+        {
+            return ObjectId.GenerateNewId().ToString();    
+        }
     }
 }

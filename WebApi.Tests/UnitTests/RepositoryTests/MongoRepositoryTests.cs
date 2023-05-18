@@ -19,7 +19,7 @@ public class MongoRepositoryTests : IDisposable
         };
         _runner = MongoRunner.Run(options);
 
-        return Options.Create(new DatabaseOptions()
+        return Options.Create(new DatabaseOptions
         {
             MongoDbConnectionString = _runner.ConnectionString,
             MongoDbDatabaseName = "TestDatabase"
