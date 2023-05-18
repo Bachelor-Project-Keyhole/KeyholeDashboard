@@ -17,6 +17,11 @@ public class DataPointController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Create Data Point
+    /// </summary>
+    /// <param name="createDataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
+    /// <returns></returns>
     [HttpPost]
     public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointDto createDataPointDto)
     {
@@ -25,6 +30,11 @@ public class DataPointController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Get all data points belonging to the organization
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
     [HttpGet("{organizationId}")]
     public async Task<ActionResult<DataPointDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
     {
@@ -32,6 +42,11 @@ public class DataPointController : ControllerBase
         return _mapper.Map<DataPointDto[]>(dataPoints);
     }
 
+    /// <summary>
+    /// Update Data Point
+    /// </summary>
+    /// <param name="dataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
+    /// <returns></returns>
     [HttpPatch]
     public async Task<IActionResult> UpdateDataPoint([FromBody] DataPointDto dataPointDto)
     {
@@ -41,6 +56,11 @@ public class DataPointController : ControllerBase
         
     }
     
+    /// <summary>
+    /// Post Data Point entry. If data point key is unique, new data point will be created with this key
+    /// </summary>
+    /// <param name="dataPointEntryDto"></param>
+    /// <returns></returns>
     [HttpPost("entries")]
     public async Task<IActionResult> PostDataPointEntry([FromBody] DataPointEntryDto dataPointEntryDto)
     {
