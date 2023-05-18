@@ -13,6 +13,53 @@ namespace WebApi.Tests.IntegrationTests.DataPointController;
 public class DataPointControllerTests : IntegrationTest
 {
     [Fact]
+    public async Task GetDataPointDisplayNames_ReturnsCorrectValues()
+    {
+        //Arrange
+        var organizationId = await SetupOrganization();
+        var expectedKeys = new[]
+        {
+            "testKey1",
+            "testKey2"
+        };
+
+        var expectedEntities = new[]
+        {
+            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[0], "DisplayName1",
+                latestValue: 42),
+            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[1], "DisplayName2",
+                latestValue: 23),
+            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[1], "DisplayName3",
+                latestValue: 23),
+        };
+
+        await PopulateDatabase(expectedEntities);
+
+        var datapointEntities = new[]
+        {
+            new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60),
+            new DataPointEntity(IdGenerator.GenerateId(), "otherKey", "DisplayName", latestValue: 100)
+        };
+        await PopulateDatabase(datapointEntities);
+
+        //Act
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/displayNames", UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = JsonConvert.DeserializeObject<DataPointDisplayNameDto[]>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result.Should().HaveCount(3);
+        result!
+            .Select(dp => dp.DisplayName)
+            .Should().BeEquivalentTo(expectedEntities.Select(dp => dp.DisplayName));
+        result!
+            .Select(dp => dp.Id)
+            .Should().BeEquivalentTo(expectedEntities.Select(dp => dp.Id.ToString()));
+    }
+
+    [Fact]
     public async Task CreateDataPoint_StoresProperInformationInDatabase()
     {
         //Arrange
@@ -39,7 +86,7 @@ public class DataPointControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.PostAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
-        
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var dataPointDto = JsonConvert.DeserializeObject<DataPointDto>(
@@ -47,7 +94,7 @@ public class DataPointControllerTests : IntegrationTest
         var dataPointEntity = GetAll<DataPointEntity>().Result.Single();
         AssertDataPoint(dataPointEntity, dataPointDto!);
     }
-    
+
     [Fact]
     public async Task CreateDataPoint_ReturnsNotFoundIfOrganizationIsNotPresent()
     {
@@ -75,12 +122,12 @@ public class DataPointControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.PostAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
-        
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
         GetAll<DataPointEntity>().Result.Should().HaveCount(0);
     }
-    
+
     [Fact]
     public async Task CreateDataPoint_ReturnsNotFoundIfDataPointKeyIsNotPresent()
     {
@@ -108,7 +155,7 @@ public class DataPointControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.PostAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
-        
+
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
         GetAll<DataPointEntity>().Result.Should().HaveCount(0);
@@ -394,7 +441,7 @@ public class DataPointControllerTests : IntegrationTest
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task UpdateDataPoint_UpdatesDataPointWithProperValues()
     {
@@ -419,7 +466,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.2
         };
-        
+
         var dataPointDto =
             new DataPointDto(dataPointEntity.Id.ToString(), organizationId, key, "New Display Name",
                 formulaDto, 0, false, true);
@@ -461,7 +508,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.2
         };
-        
+
         var dataPointDto =
             new DataPointDto(dataPointEntity.Id.ToString(), IdGenerator.GenerateId(), key, "New Display Name",
                 formulaDto, 0, false, true);
@@ -477,7 +524,7 @@ public class DataPointControllerTests : IntegrationTest
         var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
         updatedDataPointEntity.Should().BeEquivalentTo(dataPointEntity);
     }
-    
+
     [Fact]
     public async Task UpdateDataPoint_ReturnsNotFound_WhenDataPointKeyIsNotFound()
     {
@@ -502,7 +549,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.2
         };
-        
+
         var dataPointDto =
             new DataPointDto(dataPointEntity.Id.ToString(), organizationId, "Nope", "New Display Name",
                 formulaDto, 0, false, true);
@@ -518,7 +565,7 @@ public class DataPointControllerTests : IntegrationTest
         var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
         updatedDataPointEntity.Should().BeEquivalentTo(dataPointEntity);
     }
-    
+
     [Fact]
     public async Task UpdateDataPoint_DoesNotUpdateAnything_WhenDataPointIdIsNotFound()
     {
@@ -543,7 +590,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.2
         };
-        
+
         var dataPointDto =
             new DataPointDto(IdGenerator.GenerateId(), organizationId, key, "New Display Name",
                 formulaDto, 0, false, true);

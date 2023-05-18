@@ -41,6 +41,18 @@ public class DataPointController : ControllerBase
         var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
         return _mapper.Map<DataPointDto[]>(dataPoints);
     }
+    
+    /// <summary>
+    /// Get Data Point display names and Ids
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
+    [HttpGet("{organizationId}/displayNames")]
+    public async Task<ActionResult<DataPointDisplayNameDto[]>> GetDataPointDisplayNames(string organizationId)
+    {
+        var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
+        return _mapper.Map<DataPointDisplayNameDto[]>(dataPoints);
+    }
 
     /// <summary>
     /// Update Data Point

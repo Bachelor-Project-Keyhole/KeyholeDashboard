@@ -44,6 +44,7 @@ static class MapperRegistry
             #endregion
 
             cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointDisplayNameDto, DataPoint>().ReverseMap();
             cfg.CreateMap<CreateDataPointDto, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
