@@ -518,6 +518,47 @@ public class DataPointControllerTests : IntegrationTest
         var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
         updatedDataPointEntity.Should().BeEquivalentTo(dataPointEntity);
     }
+    
+    [Fact]
+    public async Task UpdateDataPoint_DoesNotUpdateAnything_WhenDataPointIdIsNotFound()
+    {
+        //Arrange
+        var organizationId = await SetupOrganization();
+
+        var key = "TestKey";
+        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        var dataPointEntryEntity =
+            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+        await PopulateDatabase(new[] { dataPointEntryEntity });
+
+        var formulaDto = new FormulaDto
+        {
+            Operation = MathOperation.Multiply.ToString(),
+            Factor = 1.2
+        };
+        
+        var dataPointDto =
+            new DataPointDto(IdGenerator.GenerateId(), organizationId, key, "New Display Name",
+                formulaDto, 0, false, true);
+        var stringContent =
+            new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");
+
+        //Act
+        var httpResponseMessage =
+            await TestClient.PatchAsync(new Uri("api/v1/DataPoint", UriKind.Relative), stringContent);
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
+        updatedDataPointEntity.Should().BeEquivalentTo(dataPointEntity);
+    }
 
     private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
     {
