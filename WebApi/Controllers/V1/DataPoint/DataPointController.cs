@@ -26,10 +26,10 @@ public class DataPointController : ControllerBase
     }
 
     [HttpGet("{organizationId}")]
-    public async Task<ActionResult<DataPointWithValueDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
+    public async Task<ActionResult<DataPointDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
     {
-        var allDataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
-        return _mapper.Map<DataPointWithValueDto[]>(allDataPoints);
+        var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
+        return _mapper.Map<DataPointDto[]>(dataPoints);
     }
 
     [HttpPatch]

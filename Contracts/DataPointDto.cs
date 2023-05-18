@@ -6,5 +6,6 @@ public record DataPointDto(
     string DataPointKey, 
     string DisplayName,
     FormulaDto Formula,
+    double LatestValue,
     bool DirectionIsUp,
     bool ComparisonIsAbsolute);
