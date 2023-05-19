@@ -188,7 +188,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointEntryDto>(
+        var result = JsonConvert.DeserializeObject<PushDataPointEntryDto>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
         result!.OrganizationId.Should().Be(organizationId);
@@ -278,7 +278,7 @@ public class DataPointControllerTests : IntegrationTest
         var organizationId = await SetupOrganization();
 
         var dataPointEntryDto =
-            new DataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
+            new PushDataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -318,7 +318,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryDto =
-            new DataPointEntryDto(organizationId, key, 500, DateTime.Now);
+            new PushDataPointEntryDto(organizationId, key, 500, DateTime.Now);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -348,7 +348,7 @@ public class DataPointControllerTests : IntegrationTest
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
         var dataPointEntryDto =
-            new DataPointEntryDto(nonExistingOrganizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
+            new PushDataPointEntryDto(nonExistingOrganizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -392,7 +392,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointEntryDto[]>(
+        var result = JsonConvert.DeserializeObject<PushDataPointEntryDto[]>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
         AssertDataPointEntries(expectedEntities, result!);
@@ -619,7 +619,7 @@ public class DataPointControllerTests : IntegrationTest
         result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
     }
 
-    private void AssertDataPointEntries(DataPointEntryEntity[] expected, DataPointEntryDto[] actual)
+    private void AssertDataPointEntries(DataPointEntryEntity[] expected, PushDataPointEntryDto[] actual)
     {
         actual.Should().HaveCount(expected.Length);
         foreach (var dataPointEntry in actual.Zip(expected, (a, e) => (a, e)))
