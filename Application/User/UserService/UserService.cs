@@ -89,8 +89,8 @@ public class UserService : IUserService
         var user = await _userRepository.GetUserById(userId);
         if (user == null)
             throw new UserNotFoundException($"user with id: {userId} was not found");
-        if (user.AccessLevels.Contains(UserAccessLevel.Admin))
-            throw new UserInvalidActionException($"user with id: {userId} has admin privilege and cannot be removed");
+        if (user.OwnedOrganizationId != null)
+            throw new UserForbiddenAction($"user with id: {userId} is an owner");
 
         await _userRepository.RemoveUserById(userId);
     }
@@ -99,7 +99,6 @@ public class UserService : IUserService
     {
         if (request.Password.Length < 8)
             throw new PasswordTooShortException("Password too short");
-
         var user = await _userRepository.GetUserByEmail(request.Email);
         if (user != null)
             throw new UserEmailTakenException($"This email: {request.Email} is already taken");

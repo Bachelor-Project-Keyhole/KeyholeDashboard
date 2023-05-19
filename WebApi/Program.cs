@@ -123,11 +123,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
 
-//if(!builder.Environment.IsDevelopment())
 app.UseMiddleware<JwtMiddleware>();
-
-    
-
 
 app.UseCors(myAllowSpecificOrigins);
 app.UseAuthorization();

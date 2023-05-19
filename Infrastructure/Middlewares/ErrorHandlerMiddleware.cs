@@ -46,6 +46,9 @@ public class ErrorHandlerMiddleware
                 case UserInvalidActionException:
                     response.StatusCode = (int) HttpStatusCode.BadRequest;
                     break;
+                case UserForbiddenAction:
+                    response.StatusCode = (int) HttpStatusCode.Forbidden;
+                    break;
                 default:
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;

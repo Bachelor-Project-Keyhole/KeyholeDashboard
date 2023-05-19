@@ -37,7 +37,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (user == null)
             throw new Exception(); // TODO: Fix exception
         var (tokenInfo, jwtExpiration) = _tokenGenerator.GenerateToken(user);
-        var refreshToken = _tokenGenerator.GenerateRefreshToken(GetIpAddress(httpContext)); // Not sure if it is possible to have in-active context at this point.
+        var refreshToken = _tokenGenerator.GenerateRefreshToken(); // Not sure if it is possible to have in-active context at this point.
 
         var refreshTokenFromDb = _mapper.Map<RefreshToken>(refreshToken);
 
@@ -57,7 +57,7 @@ public class UserAuthenticationService : IUserAuthenticationService
             RefreshTokenExpiration = refreshToken.ExpirationTime,
             User = new UserAuthenticationResponse
             {
-                Id = user.Id.ToString(),
+                Id = user.Id,
                 Email = user.Email
             }
         };
@@ -76,7 +76,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (userRefreshToken != null && userRefreshToken.IsRevoked)
         {
             // Refresh token was compromised and all user's refresh token should be revoked
-            RevokeAllRefreshTokens(userRefreshToken, user, GetIpAddress(_contextAccessor.HttpContext!),
+            RevokeAllRefreshTokens(userRefreshToken, user,
                 $"Attempted reuse of revoked ancestor token: {token}");
         }
 
@@ -84,7 +84,8 @@ public class UserAuthenticationService : IUserAuthenticationService
             throw new InvalidTokenException("Invalid token");
         
         // Replace old refresh token to new one(rotate)
-        var refreshToken = RotateRefreshToken(userRefreshToken!, GetIpAddress(_contextAccessor.HttpContext!));
+        // TODO: Test it out
+        var refreshToken = RotateRefreshToken(userRefreshToken);
         user.RefreshTokens?.Add(refreshToken);
         
         RemoveOldRefreshTokens(user);
@@ -116,19 +117,19 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (userRefreshToken == null || !userRefreshToken.IsActive)
             throw new ApplicationException("Invalid token");
         
-        RevokeRefreshToken(userRefreshToken, GetIpAddress(_contextAccessor.HttpContext!), "Revoked without replacement");
+        RevokeRefreshToken(userRefreshToken, "Revoked without replacement");
         await _userRepository.UpdateUser(user);
     }
 
-    private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.User.User user, string ipAddress, string reason)
+    private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.User.User user, string reason)
     {
         if (!string.IsNullOrEmpty(refreshToken.ReplacementToken))
         {
             var childToken = user.RefreshTokens?.SingleOrDefault(x => x.Token == refreshToken.ReplacementToken);
             if (childToken != null && childToken.IsActive)
-                RevokeRefreshToken(childToken, ipAddress, reason);
+                RevokeRefreshToken(childToken, reason);
             else
-                RevokeAllRefreshTokens(childToken!, user, ipAddress, reason);
+                RevokeAllRefreshTokens(childToken!, user, reason);
         }
     }
 
@@ -149,10 +150,10 @@ public class UserAuthenticationService : IUserAuthenticationService
             x.CreationTime.AddDays(_jwtSettings.RefreshTokenTtl) <= DateTime.UtcNow);
     }
 
-    private RefreshToken RotateRefreshToken(RefreshToken refreshToken, string ipAddress)
+    private RefreshToken RotateRefreshToken(RefreshToken refreshToken)
     {
-        var newRefreshToken = _tokenGenerator.GenerateRefreshToken(ipAddress);
-        RevokeRefreshToken(refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
+        var newRefreshToken = _tokenGenerator.GenerateRefreshToken();
+        RevokeRefreshToken(refreshToken, "Replaced by new token", newRefreshToken.Token);
         return newRefreshToken;
     }
 
@@ -167,11 +168,11 @@ public class UserAuthenticationService : IUserAuthenticationService
         response.Cookies.Append("refreshToken", token, cookieOptions);
     }
 
-    private string GetIpAddress(HttpContext? httpContext)
-    {
-        // Get source ip address for the current request
-        if (httpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
-            return httpContext.Request.Headers["X-Forwarded-For"]!;
-        return httpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
-    }
+    // private string GetIpAddress(HttpContext? httpContext)
+    // {
+    //     // Get source ip address for the current request
+    //     if (httpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+    //         return httpContext.Request.Headers["X-Forwarded-For"]!;
+    //     return httpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
+    // }
 }

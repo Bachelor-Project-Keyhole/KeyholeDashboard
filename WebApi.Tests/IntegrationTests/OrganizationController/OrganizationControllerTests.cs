@@ -1,6 +1,8 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using Application.JWT.Helper;
+using Application.JWT.Model;
 using Application.Organization.Model;
 using Application.User.Model;
 using Domain;
@@ -21,7 +23,6 @@ public class OrganizationControllerTests : IntegrationTest
     public async Task PostOrganizationAndUser_Successful()
     {
         // Arrange
-        
         var request = new CreateAdminAndOrganizationRequest
         {
             Email = "test@testRequest.com",
@@ -123,6 +124,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task InviteUser_Successful() // Change auth attribute to pass
      {
          // Arrange
+         await Authenticate();
          var userPersistence = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -173,7 +175,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task CompleteRegistrationByInvitation_Successful() // Change auth attribute to pass
      {
          // Arrange
-
+         await Authenticate();
          var invitationOfUser = new OrganizationUserInvitePersistence
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -213,7 +215,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task CompleteRegistrationByInvitation_InvalidToken() // Change auth attribute to pass
      {
          // Arrange
-
+         await Authenticate();
          var invitationOfUser = new OrganizationUserInvitePersistence
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -248,7 +250,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task CompleteRegistrationByInvitation_ExpiredToken() // Change auth attribute to pass
      {
          // Arrange
-
+         await Authenticate();
          var invitationOfUser = new OrganizationUserInvitePersistence
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -283,7 +285,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task CompleteRegistrationByInvitation_TokenAlreadyUsed() // Change auth attribute to pass
      {
          // Arrange
-         
+         await Authenticate();
          var invitationOfUser = new OrganizationUserInvitePersistence
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -317,9 +319,11 @@ public class OrganizationControllerTests : IntegrationTest
      [Fact]
      public async Task GetAllUsersOfOrganization() // Change auth attribute to pass
      {
+         
+         
          // Arrange
          var orgId = IdGenerator.GenerateId();
-
+         await Authenticate();
          var userPersistence1 = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -351,6 +355,22 @@ public class OrganizationControllerTests : IntegrationTest
          
          await PopulateDatabase(new[] {userPersistence1});
          await PopulateDatabase(new[] {userPersistence2});
+
+
+         var auth = new AuthenticateRequest
+         {
+             Email = userPersistence1.Email,
+             Password = userPersistence1.PasswordHash
+         };
+         
+         
+         var stringContentAuth = new StringContent(JsonConvert.SerializeObject(auth), Encoding.UTF8, "application/json");
+
+         var httpResponseMessageAuth = await TestClient.PostAsync(new Uri($"api/v1/Authentication/login", UriKind.Relative),stringContentAuth);
+         var responseAuth = JsonConvert.DeserializeObject<AuthenticationResponse>(await httpResponseMessageAuth.Content.ReadAsStringAsync());
+
+
+         TestClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", responseAuth?.Token);
          
          // Act
          var httpResponseMessage = await TestClient.GetAsync(new Uri($"api/v1/Organization/users/{orgId}", UriKind.Relative));
@@ -373,7 +393,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task UpdateOrganization_Successful() // Change auth attribute to pass
      {
          // Arrange
-         
+         await Authenticate();
          var organizationPersistence = new OrganizationPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -405,7 +425,7 @@ public class OrganizationControllerTests : IntegrationTest
      public async Task UpdateOrganization_NotFound() // Change auth attribute to pass
      {
          // Arrange
-         
+         await Authenticate();
          var organizationPersistence = new OrganizationPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -437,12 +457,12 @@ public class OrganizationControllerTests : IntegrationTest
      {
          // Arrange 
          var orgId = IdGenerator.GenerateId();
-         
+         await Authenticate();
          var userPersistence1 = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              Email = "test1@test.com",
-             OwnedOrganizationId = "",
+             OwnedOrganizationId = null,
              MemberOfOrganizationId = orgId,
              FullName = "Yo lama1",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
@@ -456,7 +476,7 @@ public class OrganizationControllerTests : IntegrationTest
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              Email = "test2@test.com",
-             OwnedOrganizationId = "",
+             OwnedOrganizationId = null,
              MemberOfOrganizationId = orgId,
              FullName = "Yo lama2",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
@@ -477,23 +497,23 @@ public class OrganizationControllerTests : IntegrationTest
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
 
          var user = await GetAll<UserPersistenceModel>();
-         user.Length.Should().Be(1);
-         var user2 = user.Single();
-         user2.Id.Should().Be(userPersistence2.Id);
-         user2.Email.Should().Be(userPersistence2.Email);
+         user.Length.Should().Be(2);
+         var user2 = user.FirstOrDefault(x => x.Id == userPersistence2.Id);
+         user2?.Id.Should().Be(userPersistence2.Id);
+         user2?.Email.Should().Be(userPersistence2.Email);
      }
      
       [Fact]
-     public async Task RemoveUserFromOrganization_AdminCannotBeRemoved() // Change auth attribute to pass
+     public async Task RemoveUserFromOrganization_OwnerRemoveForbidden() // Change auth attribute to pass
      {
          // Arrange 
          var orgId = IdGenerator.GenerateId();
-         
+         await Authenticate();
          var userPersistence1 = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              Email = "test1@test.com",
-             OwnedOrganizationId = "",
+             OwnedOrganizationId = "aa",
              MemberOfOrganizationId = orgId,
              FullName = "Yo lama1",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
@@ -525,9 +545,9 @@ public class OrganizationControllerTests : IntegrationTest
          var httpResponseMessage = await TestClient.DeleteAsync(new Uri($"api/v1/Organization/Remove/user/{userPersistence1.Id.ToString()}", UriKind.Relative));
          
          // Assert
-         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
          var user = await GetAll<UserPersistenceModel>();
-         user.Length.Should().Be(2);
+         user.Length.Should().Be(3); // Because one is for auth service
      }
 }
