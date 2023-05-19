@@ -34,6 +34,18 @@ public class ErrorHandlerMiddleware
                 case DataPointKeyNotFoundException:
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
+                case UserEmailTakenException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case PasswordTooShortException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case InvitationTokenException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case UserInvalidActionException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
                 default:
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;

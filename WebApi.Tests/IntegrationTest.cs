@@ -1,21 +1,29 @@
+using System.Net;
 using System.Security.Authentication;
+using System.Text;
 using Application.Authentication.AuthenticationService;
 using Application.Email.EmailService;
+using Application.JWT.Helper;
+using Application.JWT.Model;
 using Application.JWT.Service;
 using Application.User.UserService;
 using Domain;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
+using Domain.User;
 using EphemeralMongo;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using Repository;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.TwoFactor;
+using Repository.User.UserPersistence;
 using Repository.User.UserRepository;
 
 namespace WebApi.Tests;
@@ -106,6 +114,8 @@ public class IntegrationTest : IDisposable
     {
         _runner.Dispose();
     }
+
+
 }
 
 

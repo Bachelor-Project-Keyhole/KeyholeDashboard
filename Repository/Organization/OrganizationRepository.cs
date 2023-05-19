@@ -23,7 +23,13 @@ public class OrganizationRepository : MongoRepository<OrganizationPersistenceMod
         var organizationEntity = _mapper.Map<OrganizationPersistenceModel>(organization);
         await InsertOneAsync(organizationEntity);
     }
-    
+
+    public async Task UpdateOrganization(Domain.Organization.Organization organization)
+    {
+        var organizationPersistence = _mapper.Map<OrganizationPersistenceModel>(organization);
+        await ReplaceOneAsync(organizationPersistence);
+    }
+
     public async Task<bool> OrganizationExists(string organizationId)
     {
         var result = await FindByIdAsync(organizationId);

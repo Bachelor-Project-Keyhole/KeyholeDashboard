@@ -1,6 +1,6 @@
 ﻿using Domain.User;
 
-namespace Domain.Organization;
+namespace Domain.Organization.OrganizationUserInvite;
 
 public class OrganizationUserInvites
 {

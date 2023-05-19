@@ -1,4 +1,5 @@
 ﻿using Domain.User;
+using MongoDB.Bson.Serialization.Attributes;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
@@ -15,6 +16,6 @@ public class AdminAndOrganizationCreateResponse
 
     public string OrganizationId { get; set; }
     public string OrganizationName { get; set; }
-
+    [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
     public DateTime OrganizationCreationTime { get; set; }
 }

@@ -66,15 +66,39 @@ public class UserService : IUserService
         return await _userRepository.GetByRefreshToken(token);
     }
 
+    public async Task<AllUsersOfOrganizationResponse> GetAllUsers(string organizationId)
+    {
+        var users = await _userRepository.GetAllUsersByOrganizationId(organizationId);
+        if (users == null)
+            throw new UserNotFoundException($"No users were found with organization Id: {organizationId}");
+
+        return new AllUsersOfOrganizationResponse
+        {
+            OrganizationId = organizationId,
+            Users = _mapper.Map<List<OrganizationUsersResponse>>(users)
+        };
+    }
+
     public async Task UpdateUser(Domain.User.User user)
     {
         await _userRepository.UpdateUser(user);
     }
 
+    public async Task RemoveUserById(string userId)
+    {
+        var user = await _userRepository.GetUserById(userId);
+        if (user == null)
+            throw new UserNotFoundException($"user with id: {userId} was not found");
+        if (user.AccessLevels.Contains(UserAccessLevel.Admin))
+            throw new UserInvalidActionException($"user with id: {userId} has admin privilege and cannot be removed");
+
+        await _userRepository.RemoveUserById(userId);
+    }
+
     public async Task<AdminAndOrganizationCreateResponse> CreateAdminUserAndOrganization(CreateAdminAndOrganizationRequest request)
     {
         if (request.Password.Length < 8)
-            throw new ApplicationException("Password too short");
+            throw new PasswordTooShortException("Password too short");
 
         var user = await _userRepository.GetUserByEmail(request.Email);
         if (user != null)
@@ -95,16 +119,6 @@ public class UserService : IUserService
         {
             Id = ObjectId.GenerateNewId().ToString(),
             OrganizationName = request.OrganizationName,
-            Members = new List<OrganizationMembers>()
-            {
-                new OrganizationMembers
-                {
-                    Id = userToInsert.Id,
-                    AccessLevel = userToInsert.AccessLevels,
-                    Email = userToInsert.Email,
-                    Name = userToInsert.FullName
-                }
-            },
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };

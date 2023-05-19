@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Organization;
+using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -15,7 +16,7 @@ public class OrganizationUserInviteRepository :  MongoRepository<OrganizationUse
         _mapper = mapper;
     }
 
-    public async Task InsertInviteUser(Domain.Organization.OrganizationUserInvites insert)
+    public async Task InsertInviteUser(OrganizationUserInvites insert)
     {
         var invitesPersistence = _mapper.Map<OrganizationUserInvitePersistence>(insert);
         await InsertOneAsync(invitesPersistence);
@@ -27,11 +28,11 @@ public class OrganizationUserInviteRepository :  MongoRepository<OrganizationUse
         await ReplaceOneAsync(invite);
     }
 
-    public async Task<Domain.Organization.OrganizationUserInvites?> GetByToken(string token)
+    public async Task<OrganizationUserInvites?> GetByToken(string token)
     {
         // Create TTL functionality in either here or mongo Atlas
         var invitation = await Collection
             .Find(x => x.Token == token).SingleOrDefaultAsync();
-        return _mapper.Map<Domain.Organization.OrganizationUserInvites>(invitation);
+        return _mapper.Map<OrganizationUserInvites>(invitation);
     }
 }

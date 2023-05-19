@@ -8,10 +8,13 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Repository;
 using WebApi.Registry;
+using Microsoft.Extensions.Hosting;
+
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 
@@ -22,6 +25,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
 
 
 #region Config setup
@@ -118,7 +122,12 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
+
+//if(!builder.Environment.IsDevelopment())
 app.UseMiddleware<JwtMiddleware>();
+
+    
+
 
 app.UseCors(myAllowSpecificOrigins);
 app.UseAuthorization();

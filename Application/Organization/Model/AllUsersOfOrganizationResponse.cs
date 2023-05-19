@@ -2,7 +2,6 @@
 
 public class AllUsersOfOrganizationResponse
 {
-    public string OrganizationName { get; set; }
     public string OrganizationId { get; set; }
     public List<OrganizationUsersResponse>? Users { get; set; }
 }

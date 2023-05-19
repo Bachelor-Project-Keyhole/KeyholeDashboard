@@ -1,6 +1,7 @@
 ﻿using Application.Organization.Model;
 using Domain.Exceptions;
 using Domain.Organization;
+using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
 
 namespace Application.Organization;
@@ -24,12 +25,9 @@ public class OrganizationService : IOrganizationService
         if (organization == null)
             throw new OrganizationNotFoundException($"Organization with given id: {request.OrganizationId} was not found");
 
-        // Not completely sure if we need this. 
-        if (organization.Members?.FirstOrDefault(x => x.Id == request.UserId) == null)
-            throw new UserInvalidActionException("User does not belong to the organization, that he is trying to invite to");
         var alphaNumericToken = GenerateAlphaNumeric();
 
-        var insert = new Domain.Organization.OrganizationUserInvites
+        var insert = new OrganizationUserInvites
         {
             OrganizationId = request.OrganizationId,
             Token = alphaNumericToken,
@@ -47,7 +45,7 @@ public class OrganizationService : IOrganizationService
         return (link, organization.OrganizationName);
     }
 
-    public async Task<Domain.Organization.OrganizationUserInvites> TokenValidity(string token)
+    public async Task<OrganizationUserInvites> TokenValidity(string token)
     {
         var invitation = await _organizationUserInvite.GetByToken(token);
         if (invitation == null)
@@ -62,24 +60,24 @@ public class OrganizationService : IOrganizationService
         return invitation;
     }
 
-    public async Task<AllUsersOfOrganizationResponse> GetAllUsers(string id)
+    public async Task<OrganizationResponse> UpdateOrganization(UpdateOrganizationRequest request)
     {
-        var organization = await _organizationRepository.GetOrganizationById(id);
+        var organization = await _organizationRepository.GetOrganizationById(request.OrganzationId);
         if (organization == null)
-            throw new OrganizationNotFoundException($"organization with id: {id} was not found");
+            throw new OrganizationNotFoundException($"Organization with id: {request.OrganzationId} was not found");
 
-        return new AllUsersOfOrganizationResponse
+        organization.OrganizationName = request.OrganizationName;
+        organization.ModificationDate = DateTime.UtcNow;
+        await _organizationRepository.UpdateOrganization(organization);
+
+        return new OrganizationResponse
         {
             OrganizationId = organization.Id,
+            OrganizationOwnerId = organization.OrganizationOwnerId,
             OrganizationName = organization.OrganizationName,
-            Users = organization.Members?.Select(x => new OrganizationUsersResponse
-            {
-                Name = x.Name,
-                Email = x.Email,
-                AccessLevels = x.AccessLevel
-            }).ToList()
+            CreationDate = organization.CreationDate,
+            ModificationDate = organization.ModificationDate
         };
-        
     }
 
     private string GenerateAlphaNumeric()
