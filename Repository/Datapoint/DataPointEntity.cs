@@ -1,3 +1,5 @@
+using Domain.Datapoint;
+
 namespace Repository.Datapoint;
 
 [BsonCollection("datapoints")]
@@ -9,6 +11,8 @@ public class DataPointEntity : Document
     public bool DirectionIsUp { get; set; }
     public bool ComparisonIsAbsolute { get; set; }
     public double LatestValue { get; set; }
+
+    public Formula Formula { get; set; } = new() { Operation = MathOperation.None };
 
     public DataPointEntity(
         string organizationId,

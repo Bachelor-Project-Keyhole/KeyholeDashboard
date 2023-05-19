@@ -53,7 +53,7 @@ public class ErrorHandlerMiddleware
             
             var result = JsonSerializer.Serialize(new { errorMessage = exception.Message });
             await response.WriteAsync(result);
-            Console.WriteLine($"EXCEPTION: {exception.Message}");
+            Console.WriteLine($"EXCEPTION: {exception.Message}\n\nSTACK TRACE:\n{exception.StackTrace}");
         }
     }
 }

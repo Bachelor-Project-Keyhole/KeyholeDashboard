@@ -2,6 +2,6 @@ namespace Domain.Exceptions;
 
 public class OrganizationNotFoundException : Exception
 {
-    public OrganizationNotFoundException(string message): base(message)
+    public OrganizationNotFoundException(string organizationId): base($"Organization with Id: {organizationId} was not found")
     {}
 }
