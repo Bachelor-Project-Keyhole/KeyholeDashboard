@@ -1,7 +1,11 @@
+using System.Net;
+using Application.JWT.Authorization;
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
+using Domain.User;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace WebApi.Controllers.V1.DataPoint;
 
@@ -18,11 +22,14 @@ public class DataPointController : ControllerBase
     }
 
     /// <summary>
-    /// Create Data Point
+    /// Create Data Point (Editor or admin access level needed)
     /// </summary>
     /// <param name="createDataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPost]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Create Data Point")]
+    [Route("")]
     public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointDto createDataPointDto)
     {
         var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(createDataPointDto);
@@ -31,11 +38,14 @@ public class DataPointController : ControllerBase
     }
 
     /// <summary>
-    /// Get all data points belonging to the organization
+    /// Get all data points belonging to the organization (Any auth level is required)
     /// </summary>
     /// <param name="organizationId"></param>
     /// <returns></returns>
-    [HttpGet("{organizationId}")]
+    [Authorization(UserAccessLevel.Viewer ,UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Get all data points belonging to the organization")]
+    [Route("{organizationId}")]
     public async Task<ActionResult<DataPointDto[]>> GetAllDataPointsWithLatestValues(string organizationId)
     {
         var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
@@ -43,11 +53,14 @@ public class DataPointController : ControllerBase
     }
 
     /// <summary>
-    /// Update Data Point
+    /// Update Data Point (needed access Editor or Admin)
     /// </summary>
     /// <param name="dataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPatch]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Update Data Point")]
+    [Route("")]
     public async Task<IActionResult> UpdateDataPoint([FromBody] DataPointDto dataPointDto)
     {
         var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(dataPointDto);
@@ -57,11 +70,14 @@ public class DataPointController : ControllerBase
     }
     
     /// <summary>
-    /// Post Data Point entry. If data point key is unique, new data point will be created with this key
+    /// Post Data Point entry. If data point key is unique, new data point will be created with this key (needed access Editor or Admin)
     /// </summary>
     /// <param name="dataPointEntryDto"></param>
     /// <returns></returns>
-    [HttpPost("entries")]
+    [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpPost]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Update Data Point")]
+    [Route("entries")]
     public async Task<IActionResult> PostDataPointEntry([FromBody] DataPointEntryDto dataPointEntryDto)
     {
         var dataPointEntry = _mapper.Map<DataPointEntry>(dataPointEntryDto);
@@ -70,14 +86,32 @@ public class DataPointController : ControllerBase
         
     }
 
-    [HttpGet("entries/last/{organizationId}/{dataPointKey}")]
+    /// <summary>
+    /// Get latest data point entry (Any auth level is required)
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <param name="dataPointKey"></param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Get latest data point entry")]
+    [Route("entries/last/{organizationId}/{dataPointKey}")]
     public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
         return _mapper.Map<DataPointEntryDto>(dataPointEntry);
     }
 
-    [HttpGet("entries/{organizationId}/{key}")]
+    /// <summary>
+    /// Get all data point entries (Any auth level is required)
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Get all data point entries")]
+    [Route("entries/{organizationId}/{key}")]
     public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
     {
         var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);

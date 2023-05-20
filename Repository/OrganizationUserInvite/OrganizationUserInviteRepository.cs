@@ -3,6 +3,7 @@ using Domain.Organization;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Repository.OrganizationUserInvite;
@@ -16,6 +17,12 @@ public class OrganizationUserInviteRepository :  MongoRepository<OrganizationUse
         _mapper = mapper;
     }
 
+    public async Task<List<OrganizationUserInvites>?> GetAllInvitesByOrganizationId(string organizationId)
+    {
+        var invitations = await FilterByAsync(x => x.OrganizationId == organizationId);
+        return _mapper.Map<List<OrganizationUserInvites>>(invitations);
+    }
+
     public async Task InsertInviteUser(OrganizationUserInvites insert)
     {
         var invitesPersistence = _mapper.Map<OrganizationUserInvitePersistence>(insert);
@@ -26,6 +33,11 @@ public class OrganizationUserInviteRepository :  MongoRepository<OrganizationUse
     {
         var invite = _mapper.Map<OrganizationUserInvitePersistence>(insert);
         await ReplaceOneAsync(invite);
+    }
+
+    public async Task RemoveByToken(string token)
+    {
+        await DeleteOneAsync(x => x.Token == token);
     }
 
     public async Task<OrganizationUserInvites?> GetByToken(string token)

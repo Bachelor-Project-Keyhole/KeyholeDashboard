@@ -550,4 +550,57 @@ public class OrganizationControllerTests : IntegrationTest
          var user = await GetAll<UserPersistenceModel>();
          user.Length.Should().Be(3); // Because one is for auth service
      }
+     
+     [Fact]
+     public async Task RemoveUserInvitationPastTtl() // Change auth attribute to pass
+     {
+         // Arrange
+         await Authenticate();
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = "",
+             FullName = "Yo lama",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+
+         var organizationPersistence = new OrganizationPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             OrganizationOwnerId = "",
+             OrganizationName = "OrgName",
+             CreationDate = DateTime.UtcNow,
+             ModificationDate = DateTime.UtcNow
+         };
+    
+         await PopulateDatabase(new[] {organizationPersistence});
+         await PopulateDatabase(new[] {userPersistence});
+
+         var request = new OrganizationUserInviteRequest
+         {
+             OrganizationId = organizationPersistence.Id.ToString(),
+             UserId = userPersistence.Id.ToString(),
+             AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             ReceiverEmailAddress = "dziugis10@gmail.com",
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+    
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri("/api/v1/Organization/invite", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+     }
+     
+     
 }

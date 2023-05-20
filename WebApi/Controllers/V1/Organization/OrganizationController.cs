@@ -131,6 +131,25 @@ public class OrganizationController : BaseApiController
         var response = await _organizationService.UpdateOrganization(request);
         return Ok(response);
     }
+    
+    /// <summary>
+    /// Change access level to user
+    /// </summary>
+    /// <param name="request">
+    /// AdminId -> admin that wants to change access to user
+    /// UserId -> id of user that accesses will be changed
+    /// SetAccessLevel -> to level the user access should be set
+    /// </param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Change access level to user",typeof(UserChangeAccessResponse))]
+    [Route("access/{id}")]
+    public async Task<IActionResult> ChangeAccessLevelOfUser([FromBody] ChangeUserAccessRequest request)
+    {
+        var response = await _userService.SetAccessLevel(request);
+        return Ok(response);
+    }
 
     /// <summary>
     /// Remove user from organization by userId (Admin endpoint)

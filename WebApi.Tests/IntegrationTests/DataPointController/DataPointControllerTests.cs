@@ -7,6 +7,7 @@ using FluentAssertions;
 using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
+using Repository.Organization;
 
 namespace WebApi.Tests.IntegrationTests.DataPointController;
 
@@ -16,14 +17,23 @@ public class DataPointControllerTests : IntegrationTest
     public async Task CreateDataPoint_StoresProperInformationInDatabase()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
         var dataPointKey = "TestKey";
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
-            new(organizationId, dataPointKey, 50, DateTime.Now),
-            new(organizationId, dataPointKey, 0, DateTime.Now.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointKey, 50, DateTime.Now),
+            new(organization.Id.ToString(), dataPointKey, 0, DateTime.Now.AddDays(-1)),
         };
+        await PopulateDatabase(new[] {organization});
         await PopulateDatabase(dataPointEntryEntities);
 
         var formulaDto = new FormulaDto
@@ -31,7 +41,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.5
         };
-        var createDataPointDto = new CreateDataPointDto(organizationId, dataPointKey, "Display Name",
+        var createDataPointDto = new CreateDataPointDto(organization.Id.ToString(), dataPointKey, "Display Name",
             formulaDto, true, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(createDataPointDto), Encoding.UTF8, "application/json");
@@ -52,13 +62,25 @@ public class DataPointControllerTests : IntegrationTest
     public async Task CreateDataPoint_ReturnsNotFoundIfOrganizationIsNotPresent()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+
         var dataPointKey = "TestKey";
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
-            new(organizationId, dataPointKey, 50, DateTime.Now),
-            new(organizationId, dataPointKey, 0, DateTime.Now.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointKey, 50, DateTime.Now),
+            new(organization.Id.ToString(), dataPointKey, 0, DateTime.Now.AddDays(-1)),
         };
         await PopulateDatabase(dataPointEntryEntities);
 
@@ -85,13 +107,25 @@ public class DataPointControllerTests : IntegrationTest
     public async Task CreateDataPoint_ReturnsNotFoundIfDataPointKeyIsNotPresent()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+        
         var dataPointKey = "TestKey";
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
-            new(organizationId, dataPointKey, 50, DateTime.Now),
-            new(organizationId, dataPointKey, 0, DateTime.Now.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointKey, 50, DateTime.Now),
+            new(organization.Id.ToString(), dataPointKey, 0, DateTime.Now.AddDays(-1)),
         };
         await PopulateDatabase(dataPointEntryEntities);
 
@@ -100,7 +134,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.5
         };
-        var createDataPointDto = new CreateDataPointDto(organizationId, "Nope", "Display Name",
+        var createDataPointDto = new CreateDataPointDto(organization.Id.ToString(), "Nope", "Display Name",
             formulaDto, true, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(createDataPointDto), Encoding.UTF8, "application/json");
@@ -118,7 +152,18 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetLatestDataPointEntry_ReturnsProperValue()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var dataPointKey = "TestKey";
         var expectedTime = DateTime.Now;
@@ -126,25 +171,25 @@ public class DataPointControllerTests : IntegrationTest
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
-            new(organizationId, dataPointKey, expectedValue, expectedTime),
-            new(organizationId, dataPointKey, 0, expectedTime.AddDays(-1)),
-            new(organizationId, dataPointKey, 10, expectedTime.AddDays(-2)),
-            new(organizationId, dataPointKey, -50000.25, expectedTime.AddMinutes(-5)),
-            new(organizationId, dataPointKey, 1.563, expectedTime.AddHours(-2)),
+            new(organization.Id.ToString(), dataPointKey, expectedValue, expectedTime),
+            new(organization.Id.ToString(), dataPointKey, 0, expectedTime.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointKey, 10, expectedTime.AddDays(-2)),
+            new(organization.Id.ToString(), dataPointKey, -50000.25, expectedTime.AddMinutes(-5)),
+            new(organization.Id.ToString(), dataPointKey, 1.563, expectedTime.AddHours(-2)),
         };
         await PopulateDatabase(dataPointEntryEntities);
 
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(
-                new Uri($"api/v1/DataPoint/entries/last/{organizationId}/{dataPointKey}", UriKind.Relative));
+                new Uri($"api/v1/DataPoint/entries/last/{organization.Id.ToString()}/{dataPointKey}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = JsonConvert.DeserializeObject<DataPointEntryDto>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
-        result!.OrganizationId.Should().Be(organizationId);
+        result!.OrganizationId.Should().Be(organization.Id.ToString());
         result.DataPointKey.Should().Be(dataPointKey);
         result.Value.Should().Be(expectedValue);
         result.Time.Should().BeCloseTo(expectedTime, TimeSpan.FromSeconds(1));
@@ -154,7 +199,19 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointsWithLatestValues_ReturnsAllDataPointsBelongingToOrganization()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+
         var expectedKeys = new[]
         {
             "testKey1",
@@ -163,8 +220,8 @@ public class DataPointControllerTests : IntegrationTest
 
         var datapointEntities = new[]
         {
-            new DataPointEntity(organizationId, expectedKeys[0], "DisplayName", latestValue: 42),
-            new DataPointEntity(organizationId, expectedKeys[1], "DisplayName", latestValue: 23),
+            new DataPointEntity(organization.Id.ToString(), expectedKeys[0], "DisplayName", latestValue: 42),
+            new DataPointEntity(organization.Id.ToString(), expectedKeys[1], "DisplayName", latestValue: 23),
             new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60),
             new DataPointEntity(IdGenerator.GenerateId(), "otherKey", "DisplayName", latestValue: 100)
         };
@@ -172,7 +229,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -189,7 +246,19 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointsWithLatestValues_ReturnsEmptyArray_WhenNoDataPointsArePresent()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+        
         var datapointEntities = new[]
         {
             new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
@@ -199,7 +268,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -212,7 +281,18 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointsWithLatestValues_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
-        await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
@@ -228,10 +308,21 @@ public class DataPointControllerTests : IntegrationTest
     public async Task PostDataPointEntry_PersistsEntryIntoDatabase_AndCreatesNewDataPoint()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var dataPointEntryDto =
-            new DataPointEntryDto(organizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
+            new DataPointEntryDto(organization.Id.ToString(), IdGenerator.GenerateId(), 500, DateTime.Now);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -264,14 +355,25 @@ public class DataPointControllerTests : IntegrationTest
     public async Task PostDataPointEntry_PersistsEntryIntoDatabase_DoesNotCreateDuplicateDataPoint()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, key);
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, key);
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryDto =
-            new DataPointEntryDto(organizationId, key, 500, DateTime.Now);
+            new DataPointEntryDto(organization.Id.ToString(), key, 500, DateTime.Now);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -298,6 +400,7 @@ public class DataPointControllerTests : IntegrationTest
     public async Task PostDataPointEntry_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
     {
         //Arrange
+        await Authenticate();
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
         var dataPointEntryDto =
@@ -320,20 +423,32 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+
         var key = "TestKey";
 
         var expectedEntities = new DataPointEntryEntity[]
         {
-            new(organizationId, key, 23, DateTime.Now),
-            new(organizationId, key, 23, DateTime.MinValue),
+            new(organization.Id.ToString(), key, 23, DateTime.Now),
+            new(organization.Id.ToString(), key, 23, DateTime.MinValue),
         };
 
         await PopulateDatabase(expectedEntities);
 
         var testEntities = new[]
         {
-            new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
+            new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
         };
@@ -341,7 +456,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organizationId}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organization.Id.ToString()}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -376,20 +491,31 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var key = "TestKey";
         var testEntities = new[]
         {
-            new DataPointEntryEntity(organizationId, "notTestKey", 23, DateTime.Now),
-            new DataPointEntryEntity(organizationId, "other", 23, DateTime.Now),
+            new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
+            new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
         };
         await PopulateDatabase(testEntities);
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -399,10 +525,21 @@ public class DataPointControllerTests : IntegrationTest
     public async Task UpdateDataPoint_UpdatesDataPointWithProperValues()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
             Id = new ObjectId(IdGenerator.GenerateId()),
             Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
@@ -411,7 +548,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryEntity =
-            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now);
         await PopulateDatabase(new[] { dataPointEntryEntity });
 
         var formulaDto = new FormulaDto
@@ -421,7 +558,7 @@ public class DataPointControllerTests : IntegrationTest
         };
         
         var dataPointDto =
-            new DataPointDto(dataPointEntity.Id.ToString(), organizationId, key, "New Display Name",
+            new DataPointDto(dataPointEntity.Id.ToString(), organization.Id.ToString(), key, "New Display Name",
                 formulaDto, 0, false, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");
@@ -441,10 +578,21 @@ public class DataPointControllerTests : IntegrationTest
     public async Task UpdateDataPoint_ReturnsNotFound_WhenOrganizationIsNotFound()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
             Id = new ObjectId(IdGenerator.GenerateId()),
             Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
@@ -453,7 +601,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryEntity =
-            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now);
         await PopulateDatabase(new[] { dataPointEntryEntity });
 
         var formulaDto = new FormulaDto
@@ -482,10 +630,20 @@ public class DataPointControllerTests : IntegrationTest
     public async Task UpdateDataPoint_ReturnsNotFound_WhenDataPointKeyIsNotFound()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
-
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
             Id = new ObjectId(IdGenerator.GenerateId()),
             Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
@@ -494,7 +652,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryEntity =
-            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now);
         await PopulateDatabase(new[] { dataPointEntryEntity });
 
         var formulaDto = new FormulaDto
@@ -504,7 +662,7 @@ public class DataPointControllerTests : IntegrationTest
         };
         
         var dataPointDto =
-            new DataPointDto(dataPointEntity.Id.ToString(), organizationId, "Nope", "New Display Name",
+            new DataPointDto(dataPointEntity.Id.ToString(), organization.Id.ToString(), "Nope", "New Display Name",
                 formulaDto, 0, false, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");
@@ -523,10 +681,21 @@ public class DataPointControllerTests : IntegrationTest
     public async Task UpdateDataPoint_DoesNotUpdateAnything_WhenDataPointIdIsNotFound()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organizationId, key, "Old Display Name")
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
             Id = new ObjectId(IdGenerator.GenerateId()),
             Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
@@ -535,7 +704,7 @@ public class DataPointControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryEntity =
-            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now);
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now);
         await PopulateDatabase(new[] { dataPointEntryEntity });
 
         var formulaDto = new FormulaDto
@@ -545,7 +714,7 @@ public class DataPointControllerTests : IntegrationTest
         };
         
         var dataPointDto =
-            new DataPointDto(IdGenerator.GenerateId(), organizationId, key, "New Display Name",
+            new DataPointDto(IdGenerator.GenerateId(), organization.Id.ToString(), key, "New Display Name",
                 formulaDto, 0, false, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointDto), Encoding.UTF8, "application/json");

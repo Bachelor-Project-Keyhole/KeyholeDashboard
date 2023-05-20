@@ -28,20 +28,13 @@ public class ErrorHandlerMiddleware
 
             switch (exception)
             {
-                case OrganizationNotFoundException:
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
-                case DataPointKeyNotFoundException:
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
-                    break;
+                #region User Exceptions 
+                
                 case UserEmailTakenException:
                     response.StatusCode = (int) HttpStatusCode.BadRequest;
                     break;
-                case PasswordTooShortException:
-                    response.StatusCode = (int) HttpStatusCode.BadRequest;
-                    break;
-                case InvitationTokenException:
-                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                case UserNotFoundException:
+                    response.StatusCode = (int) HttpStatusCode.NotFound;
                     break;
                 case UserInvalidActionException:
                     response.StatusCode = (int) HttpStatusCode.BadRequest;
@@ -49,6 +42,38 @@ public class ErrorHandlerMiddleware
                 case UserForbiddenAction:
                     response.StatusCode = (int) HttpStatusCode.Forbidden;
                     break;
+                case PasswordTooShortException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case InvitationTokenException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case InvalidTokenException:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                case RevokeTokenBadRequest:
+                    response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                
+                #endregion
+
+                #region  Organization Exceptions
+
+                case OrganizationNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+
+                #endregion
+
+                #region Data Point Exceptions
+
+                case DataPointKeyNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+
+                #endregion
+                
+                
                 default:
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;

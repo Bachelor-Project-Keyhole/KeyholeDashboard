@@ -38,8 +38,18 @@ public class OrganizationService : IOrganizationService
             AccessLevels = request.AccessLevels,
             InvitedByUserId = request.UserId
         };
+        
+        // Delete outdated Invitations
+        var invitations = await _organizationUserInvite.GetAllInvitesByOrganizationId(organization.Id);
+
+        if (invitations != null)
+            await RemoveAllOutdatedInvitations(invitations);
+
 
         await _organizationUserInvite.InsertInviteUser(insert);
+        
+        
+        
 
         var link = $"https://keyholedashboard.azurewebsites.net/organization/register/{alphaNumericToken}";
         return (link, organization.OrganizationName);
@@ -54,7 +64,8 @@ public class OrganizationService : IOrganizationService
             throw new InvitationTokenException($"Invitation token: {token} has already expired");
         if(invitation.hasAccepted)
             throw new InvitationTokenException($"Invitation token: {token} was already used ");
-
+        
+       
         invitation.hasAccepted = true;
         await _organizationUserInvite.UpdateUserInvite(invitation);
         return invitation;
@@ -88,5 +99,15 @@ public class OrganizationService : IOrganizationService
         return new string(Enumerable.Range(0, length)
             .Select(_ => charCharacters[random.Next(charCharacters.Length)])
             .ToArray());
+    }
+    
+    private async Task RemoveAllOutdatedInvitations(List<OrganizationUserInvites> invites)
+    {
+        var validInvites = new List<OrganizationUserInvites>();
+        foreach (var invite in invites)
+        {
+            if (invite.RemoveFromDbDate < DateTime.UtcNow)
+                await _organizationUserInvite.RemoveByToken(invite.Token);
+        }
     }
 }

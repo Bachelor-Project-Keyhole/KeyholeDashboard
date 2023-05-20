@@ -1,6 +1,8 @@
-﻿using Application.JWT.Model;
+﻿using Application.JWT.Helper;
+using Application.JWT.Model;
 using Application.JWT.Service;
 using AutoMapper;
+using Domain;
 using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
 using Domain.User;
@@ -32,19 +34,22 @@ public class UserAuthenticationService : IUserAuthenticationService
     }
     public async Task<AuthenticationResponse> Authenticate(AuthenticateRequest model)
     {
-        var httpContext = _contextAccessor.HttpContext;
         var user = await _userRepository.GetUserByEmail(model.Email);
         if (user == null)
-            throw new Exception(); // TODO: Fix exception
+            throw new UserNotFoundException("User by given email was not found");
+        if (!PasswordHelper.ComparePasswords(model.Password, user.PasswordHash))
+            throw new UserForbiddenAction("Incorrect credentials");
+        
         var (tokenInfo, jwtExpiration) = _tokenGenerator.GenerateToken(user);
         var refreshToken = _tokenGenerator.GenerateRefreshToken(); // Not sure if it is possible to have in-active context at this point.
 
-        var refreshTokenFromDb = _mapper.Map<RefreshToken>(refreshToken);
+        var newRefreshToken = _mapper.Map<RefreshToken>(refreshToken);
+        newRefreshToken.Id = IdGenerator.GenerateId();
 
         if (!(user.RefreshTokens?.Count > 0))
-            user.RefreshTokens = new List<RefreshToken> {refreshTokenFromDb};
+            user.RefreshTokens = new List<RefreshToken> {newRefreshToken};
         else
-            user.RefreshTokens.Add(refreshTokenFromDb);
+            user.RefreshTokens.Add(newRefreshToken);
 
         RemoveOldRefreshTokens(user);
 
@@ -65,7 +70,7 @@ public class UserAuthenticationService : IUserAuthenticationService
 
     public async Task<AuthenticationResponse> RefreshToken(string? token)
     {
-        if (token == null)
+        if (string.IsNullOrEmpty(token))
             throw new InvalidTokenException("Token was not found in cookies");
         
         var user = await _userRepository.GetByRefreshToken(token);
@@ -73,7 +78,7 @@ public class UserAuthenticationService : IUserAuthenticationService
             throw new UserNotFoundException("User with given token was not found");
 
         var userRefreshToken = user.RefreshTokens?.Single(x => x.Token == token);
-        if (userRefreshToken != null && userRefreshToken.IsRevoked)
+        if (userRefreshToken != null && (userRefreshToken.IsRevoked || userRefreshToken.ExpirationTime <= DateTime.UtcNow))
         {
             // Refresh token was compromised and all user's refresh token should be revoked
             RevokeAllRefreshTokens(userRefreshToken, user,
@@ -84,8 +89,7 @@ public class UserAuthenticationService : IUserAuthenticationService
             throw new InvalidTokenException("Invalid token");
         
         // Replace old refresh token to new one(rotate)
-        // TODO: Test it out
-        var refreshToken = RotateRefreshToken(userRefreshToken);
+        var refreshToken = RotateRefreshToken(userRefreshToken!);
         user.RefreshTokens?.Add(refreshToken);
         
         RemoveOldRefreshTokens(user);
@@ -111,11 +115,11 @@ public class UserAuthenticationService : IUserAuthenticationService
     {
         var user = await _userRepository.GetByRefreshToken(token);
         if(user == null)
-            throw new ApplicationException("User missing"); // TODO: Fix exception
+            throw new UserNotFoundException("User missing");
         
         var userRefreshToken = user.RefreshTokens?.Single(x => x.Token == token);
-        if (userRefreshToken == null || !userRefreshToken.IsActive)
-            throw new ApplicationException("Invalid token");
+        if (userRefreshToken == null || !userRefreshToken.IsActive || userRefreshToken.ExpirationTime <= DateTime.UtcNow)
+            throw new InvalidTokenException("Invalid/Expired token");
         
         RevokeRefreshToken(userRefreshToken, "Revoked without replacement");
         await _userRepository.UpdateUser(user);
