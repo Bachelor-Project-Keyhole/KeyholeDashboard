@@ -5,7 +5,6 @@ using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
-using MongoDB.Driver;
 using Repository;
 using WebApi.Registry;
 using Microsoft.Extensions.Hosting;
@@ -128,5 +127,5 @@ app.Run();
 // Make the implicit Program class public so test projects can access it
 namespace WebApi
 {
-    public partial class Program { }
+    public class Program { }
 }

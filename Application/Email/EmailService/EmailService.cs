@@ -2,11 +2,9 @@
 using Application.Email.Template;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Application.Email.EmailService;
 

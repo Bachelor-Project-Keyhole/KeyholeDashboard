@@ -5,6 +5,7 @@ using Application.Organization;
 using Application.User.UserService;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
+using Domain.Template;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.OrganizationUserInvite;
@@ -41,5 +42,6 @@ static class ServiceRegistry
         collection.AddTransient<IDataPointEntryRepository, DataPointEntryRepository>();
         collection.AddTransient<IDataPointRepository, DataPointRepository>();
         collection.AddTransient<IDataPointDomainService, DataPointDomainService>();
+        collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
     }
 }

@@ -6,7 +6,6 @@ using Application.Organization.Model;
 using Application.User.Model;
 using AutoMapper;
 using Domain.Exceptions;
-using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Domain.TwoFactor;
 using Domain.User;

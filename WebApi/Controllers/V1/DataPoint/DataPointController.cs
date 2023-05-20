@@ -51,6 +51,18 @@ public class DataPointController : ControllerBase
         var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
         return _mapper.Map<DataPointDto[]>(dataPoints);
     }
+    
+    /// <summary>
+    /// Get Data Point display names and Ids
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
+    [HttpGet("{organizationId}/displayNames")]
+    public async Task<ActionResult<DataPointDisplayNameDto[]>> GetDataPointDisplayNames(string organizationId)
+    {
+        var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
+        return _mapper.Map<DataPointDisplayNameDto[]>(dataPoints);
+    }
 
     /// <summary>
     /// Update Data Point (needed access Editor or Admin)
@@ -72,15 +84,15 @@ public class DataPointController : ControllerBase
     /// <summary>
     /// Post Data Point entry. If data point key is unique, new data point will be created with this key (needed access Editor or Admin)
     /// </summary>
-    /// <param name="dataPointEntryDto"></param>
+    /// <param name="pushDataPointEntryDto"></param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int)HttpStatusCode.OK, "Update Data Point")]
     [Route("entries")]
-    public async Task<IActionResult> PostDataPointEntry([FromBody] DataPointEntryDto dataPointEntryDto)
+    public async Task<IActionResult> PostDataPointEntry([FromBody] PushDataPointEntryDto pushDataPointEntryDto)
     {
-        var dataPointEntry = _mapper.Map<DataPointEntry>(dataPointEntryDto);
+        var dataPointEntry = _mapper.Map<DataPointEntry>(pushDataPointEntryDto);
         await _dataPointDomainService.AddDataPointEntry(dataPointEntry);
         return Ok();
         
@@ -96,10 +108,10 @@ public class DataPointController : ControllerBase
     [HttpGet]
     [SwaggerResponse((int)HttpStatusCode.OK, "Get latest data point entry")]
     [Route("entries/last/{organizationId}/{dataPointKey}")]
-    public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
+    public async Task<ActionResult<PushDataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
     {
         var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
-        return _mapper.Map<DataPointEntryDto>(dataPointEntry);
+        return _mapper.Map<PushDataPointEntryDto>(dataPointEntry);
     }
 
     /// <summary>
@@ -112,9 +124,9 @@ public class DataPointController : ControllerBase
     [HttpGet]
     [SwaggerResponse((int)HttpStatusCode.OK, "Get all data point entries")]
     [Route("entries/{organizationId}/{key}")]
-    public async Task<ActionResult<DataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
+    public async Task<ActionResult<PushDataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
     {
         var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
-        return _mapper.Map<DataPointEntryDto[]>(allDataPoints);
+        return _mapper.Map<PushDataPointEntryDto[]>(allDataPoints);
     }
 }

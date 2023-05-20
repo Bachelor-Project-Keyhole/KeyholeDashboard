@@ -73,6 +73,9 @@ public class ErrorHandlerMiddleware
                 case DataPointKeyNotFoundException:
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
+                case DataPointNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
 
                 #endregion
                 
