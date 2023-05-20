@@ -128,10 +128,10 @@ public class OrganizationControllerTests : IntegrationTest
          var userPersistence = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
-             Email = "test@test.com",
+             Email = "test1@test1.com",
              OwnedOrganizationId = "",
              MemberOfOrganizationId = "",
-             FullName = "Yo lama",
+             FullName = "Yo lama1",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
              AccessLevels = new List<UserAccessLevel>
                  {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
@@ -145,7 +145,7 @@ public class OrganizationControllerTests : IntegrationTest
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              OrganizationOwnerId = "",
-             OrganizationName = "OrgName",
+             OrganizationName = "OrgNam1e",
              CreationDate = DateTime.UtcNow,
              ModificationDate = DateTime.UtcNow
          };
@@ -164,7 +164,7 @@ public class OrganizationControllerTests : IntegrationTest
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
     
          // Act
-         var httpResponseMessage = await TestClient.PostAsync(new Uri("/api/v1/Organization/invite", UriKind.Relative), stringContent);
+         var httpResponseMessage = await TestClient.PostAsync(new Uri("/api/v1/organization/invite/email", UriKind.Relative), stringContent);
          
          // Assert
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -198,10 +198,9 @@ public class OrganizationControllerTests : IntegrationTest
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-    
+
          // Act
          var httpResponseMessage = await TestClient.PostAsync(new Uri($"/api/v1/Organization/register/{invitationOfUser.Token}", UriKind.Relative), stringContent);
-         
          // Assert
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
          var response = JsonConvert.DeserializeObject<UserRegistrationResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
@@ -356,22 +355,6 @@ public class OrganizationControllerTests : IntegrationTest
          await PopulateDatabase(new[] {userPersistence1});
          await PopulateDatabase(new[] {userPersistence2});
 
-
-         var auth = new AuthenticateRequest
-         {
-             Email = userPersistence1.Email,
-             Password = userPersistence1.PasswordHash
-         };
-         
-         
-         var stringContentAuth = new StringContent(JsonConvert.SerializeObject(auth), Encoding.UTF8, "application/json");
-
-         var httpResponseMessageAuth = await TestClient.PostAsync(new Uri($"api/v1/Authentication/login", UriKind.Relative),stringContentAuth);
-         var responseAuth = JsonConvert.DeserializeObject<AuthenticationResponse>(await httpResponseMessageAuth.Content.ReadAsStringAsync());
-
-
-         TestClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", responseAuth?.Token);
-         
          // Act
          var httpResponseMessage = await TestClient.GetAsync(new Uri($"api/v1/Organization/users/{orgId}", UriKind.Relative));
          
@@ -552,7 +535,7 @@ public class OrganizationControllerTests : IntegrationTest
      }
      
      [Fact]
-     public async Task RemoveUserInvitationPastTtl() // Change auth attribute to pass
+     public async Task RemoveUserInvitationPastTtl() 
      {
          // Arrange
          await Authenticate();
@@ -580,27 +563,329 @@ public class OrganizationControllerTests : IntegrationTest
              CreationDate = DateTime.UtcNow,
              ModificationDate = DateTime.UtcNow
          };
+
+         var outdatedInvitation = new OrganizationUserInvitePersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             hasAccepted = false,
+             Token = "randomString",
+             OrganizationId = organizationPersistence.Id.ToString(),
+             AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer},
+             ReceiverEmail = "random@random.com",
+             TokenExpirationTime = DateTime.UtcNow.AddDays(-10),
+             RemoveFromDbDate = DateTime.UtcNow.AddDays(-2),
+             InvitedByUserId = userPersistence.Id.ToString()
+         };
     
          await PopulateDatabase(new[] {organizationPersistence});
          await PopulateDatabase(new[] {userPersistence});
+         await PopulateDatabase(new[] {outdatedInvitation});
 
          var request = new OrganizationUserInviteRequest
          {
              OrganizationId = organizationPersistence.Id.ToString(),
              UserId = userPersistence.Id.ToString(),
-             AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
              ReceiverEmailAddress = "dziugis10@gmail.com",
          };
-         
+
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
     
          // Act
-         var httpResponseMessage = await TestClient.PostAsync(new Uri("/api/v1/Organization/invite", UriKind.Relative), stringContent);
+         var httpResponseMessage = await TestClient.PostAsync(new Uri("/api/v1/Organization/invite/email", UriKind.Relative), stringContent);
          
          // Assert
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-
+         var invitations = await GetAll<OrganizationUserInvitePersistence>();
+         invitations.Length.Should().Be(1);
      }
      
+     [Fact]
+     public async Task ChangeAccessLevelOfUser_Successful() // Change auth attribute to pass
+     {
+         // Arrange
+         var orgId = IdGenerator.GenerateId();
+         await Authenticate();
+         var userPersistence2 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test1@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama1a",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         var userPersistence3 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test2@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence2});
+         await PopulateDatabase(new[] {userPersistence3});
+
+         var request = new ChangeUserAccessRequest
+         {
+             UserId = userPersistence3.Id.ToString(),
+             AdminUserId = userPersistence2.Id.ToString(),
+             SetAccessLevel = UserAccessLevel.Editor
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+         
+         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
+         demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
+     }
+     
+     [Fact]
+     public async Task ChangeAccessLevelOfUser_AdminUserNotFound() // Change auth attribute to pass
+     {
+         // Arrange
+         var orgId = IdGenerator.GenerateId();
+         await Authenticate();
+         var userPersistence2 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test1@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama1a",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         var userPersistence3 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test2@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence2});
+         await PopulateDatabase(new[] {userPersistence3});
+
+         var request = new ChangeUserAccessRequest
+         {
+             UserId = userPersistence3.Id.ToString(),
+             AdminUserId = IdGenerator.GenerateId(),
+             SetAccessLevel = UserAccessLevel.Editor
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+         
+         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
+         demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Admin);
+     }
+     
+     [Fact]
+     public async Task ChangeAccessLevelOfUser_UserNotFound() // Change auth attribute to pass
+     {
+         // Arrange
+         var orgId = IdGenerator.GenerateId();
+         await Authenticate();
+         var userPersistence2 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test1@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama1a",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         var userPersistence3 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test2@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence2});
+         await PopulateDatabase(new[] {userPersistence3});
+
+         var request = new ChangeUserAccessRequest
+         {
+             UserId = IdGenerator.GenerateId(),
+             AdminUserId = userPersistence2.Id.ToString(),
+             SetAccessLevel = UserAccessLevel.Editor
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+         
+         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
+     }
+     
+     [Fact]
+     public async Task ChangeAccessLevelOfUser_CannotChangeOwnerForbiddenException() // Change auth attribute to pass
+     {
+         // Arrange
+         var orgId = IdGenerator.GenerateId();
+         await Authenticate();
+         var userPersistence2 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test1@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama1a",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         var userPersistence3 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test2@test.com",
+             OwnedOrganizationId = "Admin",
+             MemberOfOrganizationId = orgId,
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence2});
+         await PopulateDatabase(new[] {userPersistence3});
+
+         var request = new ChangeUserAccessRequest
+         {
+             UserId = userPersistence3.Id.ToString(),
+             AdminUserId = userPersistence2.Id.ToString(),
+             SetAccessLevel = UserAccessLevel.Editor
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+         
+         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
+         demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
+     }
+     
+      [Fact]
+     public async Task ChangeAccessLevelOfUser_DifferentOrganizationIdException() // Change auth attribute to pass
+     {
+         // Arrange
+         await Authenticate();
+         var userPersistence2 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test1@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama1a",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         var userPersistence3 = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "test2@test.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence2});
+         await PopulateDatabase(new[] {userPersistence3});
+
+         var request = new ChangeUserAccessRequest
+         {
+             UserId = userPersistence3.Id.ToString(),
+             AdminUserId = userPersistence2.Id.ToString(),
+             SetAccessLevel = UserAccessLevel.Editor
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+         
+         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
+         demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
+     }
      
 }

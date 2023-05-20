@@ -113,6 +113,7 @@ public class IntegrationTest : IDisposable
 
     protected async Task Authenticate()
     {
+        var password = "orange1234";
         var userPersistence1 = new UserPersistenceModel
         {
             Id = ObjectId.Parse(IdGenerator.GenerateId()),
@@ -120,7 +121,7 @@ public class IntegrationTest : IDisposable
             OwnedOrganizationId = "",
             MemberOfOrganizationId = "646791352d33a03d8d495c2e",
             FullName = "Yo lama1",
-            PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+            PasswordHash = PasswordHelper.GetHashedPassword(password), // Has to be at least 8 chars
             AccessLevels = new List<UserAccessLevel>
                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
             RefreshTokens = new List<PersistenceRefreshToken>(),
@@ -128,12 +129,12 @@ public class IntegrationTest : IDisposable
             RegistrationDate = DateTime.UtcNow
         };
         
-        await PopulateDatabase(new[] {userPersistence1});
+        await PopulateDatabase(new UserPersistenceModel[] {userPersistence1});
         
         var auth = new AuthenticateRequest
         {
             Email = userPersistence1.Email,
-            Password = userPersistence1.PasswordHash
+            Password = password
         };
          
          

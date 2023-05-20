@@ -203,11 +203,11 @@ public class UserService : IUserService
         if (user == null)
             throw new UserNotFoundException("User not found");
 
-        if (user.AccessLevels.Contains(UserAccessLevel.Admin) && adminUser.OwnedOrganizationId == null)
-            throw new AccessLevelForbiddenException("Only owner of organization can change other admins access");
+        if (!string.IsNullOrEmpty(user.OwnedOrganizationId))
+            throw new AccessLevelForbiddenException("Owner cannot be removed.");
 
-        if (adminUser.OwnedOrganizationId != user.MemberOfOrganizationId || adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
-            throw new AccessLevelForbiddenException("Admin and user are not in the same organization");
+        if (adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
+            throw new UserInvalidActionException("Admin and user are not in the same organization");
             
 
    

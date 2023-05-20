@@ -53,11 +53,10 @@ public class OrganizationController : BaseApiController
     /// <param name="request"></param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Admin)]
-    //[AllowAnonymous]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Invite user into the organization")]
-    [Route("invite")]
-    public async Task<IActionResult> InviteUserToOrganization(OrganizationUserInviteRequest request)
+    [Route("invite/email")]
+    public async Task<IActionResult> InviteUserToOrganization([FromBody]OrganizationUserInviteRequest request)
     {
         var link = await _organizationService.InviteUser(request);
         await _emailService.SendInvitationEmail(request.ReceiverEmailAddress, request.Message, link.Item1, link.Item2);
@@ -106,7 +105,6 @@ public class OrganizationController : BaseApiController
     /// <param name="organizationId"> id of an organization, the users are assigned to</param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer)]
-    //[AllowAnonymous] // For testing
     [HttpGet]
     [SwaggerResponse((int) HttpStatusCode.OK, "Get all users of the organization", typeof(AllUsersOfOrganizationResponse))]
     [Route("users/{organizationId}")]
@@ -137,14 +135,13 @@ public class OrganizationController : BaseApiController
     /// </summary>
     /// <param name="request">
     /// AdminId -> admin that wants to change access to user
-    /// UserId -> id of user that accesses will be changed
     /// SetAccessLevel -> to level the user access should be set
     /// </param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Change access level to user",typeof(UserChangeAccessResponse))]
-    [Route("access/{id}")]
+    [Route("access")]
     public async Task<IActionResult> ChangeAccessLevelOfUser([FromBody] ChangeUserAccessRequest request)
     {
         var response = await _userService.SetAccessLevel(request);

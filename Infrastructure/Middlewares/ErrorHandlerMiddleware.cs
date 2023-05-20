@@ -62,6 +62,9 @@ public class ErrorHandlerMiddleware
                 case OrganizationNotFoundException:
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
+                case AccessLevelForbiddenException:
+                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    break;
 
                 #endregion
 

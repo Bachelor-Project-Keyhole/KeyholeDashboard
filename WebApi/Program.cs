@@ -96,16 +96,11 @@ builder.Services.AddApiVersioning(opt =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: myAllowSpecificOrigins,
-                      policy =>
-                      {
-                          //   policy.WithOrigins("http://localhost:8080/",
-                          //                       "https://localhost:7173", "http://localhost:5161").AllowAnyMethod();
-                          //Console.WriteLine("CORS policy");
-                          policy.AllowAnyOrigin()
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
-                      });
+    options.AddPolicy("CorsPolicy",
+        corsPolicyBuilder => corsPolicyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 });
 
 // Enforce routing lowercase
@@ -125,7 +120,7 @@ app.UseErrorHandlerMiddleware();
 
 app.UseMiddleware<JwtMiddleware>();
 
-app.UseCors(myAllowSpecificOrigins);
+app.UseCors("CorsPolicy");
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
