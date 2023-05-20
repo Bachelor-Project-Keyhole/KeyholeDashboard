@@ -1,6 +1,8 @@
+using Domain.Datapoint;
+
 namespace Domain.Template;
 
 public interface ITemplateDomainService
 {
-    Task<PreviewData> GetPreviewData(string organizationId, string dataPointId, string displayType, int timeSpanInDays);
+    Task<DataPointEntry[]> GetDataForTemplate(string organizationId, string dataPointId, string displayType, int timeSpanInDays);
 }

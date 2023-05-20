@@ -49,6 +49,7 @@ static class MapperRegistry
             cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntry, PushDataPointEntryDto>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
             cfg.CreateMap<Formula, FormulaDto>().ReverseMap();
             cfg.CreateMap<MathOperation, string>().ConvertUsing(e => e.ToString());
             cfg.CreateMap<string, MathOperation>().ConvertUsing(s => Enum.Parse<MathOperation>(s));

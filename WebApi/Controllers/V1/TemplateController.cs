@@ -17,11 +17,20 @@ public class TemplateController : ControllerBase
         _templateDomainService = templateDomainService;
     }
 
-    [HttpGet]
-    public async Task<PreviewDataDto> GetPreviewDataDto([FromBody] PreviewDataRequestDto previewDataRequestDto)
+    /// <summary>
+    /// Get data point entry values for template
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <param name="dataPointId"></param>
+    /// <param name="displayType"></param>
+    /// <param name="timeSpanInDays">Returns values that occured this amount of days ago until today</param>
+    /// <returns></returns>
+    [HttpGet("{organizationId}/{dataPointId}")]
+    public async Task<DataPointEntryDto[]> GetDataForTemplate(string organizationId, string dataPointId,
+        [FromQuery] string displayType, [FromQuery] int timeSpanInDays)
     {
-        await _templateDomainService.GetPreviewData(previewDataRequestDto.OrganizationId,
-            previewDataRequestDto.DataPointId, previewDataRequestDto.DisplayType, previewDataRequestDto.TimeSpanInDays);
-        return new PreviewDataDto();
+        var dataPointEntries = await _templateDomainService.GetDataForTemplate(organizationId,
+            dataPointId, displayType, timeSpanInDays);
+        return _mapper.Map<DataPointEntryDto[]>(dataPointEntries);
     }
 }

@@ -32,6 +32,12 @@ public class DataPointRepository : MongoRepository<DataPointEntity>, IDataPointR
         await ReplaceOneAsync(dataPointEntity);
     }
 
+    public async Task<DataPoint?> GetDataPointById(string dataPointId)
+    {
+        var dataPointEntity = await FindByIdAsync(dataPointId);
+        return _mapper.Map<DataPoint>(dataPointEntity);
+    }
+
     public async Task<DataPoint[]> FindDataPointsByKey(string key, string organizationId)
     {
         var dataPointEntity = 

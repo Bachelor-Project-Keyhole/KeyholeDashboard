@@ -3,7 +3,6 @@ using Application.JWT.Model;
 using Application.JWT.Service;
 using Application.User.UserService;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

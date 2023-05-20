@@ -2,8 +2,6 @@
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
-using Repository.TwoFactor.TwoFactorReadModel;
-using Repository.TwoFactor.TwoFactorWriteModel;
 
 namespace Repository.TwoFactor;
 
