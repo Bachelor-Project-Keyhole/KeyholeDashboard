@@ -53,11 +53,14 @@ public class DataPointController : ControllerBase
     }
     
     /// <summary>
-    /// Get Data Point display names and Ids
+    /// Get Data Point display names and Ids (Any auth level is required)
     /// </summary>
     /// <param name="organizationId"></param>
     /// <returns></returns>
-    [HttpGet("{organizationId}/displayNames")]
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int)HttpStatusCode.OK,"")]
+    [Route("{organizationId}/displayNames")]
     public async Task<ActionResult<DataPointDisplayNameDto[]>> GetDataPointDisplayNames(string organizationId)
     {
         var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);

@@ -17,7 +17,19 @@ public class DataPointControllerTests : IntegrationTest
     public async Task GetDataPointDisplayNames_ReturnsCorrectValues()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+
+        
         var expectedKeys = new[]
         {
             "testKey1",
@@ -26,11 +38,11 @@ public class DataPointControllerTests : IntegrationTest
 
         var expectedEntities = new[]
         {
-            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[0], "DisplayName1",
+            new DataPointEntity(IdGenerator.GenerateId(), organization.Id.ToString(), expectedKeys[0], "DisplayName1",
                 latestValue: 42),
-            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[1], "DisplayName2",
+            new DataPointEntity(IdGenerator.GenerateId(), organization.Id.ToString(), expectedKeys[1], "DisplayName2",
                 latestValue: 23),
-            new DataPointEntity(IdGenerator.GenerateId(), organizationId, expectedKeys[1], "DisplayName3",
+            new DataPointEntity(IdGenerator.GenerateId(), organization.Id.ToString(), expectedKeys[1], "DisplayName3",
                 latestValue: 23),
         };
 
@@ -45,7 +57,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organizationId}/displayNames", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/displayNames", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);

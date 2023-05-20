@@ -1,5 +1,4 @@
-﻿using Application.Email.Model;
-using Application.Organization.Model;
+﻿using Application.Organization.Model;
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
@@ -30,13 +29,6 @@ static class MapperRegistry
             cfg.CreateMap<RefreshToken, PersistenceRefreshToken>().ReverseMap();
             cfg.CreateMap<RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
             cfg.CreateMap<User, OrganizationUsersResponse>().ReverseMap();
-            #endregion
-            
-            #region Email
-
-            cfg.CreateMap<SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
-                .ReverseMap();
-
             #endregion
 
             #region Organization

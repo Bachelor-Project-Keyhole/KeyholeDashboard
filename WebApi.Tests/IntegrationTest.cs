@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Text;
@@ -13,7 +12,6 @@ using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using Domain.User;
 using EphemeralMongo;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -129,7 +127,7 @@ public class IntegrationTest : IDisposable
             RegistrationDate = DateTime.UtcNow
         };
         
-        await PopulateDatabase(new UserPersistenceModel[] {userPersistence1});
+        await PopulateDatabase(new[] {userPersistence1});
         
         var auth = new AuthenticateRequest
         {
