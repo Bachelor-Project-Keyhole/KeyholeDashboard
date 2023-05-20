@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;

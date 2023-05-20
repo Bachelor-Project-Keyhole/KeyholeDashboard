@@ -4,11 +4,10 @@ using Application.JWT.Service;
 using Application.User.UserService;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
+using Domain.Template;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.TwoFactor;
-using Repository.TwoFactor.TwoFactorReadModel;
-using Repository.TwoFactor.TwoFactorWriteModel;
 using Repository.User.UserRepository;
 
 namespace WebApi.Registry;
@@ -39,5 +38,6 @@ static class ServiceRegistry
         collection.AddTransient<IDataPointEntryRepository, DataPointEntryRepository>();
         collection.AddTransient<IDataPointRepository, DataPointRepository>();
         collection.AddTransient<IDataPointDomainService, DataPointDomainService>();
+        collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
     }
 }

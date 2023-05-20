@@ -8,4 +8,6 @@ public interface IDataPointDomainService
     Task UpdateDataPoint(DataPoint dataPoint);
     Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey);
     Task<DataPoint> CreateDataPoint(DataPoint dataPoint);
+    Task<DataPoint> GetDataPointById(string dataPointId);
+    Task<DataPointEntry[]> GetDataPointEntries(string organizationId, string dataPointKey, int timeSpanInDays);
 }

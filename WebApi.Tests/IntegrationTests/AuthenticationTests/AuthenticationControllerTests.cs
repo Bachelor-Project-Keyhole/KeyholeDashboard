@@ -1,18 +1,12 @@
 ﻿using System.Net;
-using System.Text;
 using Application.Authentication.AuthenticationService;
 using Application.JWT.Model;
-using Application.JWT.Service;
 using Application.User.UserService;
 using AutoMapper;
 using Domain.User;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using Newtonsoft.Json;
 using NSubstitute;
-using Repository.User.UserPersistence;
 using WebApi.Controllers.V1.Authentication;
 
 namespace WebApi.Tests.IntegrationTests.AuthenticationTests;

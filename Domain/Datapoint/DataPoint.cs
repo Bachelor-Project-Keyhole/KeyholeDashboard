@@ -50,23 +50,28 @@ public class DataPoint
 
     public void SetLatestValueBasedOnFormula(double value)
     {
+        LatestValue = CalculateValue(value);
+    }
+
+    public double CalculateEntryValueWithFormula(double value)
+    {
+        return CalculateValue(value);
+    }
+
+    private double CalculateValue(double value)
+    {
         switch (Formula.Operation)
         {
             case MathOperation.Add: 
-                LatestValue = value + Formula.Factor;
-                break;
+                return value + Formula.Factor;
             case MathOperation.Multiply:
-                LatestValue = value * Formula.Factor;
-                break;
+                return value * Formula.Factor;
             case MathOperation.Divide:
-                LatestValue = value / Formula.Factor;
-                break;
+                return value / Formula.Factor;
             case MathOperation.Subtract:
-                LatestValue = value - Formula.Factor;
-                break;
+                return value - Formula.Factor;
             default:
-                LatestValue = value;
-                break;
+                return value;
         }
     }
 }

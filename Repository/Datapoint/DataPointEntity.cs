@@ -1,4 +1,5 @@
 using Domain.Datapoint;
+using MongoDB.Bson;
 
 namespace Repository.Datapoint;
 
@@ -22,6 +23,24 @@ public class DataPointEntity : Document
         bool comparisonIsAbsolute = false,
         double latestValue = 0)
     {
+        OrganizationId = organizationId;
+        DataPointKey = dataPointKey;
+        DisplayName = displayName;
+        DirectionIsUp = directionIsUp;
+        ComparisonIsAbsolute = comparisonIsAbsolute;
+        LatestValue = latestValue;
+    }
+    
+    public DataPointEntity(
+        string id,
+        string organizationId,
+        string dataPointKey,
+        string displayName,
+        bool directionIsUp = false,
+        bool comparisonIsAbsolute = false,
+        double latestValue = 0)
+    {
+        Id = new ObjectId(id);
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
         DisplayName = displayName;

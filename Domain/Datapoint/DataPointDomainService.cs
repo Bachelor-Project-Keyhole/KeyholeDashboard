@@ -28,6 +28,26 @@ public class DataPointDomainService : IDataPointDomainService
         return dataPoint;
     }
 
+    public async Task<DataPoint> GetDataPointById(string dataPointId)
+    {
+        var dataPoint = await _dataPointRepository.GetDataPointById(dataPointId);
+        if (dataPoint is null)
+        {
+            throw new DataPointNotFoundException(dataPointId);
+        }
+
+        return dataPoint;
+    }
+
+    public async Task<DataPointEntry[]> GetDataPointEntries(string organizationId, string dataPointKey,
+        int timeSpanInDays)
+    {
+        await ValidateOrganization(organizationId);
+        var dataPointEntries =
+            await _dataPointEntryRepository.GetDataPointEntries(organizationId, dataPointKey, timeSpanInDays);
+        return dataPointEntries.ToArray();
+    }
+
     public async Task<DataPoint[]> GetAllDataPoints(string organizationId)
     {
         await ValidateOrganization(organizationId);
