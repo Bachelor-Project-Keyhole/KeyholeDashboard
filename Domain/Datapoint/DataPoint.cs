@@ -76,9 +76,11 @@ public class DataPoint
         }
     }
 
-    //TODO cover with unit tests
+    //TODO Figure out how to deal with value that is zero!!! 
     public double CalculateChangeOverTime(double value)
     {
+        // % increase = Increase ÷ Original Number × 100.
+        //  If result is a negative number, then this is a percentage decrease.
         return ComparisonIsAbsolute ? LatestValue - value : (LatestValue - value) / value * 100;
     }
 }

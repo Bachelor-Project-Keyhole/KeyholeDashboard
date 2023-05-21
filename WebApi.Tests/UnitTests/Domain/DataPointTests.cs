@@ -41,4 +41,28 @@ public class DataPointTests
         //Assert
         dataPoint.LatestValue.Should().Be(expectedResult);
     }
+
+    [Theory]
+    [InlineData( true, 30, 22.5, 7.5)]
+    [InlineData( false, 30, 22.5, 33.33)]
+    [InlineData( false, 15, 30, -50)]
+    [InlineData( true, 15, 30, -15)]
+    [InlineData( true, 30, 0, 30)]
+    [InlineData( true, 0, 30, -30)]
+    public void CalculateChangeOverTime_ReturnsCorrectResult(bool comparisonIsAbsolute, double latestValue, double oldValue,
+        double expectedResult)
+    {
+        // Arrange
+        var dataPoint = new DataPoint(IdGenerator.GenerateId(), "Key")
+        {
+            LatestValue = latestValue,
+            ComparisonIsAbsolute = comparisonIsAbsolute
+        };
+        
+        // Act
+        var result = dataPoint.CalculateChangeOverTime(oldValue);
+        
+        // Assert
+        Math.Round(result, 2).Should().Be(expectedResult);
+    }
 }
