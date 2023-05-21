@@ -3,27 +3,28 @@ namespace Domain.Datapoint;
 public class DataPoint
 {
     public string Id { get; set; }
-    
+
     public string OrganizationId { get; set; }
-    
+
     public string DataPointKey { get; set; }
-    
+
     public string DisplayName { get; set; }
-    
+
     public bool DirectionIsUp { get; set; }
-    
+
     public bool ComparisonIsAbsolute { get; set; }
-    
+
     public double LatestValue { get; set; }
 
     public Formula Formula { get; set; } = new() { Operation = MathOperation.None };
-    
-    public DataPoint(string organizationId, string dataPointKey, bool directionIsUp = true, bool comparisonIsAbsolute = false)
+
+    public DataPoint(string organizationId, string dataPointKey, bool directionIsUp = true,
+        bool comparisonIsAbsolute = false)
     {
         Id = IdGenerator.GenerateId();
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
-        DisplayName = dataPointKey; 
+        DisplayName = dataPointKey;
         DirectionIsUp = directionIsUp;
         ComparisonIsAbsolute = comparisonIsAbsolute;
     }
@@ -62,7 +63,7 @@ public class DataPoint
     {
         switch (Formula.Operation)
         {
-            case MathOperation.Add: 
+            case MathOperation.Add:
                 return value + Formula.Factor;
             case MathOperation.Multiply:
                 return value * Formula.Factor;
@@ -73,5 +74,11 @@ public class DataPoint
             default:
                 return value;
         }
+    }
+
+    //TODO cover with unit tests
+    public double CalculateChangeOverTime(double value)
+    {
+        return ComparisonIsAbsolute ? LatestValue - value : (LatestValue - value) / value * 100;
     }
 }

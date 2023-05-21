@@ -33,4 +33,24 @@ public class TemplateController : ControllerBase
             dataPointId, displayType, timeSpanInDays);
         return _mapper.Map<DataPointEntryDto[]>(dataPointEntries);
     }
+
+    /// <summary>
+    /// Get latest with change from previous period  
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <param name="dataPointId"></param>
+    /// <param name="timeSpanInDays">The amount of days back in time to compare current value with</param>
+    /// <returns></returns>
+    [HttpGet("latest-value-with-change/{organizationId}/{dataPointId}")]
+    public async Task<LatestValueWithChangeDto> GetLatestValueWithChange(string organizationId, string dataPointId,
+        [FromQuery] int timeSpanInDays)
+    {
+        var latestValueWithChange =
+            await _templateDomainService.GetLatestValueWithChange(organizationId, dataPointId, timeSpanInDays);
+        return new LatestValueWithChangeDto
+        {
+            LatestValue = latestValueWithChange.LatestValue,
+            Change = latestValueWithChange.Change
+        };
+    }
 }

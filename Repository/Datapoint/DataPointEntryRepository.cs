@@ -35,7 +35,8 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
             .FirstOrDefaultAsync();
         return _mapper.Map<DataPointEntry>(latestDataPointEntry);
     }
-
+    
+    //TODO cover with unit tests
     public async Task<IEnumerable<DataPointEntry>> GetDataPointEntries(string organizationId, string dataPointKey,
         int timeSpanInDays)
     {
@@ -53,5 +54,25 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
             .ToListAsync();
 
         return _mapper.Map<DataPointEntry[]>(result);
+    }
+
+    //TODO cover with unit tests
+    public async Task<DataPointEntry?> GetDataPointEntryFromPreviousPeriod(string organizationId, string dataPointKey,
+        int timeSpanInDays)
+    {
+        var endDate = DateTime.Now.AddDays(-timeSpanInDays);
+        var filter = Builders<DataPointEntryEntity>.Filter.And(
+            Builders<DataPointEntryEntity>.Filter.Eq("OrganizationId", organizationId),
+            Builders<DataPointEntryEntity>.Filter.Eq("DataPointKey", dataPointKey),
+            Builders<DataPointEntryEntity>.Filter.Lte("Time", endDate)
+        );
+
+        var sort = Builders<DataPointEntryEntity>.Sort.Descending("Time");
+
+        var result = await Collection.Find(filter)
+            .Sort(sort)
+            .ToListAsync();
+
+        return _mapper.Map<DataPointEntry>(result.FirstOrDefault());
     }
 }
