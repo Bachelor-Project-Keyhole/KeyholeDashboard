@@ -30,21 +30,7 @@ public class EmailController : BaseApiController
         _userService = userService;
     }
 
-    /// <summary>
-    /// Send an email
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    //[Authorization("Admin", "Editor", "Viewer")]
-    [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Send Email")]
-    [Route("")]
-    public async Task<IActionResult> SendEmail(SendEmailRequest request)
-    {
-        // await _emailService.SendEmail(_mapper.Map<Application.Email.Model.SendEmailRequest>(request));
-        // Exception Response from BaseExceptionHandlingService
-        return Ok();
-    }
+    
 
     /// <summary>
     /// Forgot password function

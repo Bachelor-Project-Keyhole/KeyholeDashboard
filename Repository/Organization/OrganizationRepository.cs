@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace Repository.Organization;
 
-public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrganizationRepository
+public class OrganizationRepository : MongoRepository<OrganizationPersistenceModel>, IOrganizationRepository
 {
     private readonly IMapper _mapper;
     public OrganizationRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper) : base(dataBaseOptions)
@@ -12,12 +12,24 @@ public class OrganizationRepository : MongoRepository<OrganizationEntity>, IOrga
         _mapper = mapper;
     }
 
+    public async Task<Domain.Organization.Organization?> GetOrganizationById(string id)
+    {
+        var organizationPersistence = await FindByIdAsync(id);
+        return _mapper.Map<Domain.Organization.Organization>(organizationPersistence);
+    }
+
     public async Task Insert(Domain.Organization.Organization organization)
     {
-        var organizationEntity = _mapper.Map<OrganizationEntity>(organization);
+        var organizationEntity = _mapper.Map<OrganizationPersistenceModel>(organization);
         await InsertOneAsync(organizationEntity);
     }
-    
+
+    public async Task UpdateOrganization(Domain.Organization.Organization organization)
+    {
+        var organizationPersistence = _mapper.Map<OrganizationPersistenceModel>(organization);
+        await ReplaceOneAsync(organizationPersistence);
+    }
+
     public async Task<bool> OrganizationExists(string organizationId)
     {
         var result = await FindByIdAsync(organizationId);

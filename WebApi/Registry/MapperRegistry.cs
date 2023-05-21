@@ -1,7 +1,8 @@
-﻿using Application.Email.Model;
+﻿using Application.Organization.Model;
 using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
+using Domain.Organization.OrganizationUserInvite;
 using Domain.User;
 using MongoDB.Bson;
 using Repository.Datapoint;
@@ -27,18 +28,15 @@ static class MapperRegistry
             cfg.CreateMap<User, UserPersistenceModel>().ReverseMap();
             cfg.CreateMap<RefreshToken, PersistenceRefreshToken>().ReverseMap();
             cfg.CreateMap<RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
-            #endregion
-            
-            #region Email
-
-            cfg.CreateMap<SendEmailRequest, WebApi.Controllers.V1.Email.Model.SendEmailRequest>()
-                .ReverseMap();
-
+            cfg.CreateMap<User, OrganizationUsersResponse>().ReverseMap();
             #endregion
 
             #region Organization
 
             cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationEntity>().ReverseMap();
+            
+            cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationPersistenceModel>().ReverseMap();
+            cfg.CreateMap<OrganizationUserInvites, Repository.OrganizationUserInvite.OrganizationUserInvitePersistence>().ReverseMap();
 
 
             #endregion

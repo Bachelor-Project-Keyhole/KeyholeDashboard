@@ -23,7 +23,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         // create claims and add user Access Levels
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email)
         };
 
@@ -85,14 +85,14 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         }
     }
 
-    public RefreshToken GenerateRefreshToken(string ipAddress)
+    public RefreshToken GenerateRefreshToken()
     {
         var refreshToken = new RefreshToken
         {
             Token = GenerateUniqueToken(),
             ExpirationTime = DateTime.UtcNow.AddDays(7),
             CreationTime = DateTime.UtcNow,
-            CreatedByIpAddress = ipAddress
+            CreatedByIpAddress = "0.0.0.0"
         };
 
         return refreshToken;

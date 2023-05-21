@@ -24,4 +24,15 @@
       <ProjectReference Include="..\Repository\Repository.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Email\Template\Template.txt" />
+      <EmbeddedResource Include="Email\Template\InviteUserTemplate.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Email\Model" />
+    </ItemGroup>
+
 </Project>

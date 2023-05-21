@@ -30,6 +30,12 @@ public class UserRepository : MongoRepository<UserPersistenceModel>, IUserReposi
         return response;
     }
 
+    public async Task<List<Domain.User.User>?> GetAllUsersByOrganizationId(string organizationId)
+    {
+        var users = await FilterByAsync(x => x.MemberOfOrganizationId == organizationId);
+        return _mapper.Map<List<Domain.User.User>>(users);
+    }
+
     public async Task<Domain.User.User?> GetByRefreshToken(string token)
     {
         var user = await FindOneAsync(x => x.RefreshTokens!.Any(y => y.Token == token));
@@ -46,5 +52,10 @@ public class UserRepository : MongoRepository<UserPersistenceModel>, IUserReposi
     {
         var persistenceUser = _mapper.Map<UserPersistenceModel>(user);
         await InsertOneAsync(persistenceUser);
+    }
+
+    public async Task RemoveUserById(string userId)
+    {
+        await DeleteOneAsync(x => x.Id == ObjectId.Parse(userId));
     }
 }
