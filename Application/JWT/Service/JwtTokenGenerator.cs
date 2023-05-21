@@ -23,7 +23,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         // create claims and add user Access Levels
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email)
         };
 

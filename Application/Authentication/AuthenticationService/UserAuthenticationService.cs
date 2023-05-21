@@ -17,18 +17,15 @@ public class UserAuthenticationService : IUserAuthenticationService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IJwtTokenGenerator _tokenGenerator;
-    private readonly IHttpContextAccessor _contextAccessor;
 
     public UserAuthenticationService(
         IJwtTokenGenerator tokenGenerator,
         IUserRepository userRepository,
-        IHttpContextAccessor contextAccessor,
         IMapper mapper,
         IOptions<JwtSettings> jwtSettings)
     {
         _userRepository = userRepository;
         _tokenGenerator = tokenGenerator;
-        _contextAccessor = contextAccessor;
         _mapper = mapper;
         _jwtSettings = jwtSettings.Value;
     }
@@ -63,7 +60,11 @@ public class UserAuthenticationService : IUserAuthenticationService
             User = new UserAuthenticationResponse
             {
                 Id = user.Id,
-                Email = user.Email
+                Email = user.Email,
+                Roles = user.AccessLevels
+                    .Select(al => al.ToString())
+                    .ToArray(),
+                Name = user.FullName
             }
         };
     }
