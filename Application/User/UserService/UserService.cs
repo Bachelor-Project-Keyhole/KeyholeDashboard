@@ -65,16 +65,39 @@ public class UserService : IUserService
         return await _userRepository.GetByRefreshToken(token);
     }
 
+    public async Task<AllUsersOfOrganizationResponse> GetAllUsers(string organizationId)
+    {
+        var users = await _userRepository.GetAllUsersByOrganizationId(organizationId);
+        if (users == null)
+            throw new UserNotFoundException($"No users were found with organization Id: {organizationId}");
+
+        return new AllUsersOfOrganizationResponse
+        {
+            OrganizationId = organizationId,
+            Users = _mapper.Map<List<OrganizationUsersResponse>>(users)
+        };
+    }
+
     public async Task UpdateUser(Domain.User.User user)
     {
         await _userRepository.UpdateUser(user);
     }
 
+    public async Task RemoveUserById(string userId)
+    {
+        var user = await _userRepository.GetUserById(userId);
+        if (user == null)
+            throw new UserNotFoundException($"user with id: {userId} was not found");
+        if (user.OwnedOrganizationId != null)
+            throw new UserForbiddenAction($"user with id: {userId} is an owner");
+
+        await _userRepository.RemoveUserById(userId);
+    }
+
     public async Task<AdminAndOrganizationCreateResponse> CreateAdminUserAndOrganization(CreateAdminAndOrganizationRequest request)
     {
         if (request.Password.Length < 8)
-            throw new ApplicationException("Password too short");
-
+            throw new PasswordTooShortException("Password too short");
         var user = await _userRepository.GetUserByEmail(request.Email);
         if (user != null)
             throw new UserEmailTakenException($"This email: {request.Email} is already taken");
@@ -98,6 +121,9 @@ public class UserService : IUserService
             ModificationDate = DateTime.UtcNow
         };
 
+        userToInsert.MemberOfOrganizationId = organizationToInsert.Id;
+        
+
         userToInsert.OwnedOrganizationId = organizationToInsert.Id;
         organizationToInsert.OrganizationOwnerId = userToInsert.Id;
         userToInsert.PasswordHash = PasswordHelper.GetHashedPassword(request.Password);
@@ -119,6 +145,40 @@ public class UserService : IUserService
 
     }
 
+    public async Task<UserRegistrationResponse> CreateUser(string organizationId, string email, List<UserAccessLevel> accessLevels, UserRegistrationRequest request)
+    {
+        if (request.Password.Length < 8)
+            throw new ApplicationException("Password too short");
+
+        var user = await _userRepository.GetUserByEmail(email);
+        if (user != null)
+            throw new UserEmailTakenException($"This email: {email} is already taken");
+        
+        var userToInsert = new Domain.User.User
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Email = email,
+            FullName = request.FullName,
+            AccessLevels = accessLevels,
+            OwnedOrganizationId = null,
+            MemberOfOrganizationId = organizationId,
+            RegistrationDate = DateTime.UtcNow,
+            ModifiedDate = DateTime.UtcNow,
+            PasswordHash = PasswordHelper.GetHashedPassword(request.Password)
+        };
+
+        await _userRepository.CreateUser(userToInsert);
+
+        return new UserRegistrationResponse
+        {
+            Email = userToInsert.Email,
+            FullName = userToInsert.FullName,
+            OrganizationId = userToInsert.MemberOfOrganizationId,
+            RegistrationDate = DateTime.UtcNow.ToString("f")
+        };
+        
+    }
+    
     public async Task Revoke(LogoutRequest request)
     {
         // Accept refresh token either from cookies or request body
@@ -142,11 +202,11 @@ public class UserService : IUserService
         if (user == null)
             throw new UserNotFoundException("User not found");
 
-        if (user.AccessLevels.Contains(UserAccessLevel.Admin) && adminUser.OwnedOrganizationId == null)
-            throw new AccessLevelForbiddenException("Only owner of organization can change other admins access");
+        if (!string.IsNullOrEmpty(user.OwnedOrganizationId))
+            throw new AccessLevelForbiddenException("Owner cannot be removed.");
 
-        if (adminUser.OwnedOrganizationId != user.MemberOfOrganizationId || adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
-            throw new AccessLevelForbiddenException("Admin and user are not in the same organization");
+        if (adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
+            throw new UserInvalidActionException("Admin and user are not in the same organization");
             
 
    
@@ -197,7 +257,7 @@ public class UserService : IUserService
 
         await _twoFactorRepository.Insert(twoFactorToInsert);
 
-        var response = await _emailService.SendEmail(request.Email, token);
+        var response = await _emailService.SendPasswordRecoveryTokenEmail(request.Email, token);
         
         return _mapper.Map<Repository.TwoFactor.TwoFactorPersistence>(twoFactorToInsert);
 

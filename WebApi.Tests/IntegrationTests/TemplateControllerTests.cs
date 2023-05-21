@@ -3,8 +3,10 @@ using Contracts;
 using Domain;
 using Domain.Datapoint;
 using FluentAssertions;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
+using Repository.Organization;
 
 namespace WebApi.Tests.IntegrationTests;
 
@@ -14,7 +16,18 @@ public class TemplateControllerTests : IntegrationTest
     public async Task GetDataForTemplate_ReturnsNotFound_WhenDataPointIdIsInvalid()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
+
 
         var datapointEntities = new[]
         {
@@ -25,7 +38,7 @@ public class TemplateControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"api/v1/Template/{organizationId}/{IdGenerator.GenerateId()}",
+            await TestClient.GetAsync(new Uri($"api/v1/Template/{organization.Id.ToString()}/{IdGenerator.GenerateId()}",
                 UriKind.Relative));
 
         //Assert
@@ -36,7 +49,17 @@ public class TemplateControllerTests : IntegrationTest
     public async Task GetDataForTemplate_ReturnsOnlyEntriesInTimespanAndCorrectValues()
     {
         //Arrange
-        var organizationId = await SetupOrganization();
+        await Authenticate();
+        var organization = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        
+        await PopulateDatabase(new[] {organization});
 
         var dataPointEntity = new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60)
         {
@@ -46,15 +69,15 @@ public class TemplateControllerTests : IntegrationTest
 
         var entitiesToBeReturned = new DataPointEntryEntity[]
         {
-            new(organizationId, dataPointEntity.DataPointKey, 10, DateTime.Now),
-            new(organizationId, dataPointEntity.DataPointKey, 20, DateTime.Now.AddDays(-2))
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 20, DateTime.Now.AddDays(-2))
         };
         await PopulateDatabase(entitiesToBeReturned);
 
         var otherEntities = new[]
         {
-            new DataPointEntryEntity(organizationId, dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-10)),
-            new DataPointEntryEntity(organizationId, "other", 23, DateTime.Now),
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-10)),
+            new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.Now),
         };
@@ -77,7 +100,7 @@ public class TemplateControllerTests : IntegrationTest
         
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"api/v1/Template/{organizationId}/{dataPointEntity.Id}?timeSpanInDays=5",
+            await TestClient.GetAsync(new Uri($"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timeSpanInDays=5",
                 UriKind.Relative));
 
         //Assert

@@ -7,10 +7,13 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
 using Repository;
 using WebApi.Registry;
+using Microsoft.Extensions.Hosting;
+
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 
@@ -21,6 +24,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
 
 
 #region Config setup
@@ -91,16 +95,11 @@ builder.Services.AddApiVersioning(opt =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: myAllowSpecificOrigins,
-                      policy =>
-                      {
-                          //   policy.WithOrigins("http://localhost:8080/",
-                          //                       "https://localhost:7173", "http://localhost:5161").AllowAnyMethod();
-                          //Console.WriteLine("CORS policy");
-                          policy.AllowAnyOrigin()
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
-                      });
+    options.AddPolicy("CorsPolicy",
+        corsPolicyBuilder => corsPolicyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 });
 
 // Enforce routing lowercase
@@ -110,7 +109,6 @@ var app = builder.Build();
 
 // Build HTTP request pipeline
 
-app.UseMiddleware<JwtMiddleware>();
 
 
 app.UseSwagger();
@@ -118,7 +116,10 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
-app.UseCors(myAllowSpecificOrigins);
+
+app.UseMiddleware<JwtMiddleware>();
+
+app.UseCors("CorsPolicy");
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

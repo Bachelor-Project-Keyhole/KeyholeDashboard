@@ -1,13 +1,11 @@
-﻿#pragma warning disable CS8618
+﻿namespace Application.Organization.Model;
 
-namespace Repository.Organization;
-[BsonCollection("organization")]
-public class OrganizationPersistenceModel : Document
+public class OrganizationResponse
 {
+    public string OrganizationId { get; set; }
     public string OrganizationOwnerId { get; set; }
     public string OrganizationName { get; set; }
     
     public DateTime CreationDate { get; set; }
     public DateTime ModificationDate { get; set; }
 }
-

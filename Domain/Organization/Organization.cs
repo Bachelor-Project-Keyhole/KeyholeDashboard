@@ -1,6 +1,9 @@
 
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
+using Domain.User;
+
 #pragma warning disable CS8618
 namespace Domain.Organization;
 
@@ -14,3 +17,9 @@ public class Organization
     public DateTime ModificationDate { get; set; }
 
 }
+
+
+
+
+
+
