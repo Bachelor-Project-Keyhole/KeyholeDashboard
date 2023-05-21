@@ -1,5 +1,4 @@
-﻿using Domain.Organization;
-using Domain.User;
+﻿using Domain.User;
 
 namespace Repository.OrganizationUserInvite;
 [BsonCollection("organization-invite")]

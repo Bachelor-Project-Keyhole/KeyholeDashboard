@@ -41,7 +41,7 @@ public class IntegrationTest : IDisposable
             KillMongoProcessesWhenCurrentProcessExits = true // Default: false
         };
         _runner = MongoRunner.Run(options);
-        
+
         var settings = MongoClientSettings.FromUrl(new MongoUrl(_runner.ConnectionString));
         settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };
         var mongoClient = new MongoClient(settings);
@@ -51,7 +51,7 @@ public class IntegrationTest : IDisposable
         {
             builder.ConfigureServices(ConfigureServices);
         });
-        
+
         TestClient = appFactory.CreateClient();
     }
 
@@ -76,16 +76,20 @@ public class IntegrationTest : IDisposable
         services.AddScoped<IDataPointRepository, DataPointRepository>();
     }
 
-    protected async Task<string> SetupOrganization()
+    protected async Task<OrganizationPersistenceModel> SetupOrganization()
     {
-        var organizationId = IdGenerator.GenerateId();
-        var organizationEntity = new OrganizationEntity
+        var organization = new OrganizationPersistenceModel
         {
-            Id = new ObjectId(organizationId),
-            OrganizationName = "Organization"
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationName = "wow",
+            OrganizationOwnerId = "aa",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
         };
-        await PopulateDatabase(new []{organizationEntity});
-        return organizationId;
+
+        await PopulateDatabase(new[] { organization });
+
+        return organization;
     }
 
     protected async Task PopulateDatabase<TDocument>(TDocument[] documents) where TDocument : IDocument
@@ -97,13 +101,13 @@ public class IntegrationTest : IDisposable
     protected async Task<TDocument[]> GetAll<TDocument>() where TDocument : IDocument
     {
         var collection = _database.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
-        var result = await collection.AsQueryable().ToListAsync();    
+        var result = await collection.AsQueryable().ToListAsync();
         return result.ToArray();
     }
-    
+
     private string GetCollectionName(Type documentType)
     {
-        return ((BsonCollectionAttribute) documentType.GetCustomAttributes(
+        return ((BsonCollectionAttribute)documentType.GetCustomAttributes(
                 typeof(BsonCollectionAttribute),
                 true)
             .FirstOrDefault()!).CollectionName ?? throw new InvalidOperationException();
@@ -121,37 +125,36 @@ public class IntegrationTest : IDisposable
             FullName = "Yo lama1",
             PasswordHash = PasswordHelper.GetHashedPassword(password), // Has to be at least 8 chars
             AccessLevels = new List<UserAccessLevel>
-                {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+                { UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin },
             RefreshTokens = new List<PersistenceRefreshToken>(),
             ModifiedDate = DateTime.UtcNow,
             RegistrationDate = DateTime.UtcNow
         };
-        
-        await PopulateDatabase(new[] {userPersistence1});
-        
+
+        await PopulateDatabase(new[] { userPersistence1 });
+
         var auth = new AuthenticateRequest
         {
             Email = userPersistence1.Email,
             Password = password
         };
-         
-         
+
+
         var stringContentAuth = new StringContent(JsonConvert.SerializeObject(auth), Encoding.UTF8, "application/json");
 
-        var httpResponseMessageAuth = await TestClient.PostAsync(new Uri($"api/v1/Authentication/login", UriKind.Relative),stringContentAuth);
-        var responseAuth = JsonConvert.DeserializeObject<AuthenticationResponse>(await httpResponseMessageAuth.Content.ReadAsStringAsync());
+        var httpResponseMessageAuth =
+            await TestClient.PostAsync(new Uri($"api/v1/Authentication/login", UriKind.Relative), stringContentAuth);
+        var responseAuth =
+            JsonConvert.DeserializeObject<AuthenticationResponse>(await httpResponseMessageAuth.Content
+                .ReadAsStringAsync());
 
 
         TestClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", responseAuth?.Token);
     }
-    
+
 
     public void Dispose()
     {
         _runner.Dispose();
     }
-
-
 }
-
-

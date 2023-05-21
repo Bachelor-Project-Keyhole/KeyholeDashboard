@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
 using Repository;
 using WebApi.Registry;
-using Microsoft.Extensions.Hosting;
 
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";

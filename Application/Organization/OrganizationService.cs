@@ -1,6 +1,5 @@
 ﻿using Application.Organization.Model;
 using Domain.Exceptions;
-using Domain.Organization;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
 
