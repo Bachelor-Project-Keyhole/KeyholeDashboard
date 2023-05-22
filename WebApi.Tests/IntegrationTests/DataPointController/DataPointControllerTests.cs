@@ -7,7 +7,6 @@ using FluentAssertions;
 using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
-using Repository.Organization;
 
 namespace WebApi.Tests.IntegrationTests.DataPointController;
 
@@ -18,18 +17,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
-        
         var expectedKeys = new[]
         {
             "testKey1",
@@ -57,7 +46,8 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/displayNames", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/displayNames",
+                UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -78,21 +68,13 @@ public class DataPointControllerTests : IntegrationTest
         //Arrange
         await Authenticate();
         var dataPointKey = "TestKey";
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
+        var organization = await SetupOrganization();
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
         {
             new(organization.Id.ToString(), dataPointKey, 50, DateTime.Now),
             new(organization.Id.ToString(), dataPointKey, 0, DateTime.Now.AddDays(-1)),
         };
-        await PopulateDatabase(new[] {organization});
         await PopulateDatabase(dataPointEntryEntities);
 
         var formulaDto = new FormulaDto
@@ -122,17 +104,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var dataPointKey = "TestKey";
 
@@ -167,18 +139,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
-        
+        var organization = await SetupOrganization();
+
         var dataPointKey = "TestKey";
 
         var dataPointEntryEntities = new DataPointEntryEntity[]
@@ -212,17 +174,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var dataPointKey = "TestKey";
         var expectedTime = DateTime.Now;
@@ -241,7 +193,8 @@ public class DataPointControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(
-                new Uri($"api/v1/DataPoint/entries/last/{organization.Id.ToString()}/{dataPointKey}", UriKind.Relative));
+                new Uri($"api/v1/DataPoint/entries/last/{organization.Id.ToString()}/{dataPointKey}",
+                    UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -259,17 +212,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var expectedKeys = new[]
         {
@@ -306,18 +249,9 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
-        
+
+        var organization = await SetupOrganization();
+
         var datapointEntities = new[]
         {
             new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName"),
@@ -341,17 +275,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var nonExistingOrganizationId = IdGenerator.GenerateId();
 
@@ -368,17 +293,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var dataPointEntryDto =
             new PushDataPointEntryDto(organization.Id.ToString(), IdGenerator.GenerateId(), 500, DateTime.Now);
@@ -415,17 +331,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, key);
@@ -483,17 +390,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
 
@@ -515,7 +413,8 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organization.Id.ToString()}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organization.Id.ToString()}/{key}",
+                UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -551,17 +450,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
         var testEntities = new[]
@@ -574,7 +464,8 @@ public class DataPointControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/{key}", UriKind.Relative));
+            await TestClient.GetAsync(
+                new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/{key}", UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -585,17 +476,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
@@ -638,17 +520,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
@@ -690,17 +562,8 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
+        var organization = await SetupOrganization();
         
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
@@ -741,17 +604,7 @@ public class DataPointControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")

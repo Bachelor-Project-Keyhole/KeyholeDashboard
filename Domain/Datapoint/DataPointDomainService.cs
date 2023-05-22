@@ -40,12 +40,25 @@ public class DataPointDomainService : IDataPointDomainService
     }
 
     public async Task<DataPointEntry[]> GetDataPointEntries(string organizationId, string dataPointKey,
-        int timeSpanInDays)
+        DateTime periodDateTime)
     {
         await ValidateOrganization(organizationId);
         var dataPointEntries =
-            await _dataPointEntryRepository.GetDataPointEntries(organizationId, dataPointKey, timeSpanInDays);
+            await _dataPointEntryRepository.GetDataPointEntries(organizationId, dataPointKey, periodDateTime);
         return dataPointEntries.ToArray();
+    }
+    
+    public async Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime periodDateTime)
+    {
+        var dataPointEntry = await _dataPointEntryRepository.GetDataPointEntryFromPreviousPeriod(
+            dataPoint.OrganizationId,
+            dataPoint.DataPointKey, periodDateTime);
+        if (dataPointEntry is null)
+        {
+            return 0;
+        }
+        var previousValue = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
+        return dataPoint.CalculateChangeOverTime(previousValue);
     }
 
     public async Task<DataPoint[]> GetAllDataPoints(string organizationId)

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Domain.Datapoint;
 
 namespace Domain.Template;
@@ -12,13 +13,23 @@ public class TemplateDomainService : ITemplateDomainService
     }
 
     public async Task<DataPointEntry[]> GetDataForTemplate(string organizationId, string dataPointId,
-        string displayType, int timeSpanInDays)
+        string displayType, int timeSpan, TimeUnit timeUnit)
     {
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
+        var periodStartDate = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
         var dataPointEntries =
-            await _dataPointDomainService.GetDataPointEntries(organizationId, dataPoint.DataPointKey, timeSpanInDays);
+            await _dataPointDomainService.GetDataPointEntries(organizationId, dataPoint.DataPointKey, periodStartDate);
         CalculateEntryValuesBasedOnFormula(dataPoint, dataPointEntries);
         return dataPointEntries;
+    }
+
+    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan,
+        TimeUnit timeUnit)
+    {
+        var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
+        var endOfPeriod = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
+        var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, endOfPeriod);
+        return (dataPoint.LatestValue, change);
     }
 
     private void CalculateEntryValuesBasedOnFormula(DataPoint dataPoint, DataPointEntry[] dataPointEntries)
@@ -28,4 +39,6 @@ public class TemplateDomainService : ITemplateDomainService
             dataPointEntry.Value = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         }
     }
+
+    
 }

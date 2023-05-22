@@ -1,8 +1,6 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using Application.JWT.Helper;
-using Application.JWT.Model;
 using Application.Organization.Model;
 using Application.User.Model;
 using Domain;
@@ -377,21 +375,12 @@ public class OrganizationControllerTests : IntegrationTest
      {
          // Arrange
          await Authenticate();
-         var organizationPersistence = new OrganizationPersistenceModel
-         {
-             Id = ObjectId.Parse(IdGenerator.GenerateId()),
-             OrganizationOwnerId = "",
-             OrganizationName = "OrgName",
-             CreationDate = DateTime.UtcNow,
-             ModificationDate = DateTime.UtcNow
-         };
-         
-         await PopulateDatabase(new[] {organizationPersistence});
+         var organization = await SetupOrganization();
 
          var request = new UpdateOrganizationRequest
          {
              OrganizationName = "Changed Name",
-             OrganzationId = organizationPersistence.Id.ToString()
+             OrganzationId = organization.Id.ToString()
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -409,16 +398,7 @@ public class OrganizationControllerTests : IntegrationTest
      {
          // Arrange
          await Authenticate();
-         var organizationPersistence = new OrganizationPersistenceModel
-         {
-             Id = ObjectId.Parse(IdGenerator.GenerateId()),
-             OrganizationOwnerId = "",
-             OrganizationName = "OrgName",
-             CreationDate = DateTime.UtcNow,
-             ModificationDate = DateTime.UtcNow
-         };
-         
-         await PopulateDatabase(new[] {organizationPersistence});
+         await SetupOrganization();
 
          var request = new UpdateOrganizationRequest
          {

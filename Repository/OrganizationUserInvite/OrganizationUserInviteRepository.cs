@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
-using Domain.Organization;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Repository.OrganizationUserInvite;

@@ -6,7 +6,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
-using WebApi.Controllers.V1.Email.Model;
 
 
 namespace WebApi.Controllers.V1.Email;

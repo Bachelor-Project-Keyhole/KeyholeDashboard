@@ -2,7 +2,6 @@
 using Application.Authentication.AuthenticationService;
 using Application.JWT.Authorization;
 using Application.JWT.Model;
-using Application.User.Model;
 using Application.User.UserService;
 using AutoMapper;
 using Domain.User;
