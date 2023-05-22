@@ -105,7 +105,7 @@ public class TemplateControllerTests : IntegrationTest
         await Authenticate();
         var organization = await SetupOrganization();
 
-        var dataPointEntity = new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60)
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), "key", "DisplayName", latestValue: 60)
         {
             Formula = new Formula(MathOperation.Multiply, 1.5)
         };
@@ -113,7 +113,7 @@ public class TemplateControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage = await TestClient.GetAsync(new Uri(
-            $"api/v1/Template/latest-value-with-change/{organization.Id}/{dataPointEntity.Id}?timeSpanInDays=50",
+            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id}?timeSpanInDays=50",
             UriKind.Relative));
 
         //Assert
