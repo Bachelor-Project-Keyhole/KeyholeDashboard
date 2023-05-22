@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Domain.Datapoint;
 
 namespace Domain.Template;
@@ -21,9 +22,10 @@ public class TemplateDomainService : ITemplateDomainService
         return dataPointEntries;
     }
 
-    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan)
+    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan,
+        TimeUnit timeUnit)
     {
-        var timeSpanInDays = ConvertTimeSpanToDays(timeSpan);
+        var timeSpanInDays = ConvertTimeSpanToDays(timeSpan, timeUnit);
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
         var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, timeSpanInDays);
         return (dataPoint.LatestValue, change);
@@ -36,9 +38,22 @@ public class TemplateDomainService : ITemplateDomainService
             dataPointEntry.Value = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         }
     }
-    
-    private int ConvertTimeSpanToDays(int timespan)
+
+    private DateTime ConvertTimeSpanToDays(int timespan, TimeUnit timeUnit)
     {
-        return timespan - 1;
+        var result = DateTime.Today;
+        switch (timeUnit)
+        {
+            case TimeUnit.Day:
+                return result.AddDays(-timespan);
+            case TimeUnit.Week:
+                return result.AddDays(-timespan*7);
+            case TimeUnit.Month:
+                return result.AddMonths(-timespan);
+            case TimeUnit.Year:
+                return result.AddYears(-timespan);
+            default:
+                throw new InvalidEnumArgumentException();
+        }
     }
 }

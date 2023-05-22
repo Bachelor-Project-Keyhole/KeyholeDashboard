@@ -56,13 +56,12 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
     }
 
     public async Task<DataPointEntry?> GetDataPointEntryFromPreviousPeriod(string organizationId, string dataPointKey,
-        int timeSpanInDays)
+        DateTime endOfPeriod)
     {
-        var endDate = DateTime.Today.AddDays(-timeSpanInDays);
         var filter = Builders<DataPointEntryEntity>.Filter.And(
             Builders<DataPointEntryEntity>.Filter.Eq("OrganizationId", organizationId),
             Builders<DataPointEntryEntity>.Filter.Eq("DataPointKey", dataPointKey),
-            Builders<DataPointEntryEntity>.Filter.Lte("Time", endDate)
+            Builders<DataPointEntryEntity>.Filter.Lte("Time", endOfPeriod)
         );
 
         var sort = Builders<DataPointEntryEntity>.Sort.Descending("Time");

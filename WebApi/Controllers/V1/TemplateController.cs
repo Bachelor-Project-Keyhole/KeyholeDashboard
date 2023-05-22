@@ -45,14 +45,15 @@ public class TemplateController : ControllerBase
     /// Get latest with change from previous period  
     /// </summary>
     /// <param name="dataPointId"></param>
-    /// <param name="timeSpanInDays">The amount of days back in time to compare current value with</param>
+    /// <param name="timePeriod">The amount of days back in time to compare current value with</param>
+    /// <param name="timeUnit"></param>
     /// <returns></returns>
     [HttpGet("latest-value-with-change/{dataPointId}")]
     public async Task<LatestValueWithChangeDto> GetLatestValueWithChange(string dataPointId,
-        [FromQuery] int timeSpanInDays)
+        [FromQuery] int timePeriod, [FromQuery] TimeUnit timeUnit)
     {
         var latestValueWithChange =
-            await _templateDomainService.GetLatestValueWithChange(dataPointId, timeSpanInDays);
+            await _templateDomainService.GetLatestValueWithChange(dataPointId, timePeriod, timeUnit);
         return new LatestValueWithChangeDto
         {
             LatestValue = latestValueWithChange.LatestValue,

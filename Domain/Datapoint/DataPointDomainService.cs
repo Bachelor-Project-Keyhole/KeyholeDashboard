@@ -48,16 +48,15 @@ public class DataPointDomainService : IDataPointDomainService
         return dataPointEntries.ToArray();
     }
     
-    public async Task<double> CalculateChangeOverTime(DataPoint dataPoint, int timeSpanInDays)
+    public async Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime endOfPeriod)
     {
         var dataPointEntry = await _dataPointEntryRepository.GetDataPointEntryFromPreviousPeriod(
             dataPoint.OrganizationId,
-            dataPoint.DataPointKey, timeSpanInDays);
+            dataPoint.DataPointKey, endOfPeriod);
         if (dataPointEntry is null)
         {
             return 0;
         }
-
         var previousValue = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         return dataPoint.CalculateChangeOverTime(previousValue);
     }

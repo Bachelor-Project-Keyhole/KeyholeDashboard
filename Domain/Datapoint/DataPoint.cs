@@ -76,11 +76,21 @@ public class DataPoint
         }
     }
 
-    //Dividing with zero not only does not throw but also gets correct result
-    public double CalculateChangeOverTime(double value)
+    public double CalculateChangeOverTime(double originalValue)
     {
+        if (Math.Abs(originalValue - LatestValue) < 0.0001)
+        {
+            return 0;
+        }
+        if (!ComparisonIsAbsolute && originalValue == 0)
+        {
+            return LatestValue > 0 ? 100 : -100;
+        }
+
         // % increase = Increase ÷ Original Number × 100.
-        //  If result is a negative number, then this is a percentage decrease.
-        return ComparisonIsAbsolute ? LatestValue - value : (LatestValue - value) / value * 100;
+        //  If result is a negative number, then this is a decrease.
+        return ComparisonIsAbsolute
+            ? LatestValue - originalValue
+            : (LatestValue - originalValue) / Math.Abs(originalValue) * 100;
     }
 }
