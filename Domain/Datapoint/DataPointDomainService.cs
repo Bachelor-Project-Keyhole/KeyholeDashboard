@@ -47,11 +47,7 @@ public class DataPointDomainService : IDataPointDomainService
             await _dataPointEntryRepository.GetDataPointEntries(organizationId, dataPointKey, timeSpanInDays);
         return dataPointEntries.ToArray();
     }
-
-    //TODO What if there are no entries before the given period?
-    //TODO Calculate value based on formula
-
-
+    
     public async Task<double> CalculateChangeOverTime(DataPoint dataPoint, int timeSpanInDays)
     {
         var dataPointEntry = await _dataPointEntryRepository.GetDataPointEntryFromPreviousPeriod(

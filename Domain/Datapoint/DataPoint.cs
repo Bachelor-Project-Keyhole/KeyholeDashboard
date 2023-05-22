@@ -76,7 +76,7 @@ public class DataPoint
         }
     }
 
-    //TODO Figure out how to deal with value that is zero!!! 
+    //Dividing with zero not only does not throw but also gets correct result
     public double CalculateChangeOverTime(double value)
     {
         // % increase = Increase ÷ Original Number × 100.

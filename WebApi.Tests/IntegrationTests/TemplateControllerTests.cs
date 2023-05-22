@@ -3,10 +3,8 @@ using Contracts;
 using Domain;
 using Domain.Datapoint;
 using FluentAssertions;
-using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
-using Repository.Organization;
 
 namespace WebApi.Tests.IntegrationTests;
 
@@ -17,16 +15,7 @@ public class TemplateControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
 
         var datapointEntities = new[]
@@ -38,7 +27,8 @@ public class TemplateControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"api/v1/Template/{organization.Id.ToString()}/{IdGenerator.GenerateId()}",
+            await TestClient.GetAsync(new Uri(
+                $"api/v1/Template/{organization.Id.ToString()}/{IdGenerator.GenerateId()}",
                 UriKind.Relative));
 
         //Assert
@@ -50,16 +40,7 @@ public class TemplateControllerTests : IntegrationTest
     {
         //Arrange
         await Authenticate();
-        var organization = new OrganizationPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            OrganizationName = "wow",
-            OrganizationOwnerId = "aa",
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow
-        };
-        
-        await PopulateDatabase(new[] {organization});
+        var organization = await SetupOrganization();
 
         var dataPointEntity = new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60)
         {
@@ -76,7 +57,8 @@ public class TemplateControllerTests : IntegrationTest
 
         var otherEntities = new[]
         {
-            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-10)),
+            new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 23,
+                DateTime.Now.AddDays(-10)),
             new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now),
             new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.Now),
@@ -97,10 +79,11 @@ public class TemplateControllerTests : IntegrationTest
                 Time = entitiesToBeReturned[0].Time
             }
         };
-        
+
         //Act
         var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timeSpanInDays=5",
+            await TestClient.GetAsync(new Uri(
+                $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timeSpanInDays=5",
                 UriKind.Relative));
 
         //Assert
@@ -113,5 +96,74 @@ public class TemplateControllerTests : IntegrationTest
         result[0].Time.Should().BeCloseTo(expectedResult[0].Time, TimeSpan.FromSeconds(1));
         result[1].Value.Should().Be(expectedResult[1].Value);
         result[1].Time.Should().BeCloseTo(expectedResult[1].Time, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task GetLatestValueWithChange_ReturnsZeroWhenNoEntries()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = await SetupOrganization();
+
+        var dataPointEntity = new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60)
+        {
+            Formula = new Formula(MathOperation.Multiply, 1.5)
+        };
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        //Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Template/latest-value-with-change/{organization.Id}/{dataPointEntity.Id}?timeSpanInDays=50",
+            UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = JsonConvert.DeserializeObject<LatestValueWithChangeDto>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
+        result.Change.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetLatestValueWithChange_ReturnsCorrectResult()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = await SetupOrganization();
+
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), "key", "DisplayName", latestValue: 150)
+        {
+            Formula = new Formula(MathOperation.Multiply, 1.5)
+        };
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        var timeSpanInDays = 10;
+        var expectedSelection = new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 50,
+            DateTime.Now.AddDays(-timeSpanInDays));
+        await PopulateDatabase(new[] { expectedSelection });
+
+        var entitiesToBeReturned = new DataPointEntryEntity[]
+        {
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 0, DateTime.Now.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, -33, DateTime.Now.AddDays(-5)),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 800.45, DateTime.Now.AddDays(timeSpanInDays + 2)),
+            new(organization.Id.ToString(), "other", 23, DateTime.Now.AddDays(-23)),
+            new(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-23)),
+            new(IdGenerator.GenerateId(), "random", -500, DateTime.Now.AddDays(-23))
+        };
+        await PopulateDatabase(entitiesToBeReturned);
+
+        //Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id.ToString()}?timeSpanInDays={timeSpanInDays}",
+            UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = JsonConvert.DeserializeObject<LatestValueWithChangeDto>(
+            await httpResponseMessage.Content.ReadAsStringAsync());
+        result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
+        Math.Round(result.Change, 2).Should().Be(100);
     }
 }

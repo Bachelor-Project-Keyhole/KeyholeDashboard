@@ -36,11 +36,10 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         return _mapper.Map<DataPointEntry>(latestDataPointEntry);
     }
     
-    //TODO cover with unit tests
     public async Task<IEnumerable<DataPointEntry>> GetDataPointEntries(string organizationId, string dataPointKey,
         int timeSpanInDays)
     {
-        var startDate = DateTime.Now.AddDays(-timeSpanInDays);
+        var startDate = DateTime.Today.AddDays(-timeSpanInDays);
         var filter = Builders<DataPointEntryEntity>.Filter.And(
             Builders<DataPointEntryEntity>.Filter.Eq("OrganizationId", organizationId),
             Builders<DataPointEntryEntity>.Filter.Eq("DataPointKey", dataPointKey),
@@ -56,11 +55,10 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         return _mapper.Map<DataPointEntry[]>(result);
     }
 
-    //TODO cover with unit tests
     public async Task<DataPointEntry?> GetDataPointEntryFromPreviousPeriod(string organizationId, string dataPointKey,
         int timeSpanInDays)
     {
-        var endDate = DateTime.Now.AddDays(-timeSpanInDays);
+        var endDate = DateTime.Today.AddDays(-timeSpanInDays);
         var filter = Builders<DataPointEntryEntity>.Filter.And(
             Builders<DataPointEntryEntity>.Filter.Eq("OrganizationId", organizationId),
             Builders<DataPointEntryEntity>.Filter.Eq("DataPointKey", dataPointKey),

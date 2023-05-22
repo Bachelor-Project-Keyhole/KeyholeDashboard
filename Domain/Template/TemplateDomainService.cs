@@ -21,8 +21,9 @@ public class TemplateDomainService : ITemplateDomainService
         return dataPointEntries;
     }
 
-    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string organizationId, string dataPointId, int timeSpanInDays)
+    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan)
     {
+        var timeSpanInDays = ConvertTimeSpanToDays(timeSpan);
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
         var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, timeSpanInDays);
         return (dataPoint.LatestValue, change);
@@ -34,5 +35,10 @@ public class TemplateDomainService : ITemplateDomainService
         {
             dataPointEntry.Value = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         }
+    }
+    
+    private int ConvertTimeSpanToDays(int timespan)
+    {
+        return timespan - 1;
     }
 }
