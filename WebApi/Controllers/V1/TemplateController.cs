@@ -27,17 +27,18 @@ public class TemplateController : ControllerBase
     /// <param name="organizationId"></param>
     /// <param name="dataPointId"></param>
     /// <param name="displayType"></param>
-    /// <param name="timeSpanInDays">Returns values that occured this amount of days ago until today</param>
+    /// <param name="timePeriod">Returns values that occured this amount of days ago until today</param>
+    /// <param name="timeUnit"></param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpGet]
     [SwaggerResponse((int)HttpStatusCode.OK, "Get data point entry values for template")]
     [Route("{organizationId}/{dataPointId}")]
     public async Task<DataPointEntryDto[]> GetDataForTemplate(string organizationId, string dataPointId,
-        [FromQuery] string displayType, [FromQuery] int timeSpanInDays)
+        [FromQuery] string displayType, [FromQuery] int timePeriod, [FromQuery] TimeUnit timeUnit)
     {
         var dataPointEntries = await _templateDomainService.GetDataForTemplate(organizationId,
-            dataPointId, displayType, timeSpanInDays);
+            dataPointId, displayType, timePeriod, timeUnit);
         return _mapper.Map<DataPointEntryDto[]>(dataPointEntries);
     }
 

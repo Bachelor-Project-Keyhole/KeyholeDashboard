@@ -13,11 +13,12 @@ public class TemplateDomainService : ITemplateDomainService
     }
 
     public async Task<DataPointEntry[]> GetDataForTemplate(string organizationId, string dataPointId,
-        string displayType, int timeSpanInDays)
+        string displayType, int timeSpan, TimeUnit timeUnit)
     {
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
+        var periodStartDate = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
         var dataPointEntries =
-            await _dataPointDomainService.GetDataPointEntries(organizationId, dataPoint.DataPointKey, timeSpanInDays);
+            await _dataPointDomainService.GetDataPointEntries(organizationId, dataPoint.DataPointKey, periodStartDate);
         CalculateEntryValuesBasedOnFormula(dataPoint, dataPointEntries);
         return dataPointEntries;
     }
@@ -25,9 +26,9 @@ public class TemplateDomainService : ITemplateDomainService
     public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan,
         TimeUnit timeUnit)
     {
-        var timeSpanInDays = ConvertTimeSpanToDays(timeSpan, timeUnit);
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
-        var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, timeSpanInDays);
+        var endOfPeriod = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
+        var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, endOfPeriod);
         return (dataPoint.LatestValue, change);
     }
 
@@ -39,21 +40,5 @@ public class TemplateDomainService : ITemplateDomainService
         }
     }
 
-    private DateTime ConvertTimeSpanToDays(int timespan, TimeUnit timeUnit)
-    {
-        var result = DateTime.Today;
-        switch (timeUnit)
-        {
-            case TimeUnit.Day:
-                return result.AddDays(-timespan);
-            case TimeUnit.Week:
-                return result.AddDays(-timespan*7);
-            case TimeUnit.Month:
-                return result.AddMonths(-timespan);
-            case TimeUnit.Year:
-                return result.AddYears(-timespan);
-            default:
-                throw new InvalidEnumArgumentException();
-        }
-    }
+    
 }

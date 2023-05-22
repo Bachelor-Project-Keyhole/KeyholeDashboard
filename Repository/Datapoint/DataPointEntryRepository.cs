@@ -37,13 +37,12 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
     }
     
     public async Task<IEnumerable<DataPointEntry>> GetDataPointEntries(string organizationId, string dataPointKey,
-        int timeSpanInDays)
+        DateTime periodDateTime)
     {
-        var startDate = DateTime.Today.AddDays(-timeSpanInDays);
         var filter = Builders<DataPointEntryEntity>.Filter.And(
             Builders<DataPointEntryEntity>.Filter.Eq("OrganizationId", organizationId),
             Builders<DataPointEntryEntity>.Filter.Eq("DataPointKey", dataPointKey),
-            Builders<DataPointEntryEntity>.Filter.Gte("Time", startDate)
+            Builders<DataPointEntryEntity>.Filter.Gte("Time", periodDateTime)
         );
 
         var sort = Builders<DataPointEntryEntity>.Sort.Ascending("Time");

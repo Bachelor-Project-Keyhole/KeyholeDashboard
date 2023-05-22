@@ -9,6 +9,6 @@ public interface IDataPointDomainService
     Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey);
     Task<DataPoint> CreateDataPoint(DataPoint dataPoint);
     Task<DataPoint> GetDataPointById(string dataPointId);
-    Task<DataPointEntry[]> GetDataPointEntries(string organizationId, string dataPointKey, int timeSpanInDays);
-    Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime endOfPeriod);
+    Task<DataPointEntry[]> GetDataPointEntries(string organizationId, string dataPointKey, DateTime periodDateTime);
+    Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime periodDateTime);
 }

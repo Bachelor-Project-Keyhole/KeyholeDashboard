@@ -2,6 +2,7 @@ using System.Net;
 using Contracts;
 using Domain;
 using Domain.Datapoint;
+using Domain.Template;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Repository.Datapoint;
@@ -42,7 +43,7 @@ public class TemplateControllerTests : IntegrationTest
         await Authenticate();
         var organization = await SetupOrganization();
 
-        var dataPointEntity = new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60)
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), "key", "DisplayName", latestValue: 60)
         {
             Formula = new Formula(MathOperation.Multiply, 1.5)
         };
@@ -64,8 +65,6 @@ public class TemplateControllerTests : IntegrationTest
             new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.Now),
         };
         await PopulateDatabase(otherEntities);
-
-
         var expectedResult = new DataPointEntryDto[]
         {
             new()
@@ -83,7 +82,7 @@ public class TemplateControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(new Uri(
-                $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timeSpanInDays=5",
+                $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timePeriod=5&timeUnit={TimeUnit.Day}",
                 UriKind.Relative));
 
         //Assert
@@ -113,7 +112,7 @@ public class TemplateControllerTests : IntegrationTest
 
         //Act
         var httpResponseMessage = await TestClient.GetAsync(new Uri(
-            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id}?timeSpanInDays=50",
+            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id}?timePeriod=50&timeUnit={TimeUnit.Day}",
             UriKind.Relative));
 
         //Assert
@@ -139,24 +138,25 @@ public class TemplateControllerTests : IntegrationTest
 
         var timeSpanInDays = 10;
         var expectedSelection = new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 50,
-            DateTime.Now.AddDays(-timeSpanInDays));
+            DateTime.Now.AddDays(-timeSpanInDays).AddHours(-2));
         await PopulateDatabase(new[] { expectedSelection });
 
-        var entitiesToBeReturned = new DataPointEntryEntity[]
+        var tesEntities = new DataPointEntryEntity[]
         {
             new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now),
             new(organization.Id.ToString(), dataPointEntity.DataPointKey, 0, DateTime.Now.AddDays(-1)),
             new(organization.Id.ToString(), dataPointEntity.DataPointKey, -33, DateTime.Now.AddDays(-5)),
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 800.45, DateTime.Now.AddDays(timeSpanInDays + 2)),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 800.45,
+                DateTime.Now.AddDays(timeSpanInDays + 2)),
             new(organization.Id.ToString(), "other", 23, DateTime.Now.AddDays(-23)),
             new(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-23)),
             new(IdGenerator.GenerateId(), "random", -500, DateTime.Now.AddDays(-23))
         };
-        await PopulateDatabase(entitiesToBeReturned);
+        await PopulateDatabase(tesEntities);
 
         //Act
         var httpResponseMessage = await TestClient.GetAsync(new Uri(
-            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id.ToString()}?timeSpanInDays={timeSpanInDays}",
+            $"api/v1/Template/latest-value-with-change/{dataPointEntity.Id.ToString()}?timePeriod={timeSpanInDays}&timeUnit={TimeUnit.Day}",
             UriKind.Relative));
 
         //Assert
