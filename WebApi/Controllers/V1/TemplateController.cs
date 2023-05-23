@@ -49,6 +49,7 @@ public class TemplateController : ControllerBase
     /// <param name="timePeriod">The amount of days back in time to compare current value with</param>
     /// <param name="timeUnit"></param>
     /// <returns></returns>
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpGet("latest-value-with-change/{dataPointId}")]
     public async Task<LatestValueWithChangeDto> GetLatestValueWithChange(string dataPointId,
         [FromQuery] int timePeriod, [FromQuery] TimeUnit timeUnit)
@@ -58,7 +59,9 @@ public class TemplateController : ControllerBase
         return new LatestValueWithChangeDto
         {
             LatestValue = latestValueWithChange.LatestValue,
-            Change = latestValueWithChange.Change
+            Change = latestValueWithChange.Change,
+            DirectionIsUp = latestValueWithChange.DirectionIsUp,
+            ComparisonIsAbsolute = latestValueWithChange.ComparisonIsAbsolute
         };
     }
 }

@@ -121,6 +121,8 @@ public class TemplateControllerTests : IntegrationTest
             await httpResponseMessage.Content.ReadAsStringAsync());
         result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
         result.Change.Should().Be(0);
+        result.DirectionIsUp.Should().Be(dataPointEntity.DirectionIsUp);
+        result.ComparisonIsAbsolute.Should().Be(dataPointEntity.ComparisonIsAbsolute);
     }
 
     [Fact]
@@ -165,5 +167,7 @@ public class TemplateControllerTests : IntegrationTest
             await httpResponseMessage.Content.ReadAsStringAsync());
         result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
         Math.Round(result.Change, 2).Should().Be(100);
+        result.DirectionIsUp.Should().Be(dataPointEntity.DirectionIsUp);
+        result.ComparisonIsAbsolute.Should().Be(dataPointEntity.ComparisonIsAbsolute);
     }
 }
