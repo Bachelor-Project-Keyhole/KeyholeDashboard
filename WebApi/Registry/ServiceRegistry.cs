@@ -3,9 +3,11 @@ using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.Organization;
 using Application.User.UserService;
+using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
 using Domain.Template;
+using Repository.Dashboard;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.OrganizationUserInvite;
@@ -26,6 +28,7 @@ static class ServiceRegistry
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
         collection.AddTransient<IOrganizationService, OrganizationService>();
+        collection.AddTransient<IDashboardDomainService, DashboardDomainService>();
 
         #endregion
         
@@ -34,7 +37,8 @@ static class ServiceRegistry
         collection.AddTransient<IUserRepository, UserRepository>();
         collection.AddTransient<ITwoFactorRepository, TwoFactorRepository>();
         collection.AddTransient<IOrganizationUserInviteRepository, OrganizationUserInviteRepository>();
-
+        collection.AddTransient<IDashboardRepository, DashboardRepository>();
+        
 
         #endregion
         

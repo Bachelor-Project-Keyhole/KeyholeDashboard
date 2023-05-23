@@ -1,10 +1,15 @@
 ﻿using Application.Organization.Model;
 using AutoMapper;
 using Contracts;
+using Contracts.Dashboard;
+using Contracts.Template;
+using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.Organization.OrganizationUserInvite;
+using Domain.Template;
 using Domain.User;
 using MongoDB.Bson;
+using Repository.Dashboard;
 using Repository.Datapoint;
 using Repository.User.UserPersistence;
 
@@ -37,6 +42,20 @@ static class MapperRegistry
             
             cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationPersistenceModel>().ReverseMap();
             cfg.CreateMap<OrganizationUserInvites, Repository.OrganizationUserInvite.OrganizationUserInvitePersistence>().ReverseMap();
+
+
+            #endregion
+
+            #region Dashboard
+
+            cfg.CreateMap<Dashboard, DashboardPersistenceModel>().ReverseMap();
+            cfg.CreateMap<Dashboard, DashboardResponse>();
+
+            #endregion
+
+            #region Template
+
+            cfg.CreateMap<CreateTemplateRequest, Template>().ReverseMap();
 
 
             #endregion

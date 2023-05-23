@@ -32,6 +32,11 @@ public class TemplateDomainService : ITemplateDomainService
         return (dataPoint.LatestValue, change, dataPoint.DirectionIsUp, dataPoint.ComparisonIsAbsolute);
     }
 
+    public async Task<Template> CreateTemplate(Template template)
+    {
+        return template;//TODO:
+    }
+
     private void CalculateEntryValuesBasedOnFormula(DataPoint dataPoint, DataPointEntry[] dataPointEntries)
     {
         foreach (var dataPointEntry in dataPointEntries)
