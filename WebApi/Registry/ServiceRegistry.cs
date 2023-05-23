@@ -11,6 +11,7 @@ using Repository.Dashboard;
 using Repository.Datapoint;
 using Repository.Organization;
 using Repository.OrganizationUserInvite;
+using Repository.Template;
 using Repository.TwoFactor;
 using Repository.User.UserRepository;
 
@@ -21,7 +22,7 @@ static class ServiceRegistry
     public static void RegisterPersistence(this IServiceCollection collection)
     {
 
-        #region Application-Service Layer
+        #region Application/Domain-Service Layer
         
         collection.AddTransient<IUserService, UserService>();
         collection.AddTransient<IEmailService, EmailService>();
@@ -29,6 +30,8 @@ static class ServiceRegistry
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
         collection.AddTransient<IOrganizationService, OrganizationService>();
         collection.AddTransient<IDashboardDomainService, DashboardDomainService>();
+        collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
+        
 
         #endregion
         
@@ -38,6 +41,7 @@ static class ServiceRegistry
         collection.AddTransient<ITwoFactorRepository, TwoFactorRepository>();
         collection.AddTransient<IOrganizationUserInviteRepository, OrganizationUserInviteRepository>();
         collection.AddTransient<IDashboardRepository, DashboardRepository>();
+        collection.AddTransient<ITemplateRepository, TemplateRepository>();
         
 
         #endregion

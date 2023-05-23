@@ -3,6 +3,7 @@ using Application.JWT.Authorization;
 using AutoMapper;
 using Contracts.Dashboard;
 using Domain.Dashboard;
+using Domain.Template;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -15,14 +16,17 @@ public class DashboardController : BaseApiController
 {
     private readonly IMapper _mapper;
     private readonly IDashboardDomainService _dashboardDomainService;
+    private readonly ITemplateDomainService _templateDomainService;
     
     
     public DashboardController(
         IMapper mapper,
-        IDashboardDomainService dashboardDomainService)
+        IDashboardDomainService dashboardDomainService,
+        ITemplateDomainService templateDomainService)
     {
         _mapper = mapper;
         _dashboardDomainService = dashboardDomainService;
+        _templateDomainService = templateDomainService;
     }
 
     /// <summary>
@@ -48,42 +52,41 @@ public class DashboardController : BaseApiController
     [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpGet]
     [SwaggerResponse((int) HttpStatusCode.OK, "Get all dashboards", typeof(List<DashboardResponse>))]
-    [Route("all")]
+    [Route("all/{organizationId}")]
     public async Task<IActionResult> GetAllDashboardsOfOrganization(string organizationId)
     {
         var dashboards = await _dashboardDomainService.GetAllDashboards(organizationId);
         return Ok(_mapper.Map<List<DashboardResponse>>(dashboards));
     }
-    
+
+
     /// <summary>
     /// Create a dashboard (Editor, Admin)
     /// </summary>
-    /// <param name="organizationId"></param>
-    /// <param name="dashboardName"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Create a dashboard", typeof(DashboardResponse))]
     [Route("")]
-    public async Task<IActionResult> CreateDashboard(string organizationId, string dashboardName)
+    public async Task<IActionResult> CreateDashboard(CreateDashboardRequest request)
     {
-        var dashboard = await _dashboardDomainService.CreateDashboard(organizationId, dashboardName);
+        var dashboard = await _dashboardDomainService.CreateDashboard(request.OrganizationId, request.DashboardName);
         return Ok(_mapper.Map<DashboardResponse>(dashboard));
     }
 
     /// <summary>
     /// Update a dashboard (Editor, Admin)
     /// </summary>
-    /// <param name="dashboardId"> dashboard id that is being updated </param>
-    /// <param name="dashboardName"> new dashboard name </param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPut]
     [SwaggerResponse((int) HttpStatusCode.OK, "Update a dashboard", typeof(DashboardResponse))]
     [Route("")]
-    public async Task<IActionResult> UpdateDashboard(string dashboardId, string dashboardName)
+    public async Task<IActionResult> UpdateDashboard(UpdateDashboardRequest request)
     {
-        var dashboard = await _dashboardDomainService.UpdateDashboard(dashboardId, dashboardName);
+        var dashboard = await _dashboardDomainService.UpdateDashboard(request.DashboardId, request.DashboardName);
         return Ok(_mapper.Map<DashboardResponse>(dashboard));
     }
 
@@ -98,6 +101,7 @@ public class DashboardController : BaseApiController
     [Route("{dashboardId}")]
     public async Task<IActionResult> DeleteDashboard(string dashboardId)
     {
+        await _templateDomainService.RemoveAllTemplatesWithDashboardId(dashboardId);
         await _dashboardDomainService.RemoveDashboard(dashboardId);
         return Ok();
     }

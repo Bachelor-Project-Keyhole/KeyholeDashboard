@@ -1,6 +1,7 @@
-﻿namespace Contracts.Template;
+﻿namespace Repository.Template;
 
-public class CreateTemplateRequest
+[BsonCollection("template")]
+public class TemplatePersistenceModel : Document
 {
     public string DashboardId { get; set; }
     public string DatapointId { get; set; }
@@ -11,5 +12,4 @@ public class CreateTemplateRequest
     public int PositionHeight { get; set; }
     public int SizeWidth { get; set; }
     public int SizeHeight { get; set; }
-    
 }

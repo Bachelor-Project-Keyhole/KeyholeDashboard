@@ -20,8 +20,4 @@
       <PackageReference Include="Microsoft.Extensions.Options" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Template" />
-    </ItemGroup>
-
 </Project>

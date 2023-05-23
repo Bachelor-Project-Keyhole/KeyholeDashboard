@@ -26,9 +26,14 @@ public class DashboardDomainService : IDashboardDomainService
 
     public async Task<List<Dashboard>?> GetAllDashboards(string organizationId)
     {
+        var organizationExist = await _organizationRepository.OrganizationExists(organizationId);
+        if (!organizationExist)
+            throw new OrganizationNotFoundException(organizationId);
+        
         var dashboards = await _dashboardRepository.GetAllDashboards(organizationId);
-        if (dashboards == null)
+        if (dashboards == null || dashboards.Count < 1)
             throw new DashboardNotFoundException($"No dashboards were found with organization Id: {organizationId}");
+                
         return dashboards;
     }
 

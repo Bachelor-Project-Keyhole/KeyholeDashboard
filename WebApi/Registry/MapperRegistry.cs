@@ -11,6 +11,7 @@ using Domain.User;
 using MongoDB.Bson;
 using Repository.Dashboard;
 using Repository.Datapoint;
+using Repository.Template;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
@@ -56,6 +57,9 @@ static class MapperRegistry
             #region Template
 
             cfg.CreateMap<CreateTemplateRequest, Template>().ReverseMap();
+            cfg.CreateMap<UpdateTemplateRequest, Template>().ReverseMap();
+            cfg.CreateMap<Template, TemplatePersistenceModel>().ReverseMap();
+            cfg.CreateMap<Template, TemplateResponse>().ReverseMap();
 
 
             #endregion

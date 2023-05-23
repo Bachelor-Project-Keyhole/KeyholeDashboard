@@ -16,7 +16,7 @@ public class DashboardRepository : MongoRepository<DashboardPersistenceModel>, I
 
     public async Task<Domain.Dashboard.Dashboard?> GetDashboardById(string dashboardId)
     {
-        var dashboard = await FilterByAsync(x => x.Id == ObjectId.Parse(dashboardId));
+        var dashboard = await FindByIdAsync(dashboardId);
         return _mapper.Map<Domain.Dashboard.Dashboard>(dashboard);
     }
 
