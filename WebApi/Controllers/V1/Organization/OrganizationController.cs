@@ -163,5 +163,23 @@ public class OrganizationController : BaseApiController
         await _userService.RemoveUserById(userId);
         return Ok($"user by id: {userId} removed");
     }
+    
+    
+    /// <summary>
+    /// Forgot password function
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Forgot password function")]
+    [Route("password/reset")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var response = await _userService.ForgotPassword(request);
+        return Ok(response);
+    }
+    
+    
 
 }

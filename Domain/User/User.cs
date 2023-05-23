@@ -12,7 +12,7 @@ public class User
     public string Id { get; set; }
     public string Email { get; set; }
     public string? OwnedOrganizationId { get; set; }    // If is organization owner, store the id. (need to discuss if storing id is enough)
-    public string? MemberOfOrganizationId { get; set; } // Store organization id of which user is part of.
+    public string MemberOfOrganizationId { get; set; } // Store organization id of which user is part of.
     
     /* Should decide if these field are required. */
     public string FullName { get; set; }
