@@ -15,6 +15,7 @@ namespace WebApi.Controllers.V1.Organization;
 
 
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class OrganizationController : BaseApiController
 {
     private readonly IOrganizationService _organizationService;

@@ -11,6 +11,7 @@ using WebApi.Controllers.Shared;
 
 namespace WebApi.Controllers.V1.Authentication;
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class AuthenticationController : BaseApiController
 {
     private readonly IUserAuthenticationService _userAuthenticationService;

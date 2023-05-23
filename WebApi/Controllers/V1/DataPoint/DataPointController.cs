@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace WebApi.Controllers.V1.DataPoint;
 
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class DataPointController : ControllerBase
 {
     private readonly IDataPointDomainService _dataPointDomainService;
@@ -80,23 +81,6 @@ public class DataPointController : ControllerBase
     {
         var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(dataPointDto);
         await _dataPointDomainService.UpdateDataPoint(dataPoint);
-        return Ok();
-        
-    }
-    
-    /// <summary>
-    /// Post Data Point entry. If data point key is unique, new data point will be created with this key (needed access Editor or Admin)
-    /// </summary>
-    /// <param name="pushDataPointEntryDto"></param>
-    /// <returns></returns>
-    [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpPost]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Update Data Point")]
-    [Route("entries")]
-    public async Task<IActionResult> PostDataPointEntry([FromBody] PushDataPointEntryDto pushDataPointEntryDto)
-    {
-        var dataPointEntry = _mapper.Map<DataPointEntry>(pushDataPointEntryDto);
-        await _dataPointDomainService.AddDataPointEntry(dataPointEntry);
         return Ok();
         
     }

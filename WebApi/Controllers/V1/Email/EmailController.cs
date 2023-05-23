@@ -12,7 +12,7 @@ namespace WebApi.Controllers.V1.Email;
 
 // [Authorize]
 [Route("api/v1/[controller]")]
-
+[ApiExplorerSettings(GroupName = "internal")]
 public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;

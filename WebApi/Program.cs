@@ -26,11 +26,9 @@ builder.Services
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-
 
 
 #region Config setup
@@ -58,7 +56,8 @@ builder.Services.RegisterPersistence();
 builder.Services.Configure<EmailAuth>(builder.Configuration.GetSection("MailKit"));
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo {Title = "Web Dashboards API", Version = "V1"});
+    c.SwaggerDoc("internal", new OpenApiInfo { Title = "Internal Dashboards API", Version = "v1" });
+    c.SwaggerDoc("public", new OpenApiInfo { Title = "Public Dashboards API", Version = "v1" });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
@@ -113,11 +112,17 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 var app = builder.Build();
 
 // Build HTTP request pipeline
-
-
-
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/public/swagger.json", "Public Dashboards API");
+
+        if (builder.Environment.IsDevelopment())
+        {
+            c.SwaggerEndpoint("/swagger/internal/swagger.json", "Internal Dashboards API");
+        }
+    }
+);
 
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
@@ -132,5 +137,7 @@ app.Run();
 // Make the implicit Program class public so test projects can access it
 namespace WebApi
 {
-    public class Program { }
+    public class Program
+    {
+    }
 }
