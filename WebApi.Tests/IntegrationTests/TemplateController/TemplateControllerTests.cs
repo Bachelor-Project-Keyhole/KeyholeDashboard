@@ -52,7 +52,7 @@ public class TemplateControllerTests : IntegrationTest
         {
             Formula = new Formula(MathOperation.Multiply, 1.5)
         };
-        await PopulateDatabase(new[] {dataPointEntity});
+        await PopulateDatabase(new[] { dataPointEntity });
 
         var entitiesToBeReturned = new DataPointEntryEntity[]
         {
