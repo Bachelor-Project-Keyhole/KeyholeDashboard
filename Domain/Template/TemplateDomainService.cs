@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Domain.Datapoint;
 
 namespace Domain.Template;
@@ -23,13 +22,14 @@ public class TemplateDomainService : ITemplateDomainService
         return dataPointEntries;
     }
 
-    public async Task<(double LatestValue, double Change)> GetLatestValueWithChange(string dataPointId, int timeSpan,
-        TimeUnit timeUnit)
+    public async Task<(double LatestValue, double Change, bool DirectionIsUp, bool ComparisonIsAbsolute)>
+        GetLatestValueWithChange(string dataPointId, int timeSpan,
+            TimeUnit timeUnit)
     {
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
         var endOfPeriod = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
         var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, endOfPeriod);
-        return (dataPoint.LatestValue, change);
+        return (dataPoint.LatestValue, change, dataPoint.DirectionIsUp, dataPoint.ComparisonIsAbsolute);
     }
 
     private void CalculateEntryValuesBasedOnFormula(DataPoint dataPoint, DataPointEntry[] dataPointEntries)
@@ -39,6 +39,4 @@ public class TemplateDomainService : ITemplateDomainService
             dataPointEntry.Value = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         }
     }
-
-    
 }
