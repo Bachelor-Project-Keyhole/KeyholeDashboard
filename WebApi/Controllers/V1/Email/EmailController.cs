@@ -31,20 +31,7 @@ public class EmailController : BaseApiController
 
     
 
-    /// <summary>
-    /// Forgot password function
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Forgot password function", typeof(TwoFactorResponse))]
-    [Route("password/reset")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
-    {
-        var response = await _userService.ForgotPassword(request);
-        // TODO: Send email with code
-        return Ok(response);
-    }
+
 
 
 }

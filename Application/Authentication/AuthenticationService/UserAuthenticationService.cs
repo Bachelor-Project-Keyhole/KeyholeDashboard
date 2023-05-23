@@ -61,6 +61,7 @@ public class UserAuthenticationService : IUserAuthenticationService
             {
                 Id = user.Id,
                 Email = user.Email,
+                OrganizationId = user.MemberOfOrganizationId,
                 Roles = user.AccessLevels
                     .Select(al => al.ToString())
                     .ToArray(),

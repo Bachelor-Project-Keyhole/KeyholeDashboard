@@ -136,11 +136,11 @@ public class UserService : IUserService
             Email = userToInsert.Email,
             UserName = userToInsert.FullName,
             AccessLevels = userToInsert.AccessLevels,
-            UserCreationTime = userToInsert.RegistrationDate,
+            UserCreationTime = userToInsert.RegistrationDate.ToLocalTime(),
 
             OrganizationId = organizationToInsert.Id,
             OrganizationName = organizationToInsert.OrganizationName,
-            OrganizationCreationTime = organizationToInsert.CreationDate
+            OrganizationCreationTime = organizationToInsert.CreationDate.ToLocalTime()
         };
 
     }
@@ -174,7 +174,7 @@ public class UserService : IUserService
             Email = userToInsert.Email,
             FullName = userToInsert.FullName,
             OrganizationId = userToInsert.MemberOfOrganizationId,
-            RegistrationDate = DateTime.UtcNow.ToString("f")
+            RegistrationDate = userToInsert.RegistrationDate.ToLocalTime().ToString("f")
         };
         
     }
@@ -229,7 +229,7 @@ public class UserService : IUserService
         return response;
     }
 
-    public async Task<Repository.TwoFactor.TwoFactorPersistence> ForgotPassword(ForgotPasswordRequest request)
+    public async Task<string> ForgotPassword(ForgotPasswordRequest request)
     {
         var userTask = _userRepository.GetUserByEmail(request.Email);
         var twoFactorTask = _twoFactorRepository.GetByIdentifier(request.Email);
@@ -258,8 +258,7 @@ public class UserService : IUserService
         await _twoFactorRepository.Insert(twoFactorToInsert);
 
         var response = await _emailService.SendPasswordRecoveryTokenEmail(request.Email, token);
-        
-        return _mapper.Map<Repository.TwoFactor.TwoFactorPersistence>(twoFactorToInsert);
 
+        return response;
     }
 }

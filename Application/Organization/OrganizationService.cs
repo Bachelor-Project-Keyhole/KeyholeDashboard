@@ -85,8 +85,8 @@ public class OrganizationService : IOrganizationService
             OrganizationId = organization.Id,
             OrganizationOwnerId = organization.OrganizationOwnerId,
             OrganizationName = organization.OrganizationName,
-            CreationDate = organization.CreationDate,
-            ModificationDate = organization.ModificationDate
+            CreationDate = organization.CreationDate.ToLocalTime(),
+            ModificationDate = organization.ModificationDate.ToLocalTime()
         };
     }
 

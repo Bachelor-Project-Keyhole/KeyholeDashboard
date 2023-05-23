@@ -3,9 +3,11 @@ using AutoMapper;
 using Contracts;
 using Domain.Datapoint;
 using Domain.Organization.OrganizationUserInvite;
+using Domain.TwoFactor;
 using Domain.User;
 using MongoDB.Bson;
 using Repository.Datapoint;
+using Repository.TwoFactor;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Registry;
@@ -29,6 +31,7 @@ static class MapperRegistry
             cfg.CreateMap<RefreshToken, PersistenceRefreshToken>().ReverseMap();
             cfg.CreateMap<RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
             cfg.CreateMap<User, OrganizationUsersResponse>().ReverseMap();
+            cfg.CreateMap<TwoFactor, TwoFactorPersistence>().ReverseMap();
             #endregion
 
             #region Organization
