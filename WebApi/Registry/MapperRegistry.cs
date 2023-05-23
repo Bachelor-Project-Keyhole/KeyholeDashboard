@@ -6,11 +6,13 @@ using Contracts.Template;
 using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.Organization.OrganizationUserInvite;
+using Domain.TwoFactor;
 using Domain.Template;
 using Domain.User;
 using MongoDB.Bson;
 using Repository.Dashboard;
 using Repository.Datapoint;
+using Repository.TwoFactor;
 using Repository.Template;
 using Repository.User.UserPersistence;
 
@@ -35,6 +37,7 @@ static class MapperRegistry
             cfg.CreateMap<RefreshToken, PersistenceRefreshToken>().ReverseMap();
             cfg.CreateMap<RefreshToken, Application.JWT.Model.JwtRefreshToken>().ReverseMap();
             cfg.CreateMap<User, OrganizationUsersResponse>().ReverseMap();
+            cfg.CreateMap<TwoFactor, TwoFactorPersistence>().ReverseMap();
             #endregion
 
             #region Organization

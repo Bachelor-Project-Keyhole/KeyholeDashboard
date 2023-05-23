@@ -66,6 +66,7 @@ public class AuthenticationControllerTests : IntegrationTest
         responseAuth?.User.Roles
             .Should().BeEquivalentTo(userPersistenceModel.AccessLevels.Select(al => al.ToString()));
         responseAuth?.User.Name.Should().Be(userPersistenceModel.FullName);
+        responseAuth?.User.OrganizationId.Should().Be(userPersistenceModel.MemberOfOrganizationId);
         var userList = await GetAll<UserPersistenceModel>();
         var user = userList.FirstOrDefault(x => x.Id == userPersistenceModel.Id);
         user?.RefreshTokens.Should().NotBeNull();
