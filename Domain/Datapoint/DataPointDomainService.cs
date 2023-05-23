@@ -98,6 +98,11 @@ public class DataPointDomainService : IDataPointDomainService
             throw new DataPointKeyNotFoundException(dataPointKey);
         }
 
+        foreach (var dataPointEntry in allDataPointEntries)
+        {
+            dataPointEntry.Time = dataPointEntry.Time?.ToLocalTime();
+        }
+
         return allDataPointEntries;
     }
 
@@ -120,6 +125,7 @@ public class DataPointDomainService : IDataPointDomainService
             throw new DataPointKeyNotFoundException(dataPointKey);
         }
 
+        latestDataPointEntry.Time = latestDataPointEntry.Time?.ToLocalTime();
         return latestDataPointEntry;
     }
 
