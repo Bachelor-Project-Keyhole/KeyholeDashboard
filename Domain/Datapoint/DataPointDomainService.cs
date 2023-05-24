@@ -144,25 +144,7 @@ public class DataPointDomainService : IDataPointDomainService
             }
         }
     }
-
-    public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string dataPointKey)
-    {
-        await ValidateOrganization(organizationId);
-
-        var allDataPointEntries = await _dataPointEntryRepository.GetAllDataPointEntries(organizationId, dataPointKey);
-        if (allDataPointEntries.Length == 0)
-        {
-            throw new DataPointKeyNotFoundException(dataPointKey);
-        }
-
-        foreach (var dataPointEntry in allDataPointEntries)
-        {
-            dataPointEntry.Time = dataPointEntry.Time?.ToLocalTime();
-        }
-
-        return allDataPointEntries;
-    }
-
+    
     public async Task UpdateDataPoint(DataPoint dataPoint)
     {
         await ValidateOrganization(dataPoint.OrganizationId);
@@ -171,21 +153,7 @@ public class DataPointDomainService : IDataPointDomainService
         await UpdateDataPointLatestValue(dataPoint);
         await _dataPointRepository.UpdateDataPoint(dataPoint);
     }
-
-    public async Task<DataPointEntry> GetLatestDataPointEntry(string organizationId, string dataPointKey)
-    {
-        await ValidateOrganization(organizationId);
-        var latestDataPointEntry =
-            await _dataPointEntryRepository.GetLatestDataPointEntry(organizationId, dataPointKey);
-        if (latestDataPointEntry is null)
-        {
-            throw new DataPointKeyNotFoundException(dataPointKey);
-        }
-
-        latestDataPointEntry.Time = latestDataPointEntry.Time?.ToLocalTime();
-        return latestDataPointEntry;
-    }
-
+    
     private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
     {
         var dataPoint = new DataPoint(organizationId, key);
