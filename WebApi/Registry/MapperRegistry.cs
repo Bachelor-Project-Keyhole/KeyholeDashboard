@@ -15,6 +15,7 @@ using Repository.Datapoint;
 using Repository.TwoFactor;
 using Repository.Template;
 using Repository.User.UserPersistence;
+using WebApi.Controllers.Public.v1;
 
 namespace WebApi.Registry;
 
@@ -72,6 +73,7 @@ static class MapperRegistry
             cfg.CreateMap<CreateDataPointDto, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntry, PushDataPointEntryDto>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, HistoricDataPointEntryDto>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
             cfg.CreateMap<Formula, FormulaDto>().ReverseMap();

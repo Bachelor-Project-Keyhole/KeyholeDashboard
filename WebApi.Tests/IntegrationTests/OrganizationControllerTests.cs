@@ -12,7 +12,7 @@ using Repository.Organization;
 using Repository.OrganizationUserInvite;
 using Repository.User.UserPersistence;
 
-namespace WebApi.Tests.IntegrationTests.OrganizationController;
+namespace WebApi.Tests.IntegrationTests;
 
 public class OrganizationControllerTests : IntegrationTest
 {
