@@ -34,7 +34,8 @@ public class TemplateControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(new Uri(
-                $"api/v1/Template/{organization.Id.ToString()}/{IdGenerator.GenerateId()}",
+                $"api/v1/Template/{organization.Id.ToString()}/{IdGenerator.GenerateId()}" +
+                $"?timePeriod=1&timeUnit=Day&displayType=qwerty",
                 UriKind.Relative));
 
         //Assert
@@ -88,7 +89,8 @@ public class TemplateControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(new Uri(
-                $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timePeriod=5&timeUnit={TimeUnit.Day}",
+                $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}" +
+                $"?timePeriod=5&timeUnit={TimeUnit.Day}&displayType=qwerty",
                 UriKind.Relative));
         
         //Assert
