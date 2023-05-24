@@ -1,8 +1,8 @@
 namespace Contracts.v1.DataPoint;
 
-public class CreateDataPointDto
+public class CreateDataPointRequest
 {
-    public CreateDataPointDto(string organizationId, string dataPointKey, string displayName, FormulaDto formula,
+    public CreateDataPointRequest(string organizationId, string dataPointKey, string displayName, FormulaDto formula,
         bool directionIsUp, bool comparisonIsAbsolute)
     {
         OrganizationId = organizationId;
@@ -11,11 +11,6 @@ public class CreateDataPointDto
         Formula = formula;
         DirectionIsUp = directionIsUp;
         ComparisonIsAbsolute = comparisonIsAbsolute;
-    }
-
-    public CreateDataPointDto()
-    {
-        
     }
 
     public string OrganizationId { get; set; }

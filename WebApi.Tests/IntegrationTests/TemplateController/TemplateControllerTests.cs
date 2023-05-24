@@ -71,7 +71,7 @@ public class TemplateControllerTests : IntegrationTest
             new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.UtcNow),
         };
         await PopulateDatabase(otherEntities);
-        var expectedResult = new DataPointEntryDto[]
+        var expectedResult = new DataPointEntryResponse[]
         {
             new()
             {
@@ -95,7 +95,7 @@ public class TemplateControllerTests : IntegrationTest
         
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointEntryDto[]>(
+        var result = JsonConvert.DeserializeObject<DataPointEntryResponse[]>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
         result!.Length.Should().Be(2);
@@ -125,7 +125,7 @@ public class TemplateControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<LatestValueWithChangeDto>(
+        var result = JsonConvert.DeserializeObject<LatestValueWithChangeResponse>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
         result.Change.Should().Be(0);
@@ -171,7 +171,7 @@ public class TemplateControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<LatestValueWithChangeDto>(
+        var result = JsonConvert.DeserializeObject<LatestValueWithChangeResponse>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result!.LatestValue.Should().Be(dataPointEntity.LatestValue);
         Math.Round(result.Change, 2).Should().Be(100);

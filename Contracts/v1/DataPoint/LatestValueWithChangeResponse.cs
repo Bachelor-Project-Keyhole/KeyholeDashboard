@@ -1,6 +1,6 @@
 namespace Contracts.v1.DataPoint;
 
-public class LatestValueWithChangeDto
+public class LatestValueWithChangeResponse
 {
     public double LatestValue { get; set; }
     public double Change { get; set; }

@@ -51,7 +51,7 @@ public class DataPointControllerTests : IntegrationTest
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<DataPointDisplayNameDto[]>(
+        var result = JsonConvert.DeserializeObject<DataPointDisplayNameResponse[]>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().HaveCount(3);
         result!
@@ -82,7 +82,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.5
         };
-        var createDataPointDto = new CreateDataPointDto(organization.Id.ToString(), dataPointKey, "Display Name",
+        var createDataPointDto = new CreateDataPointRequest(organization.Id.ToString(), dataPointKey, "Display Name",
             formulaDto, true, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(createDataPointDto), Encoding.UTF8, "application/json");
@@ -120,7 +120,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.5
         };
-        var createDataPointDto = new CreateDataPointDto(IdGenerator.GenerateId(), dataPointKey, "Display Name",
+        var createDataPointDto = new CreateDataPointRequest(IdGenerator.GenerateId(), dataPointKey, "Display Name",
             formulaDto, true, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(createDataPointDto), Encoding.UTF8, "application/json");
@@ -155,7 +155,7 @@ public class DataPointControllerTests : IntegrationTest
             Operation = MathOperation.Multiply.ToString(),
             Factor = 1.5
         };
-        var createDataPointDto = new CreateDataPointDto(organization.Id.ToString(), "Nope", "Display Name",
+        var createDataPointDto = new CreateDataPointRequest(organization.Id.ToString(), "Nope", "Display Name",
             formulaDto, true, true);
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(createDataPointDto), Encoding.UTF8, "application/json");

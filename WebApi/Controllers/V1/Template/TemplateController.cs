@@ -39,12 +39,12 @@ public class TemplateController : BaseApiController
     [HttpGet]
     [SwaggerResponse((int)HttpStatusCode.OK, "Get data point entry values for template")]
     [Route("{organizationId}/{dataPointId}")]
-    public async Task<DataPointEntryDto[]> GetDataForTemplate(string organizationId, string dataPointId,
+    public async Task<DataPointEntryResponse[]> GetDataForTemplate(string organizationId, string dataPointId,
         [FromQuery] string displayType, [FromQuery] int timePeriod, [FromQuery] TimeUnit timeUnit)
     {
         var dataPointEntries = await _templateDomainService.GetDataForTemplate(organizationId,
             dataPointId, displayType, timePeriod, timeUnit);
-        return _mapper.Map<DataPointEntryDto[]>(dataPointEntries);
+        return _mapper.Map<DataPointEntryResponse[]>(dataPointEntries);
     }
 
     /// <summary>
@@ -56,12 +56,12 @@ public class TemplateController : BaseApiController
     /// <returns></returns>
     [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpGet("latest-value-with-change/{dataPointId}")]
-    public async Task<LatestValueWithChangeDto> GetLatestValueWithChange(string dataPointId,
+    public async Task<LatestValueWithChangeResponse> GetLatestValueWithChange(string dataPointId,
         [FromQuery] int timePeriod, [FromQuery] TimeUnit timeUnit)
     {
         var latestValueWithChange =
             await _templateDomainService.GetLatestValueWithChange(dataPointId, timePeriod, timeUnit);
-        return new LatestValueWithChangeDto
+        return new LatestValueWithChangeResponse
         {
             LatestValue = latestValueWithChange.LatestValue,
             Change = latestValueWithChange.Change,
