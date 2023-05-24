@@ -84,12 +84,13 @@ public class TemplateControllerTests : IntegrationTest
             }
         };
 
+
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(new Uri(
                 $"api/v1/Template/{organization.Id.ToString()}/{dataPointEntity.Id}?timePeriod=5&timeUnit={TimeUnit.Day}",
                 UriKind.Relative));
-
+        
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = JsonConvert.DeserializeObject<DataPointEntryDto[]>(
