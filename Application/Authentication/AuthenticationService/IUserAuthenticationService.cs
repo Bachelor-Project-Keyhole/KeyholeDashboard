@@ -1,4 +1,4 @@
-﻿using Application.JWT.Model;
+﻿using Contracts.v1.Authentication;
 
 namespace Application.Authentication.AuthenticationService;
 

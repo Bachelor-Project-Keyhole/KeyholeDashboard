@@ -1,6 +1,6 @@
 ﻿using Domain.Template;
 
-namespace Contracts.Template;
+namespace Contracts.v1.Template;
 
 public class TemplateResponse
 {

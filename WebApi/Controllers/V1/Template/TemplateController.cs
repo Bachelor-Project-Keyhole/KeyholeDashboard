@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using Application.JWT.Authorization;
 using AutoMapper;
-using Contracts;
-using Contracts.Template;
+using Contracts.v1.DataPoint;
+using Contracts.v1.Template;
 using Domain.Template;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
@@ -125,7 +125,7 @@ public class TemplateController : BaseApiController
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPut]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Create a template", typeof(TemplateResponse))]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Update template", typeof(TemplateResponse))]
     [Route("")]
     public async Task<IActionResult> UpdateTemplate(UpdateTemplateRequest request)
     {
@@ -141,7 +141,7 @@ public class TemplateController : BaseApiController
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpDelete]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Create a template")]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Delete template")]
     [Route("{id}")]
     public async Task<IActionResult> DeleteTemplate(string id)
     {

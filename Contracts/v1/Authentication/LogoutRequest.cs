@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS8618
-namespace Application.JWT.Model;
+namespace Contracts.v1.Authentication;
 
 public class LogoutRequest
 {

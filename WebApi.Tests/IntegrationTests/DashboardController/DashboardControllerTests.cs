@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Text;
-using Contracts.Dashboard;
+using Contracts.v1.Dashboard;
 using Domain;
 using Domain.Template;
 using FluentAssertions;

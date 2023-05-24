@@ -1,4 +1,4 @@
-namespace Contracts;
+namespace Contracts.v1.DataPoint;
 
 public record DataPointDto(
     string Id,

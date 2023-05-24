@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text;
-using Contracts;
+using Contracts.v1.DataPoint;
 using Domain;
 using Domain.Datapoint;
 using FluentAssertions;

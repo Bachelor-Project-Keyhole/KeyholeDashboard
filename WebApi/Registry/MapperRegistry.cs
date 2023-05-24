@@ -1,8 +1,8 @@
-﻿using Application.Organization.Model;
-using AutoMapper;
-using Contracts;
-using Contracts.Dashboard;
-using Contracts.Template;
+﻿using AutoMapper;
+using Contracts.v1.Dashboard;
+using Contracts.v1.DataPoint;
+using Contracts.v1.Organization;
+using Contracts.v1.Template;
 using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.Organization.OrganizationUserInvite;

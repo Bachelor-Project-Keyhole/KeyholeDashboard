@@ -1,7 +1,7 @@
 using System.Net;
 using Application.JWT.Authorization;
 using AutoMapper;
-using Contracts;
+using Contracts.v1.DataPoint;
 using Domain.Datapoint;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,4 @@
-﻿namespace Application.JWT.Model;
+﻿namespace Contracts.v1.Authentication;
 
 public class AddNonRefreshTokenRequest
 {

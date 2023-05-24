@@ -1,4 +1,4 @@
-﻿using Application.Organization.Model;
+﻿using Contracts.v1.Organization;
 using Domain.Exceptions;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;

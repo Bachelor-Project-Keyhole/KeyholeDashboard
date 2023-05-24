@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
-using Contracts;
-using Contracts.Template;
+using Contracts.v1.DataPoint;
+using Contracts.v1.Template;
 using Domain;
 using Domain.Datapoint;
 using Domain.Template;

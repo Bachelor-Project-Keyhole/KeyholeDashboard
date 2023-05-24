@@ -1,4 +1,4 @@
-﻿namespace Application.Organization.Model;
+﻿namespace Contracts.v1.Organization;
 
 public class UserRegistrationResponse
 {

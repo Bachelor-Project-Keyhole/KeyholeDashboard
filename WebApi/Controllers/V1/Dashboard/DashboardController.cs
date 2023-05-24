@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Application.JWT.Authorization;
 using AutoMapper;
-using Contracts.Dashboard;
+using Contracts.v1.Dashboard;
 using Domain.Dashboard;
 using Domain.Template;
 using Domain.User;

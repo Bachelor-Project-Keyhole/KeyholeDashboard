@@ -1,4 +1,4 @@
-﻿namespace Contracts.Dashboard;
+﻿namespace Contracts.v1.Dashboard;
 
 public class UpdateDashboardRequest
 {

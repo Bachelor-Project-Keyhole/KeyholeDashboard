@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 #pragma warning disable CS8618
 
-namespace Application.Organization.Model;
+namespace Contracts.v1.Organization;
 
 public class AdminAndOrganizationCreateResponse
 {
