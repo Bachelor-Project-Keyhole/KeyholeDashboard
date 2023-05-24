@@ -4,6 +4,7 @@ using Application.JWT.Service;
 using Application.Organization;
 using Application.User.UserService;
 using Domain.Datapoint;
+using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Domain.Template;
 using Repository.Datapoint;
@@ -39,6 +40,7 @@ static class ServiceRegistry
         #endregion
         
         collection.AddTransient<IOrganizationRepository, OrganizationRepository>();
+        collection.AddTransient<IOrganizationDomainService, OrganizationDomainService>();
         collection.AddTransient<IDataPointEntryRepository, DataPointEntryRepository>();
         collection.AddTransient<IDataPointRepository, DataPointRepository>();
         collection.AddTransient<IDataPointDomainService, DataPointDomainService>();

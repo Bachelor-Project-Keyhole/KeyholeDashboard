@@ -17,8 +17,7 @@ public class TemplateControllerTests : IntegrationTest
         //Arrange
         await Authenticate();
         var organization = await SetupOrganization();
-
-
+        
         var datapointEntities = new[]
         {
             new DataPointEntity(IdGenerator.GenerateId(), "key", "DisplayName", latestValue: 60),

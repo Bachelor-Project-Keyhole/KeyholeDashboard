@@ -9,14 +9,8 @@ using Microsoft.OpenApi.Models;
 using Repository;
 using WebApi.Registry;
 
-
-var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 var builder = WebApplication.CreateBuilder(args);
-
-
 // Add services to the container.
-
 builder.Services
     .AddControllers()
     .AddJsonOptions(opts =>
@@ -30,14 +24,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
-
 #region Config setup
-
-//WE WILL NEED TO ADD A CONDITION TO ONLY TRIGGER THESE IF WE ARE IN DEV ENVIRONMENT
-
-/*var appSettingsFile = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT"))
-    ? "appsettings.json" : $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIROMENT")}.json";*/
-
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json").Build();
 
@@ -126,9 +113,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseErrorHandlerMiddleware();
-
 app.UseMiddleware<JwtMiddleware>();
-
 app.UseCors("CorsPolicy");
 app.UseAuthorization();
 app.MapControllers();

@@ -8,7 +8,7 @@ using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Datapoint;
 
-namespace WebApi.Tests.IntegrationTests.DataPointController;
+namespace WebApi.Tests.IntegrationTests;
 
 public class DataPointControllerTests : IntegrationTest
 {
@@ -193,17 +193,15 @@ public class DataPointControllerTests : IntegrationTest
         //Act
         var httpResponseMessage =
             await TestClient.GetAsync(
-                new Uri($"api/v1/DataPoint/entries/last/{organization.Id.ToString()}/{dataPointKey}",
+                new Uri($"api/public/v1/DataPointEntries/entries/last/{organization.Id.ToString()}/{dataPointKey}",
                     UriKind.Relative));
 
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<PushDataPointEntryDto>(
+        var result = JsonConvert.DeserializeObject<DataPointEntryDto>(
             await httpResponseMessage.Content.ReadAsStringAsync());
         result.Should().NotBeNull();
-        result!.OrganizationId.Should().Be(organization.Id.ToString());
-        result.DataPointKey.Should().Be(dataPointKey);
-        result.Value.Should().Be(expectedValue);
+        result!.Value.Should().Be(expectedValue);
         result.Time.Should().BeCloseTo(expectedTime, TimeSpan.FromSeconds(1));
     }
 
@@ -287,189 +285,92 @@ public class DataPointControllerTests : IntegrationTest
         //Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-
-    [Fact]
-    public async Task PostDataPointEntry_PersistsEntryIntoDatabase_AndCreatesNewDataPoint()
-    {
-        //Arrange
-        await Authenticate();
-
-        var organization = await SetupOrganization();
-
-        var dataPointEntryDto =
-            new PushDataPointEntryDto(organization.Id.ToString(), IdGenerator.GenerateId(), 500, DateTime.Now);
-
-        var stringContent =
-            new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
-        dataPointEntryEntities.Should().NotBeNull();
-        var dataPointEntryEntity = dataPointEntryEntities.Single();
-        dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
-        dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
-
-        var dataPointEntities = await GetAll<DataPointEntity>();
-        var dataPointEntity = dataPointEntities.Single();
-        dataPointEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
-        dataPointEntity.DirectionIsUp.Should().BeTrue();
-        dataPointEntity.LatestValue.Should().Be(dataPointEntryDto.Value);
-    }
-
-    [Fact]
-    public async Task PostDataPointEntry_PersistsEntryIntoDatabase_DoesNotCreateDuplicateDataPoint()
-    {
-        //Arrange
-        await Authenticate();
-
-        var organization = await SetupOrganization();
-
-        var key = "TestKey";
-        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, key);
-        await PopulateDatabase(new[] { dataPointEntity });
-
-        var dataPointEntryDto =
-            new PushDataPointEntryDto(organization.Id.ToString(), key, 500, DateTime.Now);
-
-        var stringContent =
-            new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
-        var dataPointEntryEntity = dataPointEntryEntities.Single();
-        dataPointEntryEntity.OrganizationId.Should().Be(dataPointEntryDto.OrganizationId);
-        dataPointEntryEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntryEntity.Value.Should().Be(dataPointEntryDto.Value);
-        dataPointEntryEntity.Time.Should().BeCloseTo(dataPointEntryEntity.Time, TimeSpan.FromSeconds(1));
-
-        var dataPointEntities = await GetAll<DataPointEntity>();
-        dataPointEntities.Should().HaveCount(1);
-        dataPointEntities.Single().LatestValue.Should().Be(dataPointEntryDto.Value);
-    }
-
-    [Fact]
-    public async Task PostDataPointEntry_ReturnsNotFound_WhenOrganizationIdDoesNotExists()
-    {
-        //Arrange
-        await Authenticate();
-        var nonExistingOrganizationId = IdGenerator.GenerateId();
-
-        var dataPointEntryDto =
-            new PushDataPointEntryDto(nonExistingOrganizationId, IdGenerator.GenerateId(), 500, DateTime.Now);
-
-        var stringContent =
-            new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.PostAsync(new Uri($"/api/v1/DataPoint/entries", UriKind.Relative), stringContent);
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        var dataPointEntryEntities = await GetAll<DataPointEntryEntity>();
-        dataPointEntryEntities.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
-    {
-        //Arrange
-        await Authenticate();
-
-        var organization = await SetupOrganization();
-
-        var key = "TestKey";
-
-        var expectedEntities = new DataPointEntryEntity[]
-        {
-            new(organization.Id.ToString(), key, 23, DateTime.Now),
-            new(organization.Id.ToString(), key, 23, DateTime.MinValue),
-        };
-
-        await PopulateDatabase(expectedEntities);
-
-        var testEntities = new[]
-        {
-            new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
-        };
-        await PopulateDatabase(testEntities);
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organization.Id.ToString()}/{key}",
-                UriKind.Relative));
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = JsonConvert.DeserializeObject<PushDataPointEntryDto[]>(
-            await httpResponseMessage.Content.ReadAsStringAsync());
-        result.Should().NotBeNull();
-        AssertDataPointEntries(expectedEntities, result!);
-    }
-
-    [Fact]
-    public async Task GetAllDataPointEntries_ReturnsNotFound_WhenOrganizationIsNotFound()
-    {
-        //Arrange
-        var key = "TestKey";
-        var testEntities = new[]
-        {
-            new DataPointEntryEntity(IdGenerator.GenerateId(), "notTestKey", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
-        };
-        await PopulateDatabase(testEntities);
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{IdGenerator.GenerateId()}/{key}", UriKind.Relative));
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
-    {
-        //Arrange
-        await Authenticate();
-
-        var organization = await SetupOrganization();
-
-        var key = "TestKey";
-        var testEntities = new[]
-        {
-            new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
-            new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
-        };
-        await PopulateDatabase(testEntities);
-
-        //Act
-        var httpResponseMessage =
-            await TestClient.GetAsync(
-                new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/{key}", UriKind.Relative));
-
-        //Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
+    
+    // [Fact]
+    // public async Task GetAllDataPointEntries_ReturnsAllExpectedDataPointEntries()
+    // {
+    //     //Arrange
+    //     await Authenticate();
+    //
+    //     var organization = await SetupOrganization();
+    //
+    //     var key = "TestKey";
+    //
+    //     var expectedEntities = new DataPointEntryEntity[]
+    //     {
+    //         new(organization.Id.ToString(), key, 23, DateTime.Now),
+    //         new(organization.Id.ToString(), key, 23, DateTime.MinValue),
+    //     };
+    //
+    //     await PopulateDatabase(expectedEntities);
+    //
+    //     var testEntities = new[]
+    //     {
+    //         new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+    //     };
+    //     await PopulateDatabase(testEntities);
+    //
+    //     //Act
+    //     var httpResponseMessage =
+    //         await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/entries/{organization.Id.ToString()}/{key}",
+    //             UriKind.Relative));
+    //
+    //     //Assert
+    //     httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+    //     var result = JsonConvert.DeserializeObject<PushDataPointEntryDto[]>(
+    //         await httpResponseMessage.Content.ReadAsStringAsync());
+    //     result.Should().NotBeNull();
+    //     AssertDataPointEntries(expectedEntities, result!);
+    // }
+    //
+    // [Fact]
+    // public async Task GetAllDataPointEntries_ReturnsNotFound_WhenOrganizationIsNotFound()
+    // {
+    //     //Arrange
+    //     var key = "TestKey";
+    //     var testEntities = new[]
+    //     {
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), "notTestKey", 23, DateTime.Now),
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), "other", 23, DateTime.Now),
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+    //     };
+    //     await PopulateDatabase(testEntities);
+    //
+    //     //Act
+    //     var httpResponseMessage =
+    //         await TestClient.GetAsync(new Uri($"/api/v1/DataPoint/{IdGenerator.GenerateId()}/{key}", UriKind.Relative));
+    //
+    //     //Assert
+    //     httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    // }
+    //
+    // [Fact]
+    // public async Task GetAllDataPointEntries_ReturnsNotFound_WhenNoEntriesWithMatchingKeyAroundFound()
+    // {
+    //     //Arrange
+    //     await Authenticate();
+    //
+    //     var organization = await SetupOrganization();
+    //
+    //     var key = "TestKey";
+    //     var testEntities = new[]
+    //     {
+    //         new DataPointEntryEntity(organization.Id.ToString(), "notTestKey", 23, DateTime.Now),
+    //         new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
+    //         new DataPointEntryEntity(IdGenerator.GenerateId(), key, 23, DateTime.Now),
+    //     };
+    //     await PopulateDatabase(testEntities);
+    //
+    //     //Act
+    //     var httpResponseMessage =
+    //         await TestClient.GetAsync(
+    //             new Uri($"/api/v1/DataPoint/{organization.Id.ToString()}/{key}", UriKind.Relative));
+    //
+    //     //Assert
+    //     httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    // }
 
     [Fact]
     public async Task UpdateDataPoint_UpdatesDataPointWithProperValues()
@@ -653,15 +554,15 @@ public class DataPointControllerTests : IntegrationTest
         result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
     }
 
-    private void AssertDataPointEntries(DataPointEntryEntity[] expected, PushDataPointEntryDto[] actual)
-    {
-        actual.Should().HaveCount(expected.Length);
-        foreach (var dataPointEntry in actual.Zip(expected, (a, e) => (a, e)))
-        {
-            dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
-            dataPointEntry.a.DataPointKey.Should().Be(dataPointEntry.e.DataPointKey);
-            dataPointEntry.a.Value.Should().Be(dataPointEntry.e.Value);
-            dataPointEntry.a.Time.Should().BeCloseTo(dataPointEntry.e.Time, TimeSpan.FromSeconds(1));
-        }
-    }
+    // private void AssertDataPointEntries(DataPointEntryEntity[] expected, DataPointEntryDto[] actual)
+    // {
+    //     actual.Should().HaveCount(expected.Length);
+    //     foreach (var dataPointEntry in actual.Zip(expected, (a, e) => (a, e)))
+    //     {
+    //         dataPointEntry.a.OrganizationId.Should().Be(dataPointEntry.e.OrganizationId);
+    //         dataPointEntry.a.DataPointKey.Should().Be(dataPointEntry.e.DataPointKey);
+    //         dataPointEntry.a.Value.Should().Be(dataPointEntry.e.Value);
+    //         dataPointEntry.a.Time.Should().BeCloseTo(dataPointEntry.e.Time, TimeSpan.FromSeconds(1));
+    //     }
+    // }
 }

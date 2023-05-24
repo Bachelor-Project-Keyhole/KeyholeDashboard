@@ -7,6 +7,7 @@ namespace Repository.Organization;
 public class OrganizationRepository : MongoRepository<OrganizationPersistenceModel>, IOrganizationRepository
 {
     private readonly IMapper _mapper;
+
     public OrganizationRepository(IOptions<DatabaseOptions> dataBaseOptions, IMapper mapper) : base(dataBaseOptions)
     {
         _mapper = mapper;
@@ -30,10 +31,15 @@ public class OrganizationRepository : MongoRepository<OrganizationPersistenceMod
         await ReplaceOneAsync(organizationPersistence);
     }
 
+    public async Task<Domain.Organization.Organization?> GetOrganizationByApiKey(string apiKey)
+    {
+        var result = await FindOneAsync(e => e.ApiKey == apiKey);
+        return _mapper.Map<Domain.Organization.Organization>(result);
+    }
+
     public async Task<bool> OrganizationExists(string organizationId)
     {
         var result = await FindByIdAsync(organizationId);
         return result is not null;
-
     }
 }

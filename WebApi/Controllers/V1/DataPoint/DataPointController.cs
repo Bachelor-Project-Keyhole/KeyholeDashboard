@@ -84,36 +84,4 @@ public class DataPointController : ControllerBase
         return Ok();
         
     }
-
-    /// <summary>
-    /// Get latest data point entry (Any auth level is required)
-    /// </summary>
-    /// <param name="organizationId"></param>
-    /// <param name="dataPointKey"></param>
-    /// <returns></returns>
-    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpGet]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Get latest data point entry")]
-    [Route("entries/last/{organizationId}/{dataPointKey}")]
-    public async Task<ActionResult<PushDataPointEntryDto>> GetLatestDataPointEntry(string organizationId, string dataPointKey)
-    {
-        var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
-        return _mapper.Map<PushDataPointEntryDto>(dataPointEntry);
-    }
-
-    /// <summary>
-    /// Get all data point entries (Any auth level is required)
-    /// </summary>
-    /// <param name="organizationId"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpGet]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Get all data point entries")]
-    [Route("entries/{organizationId}/{key}")]
-    public async Task<ActionResult<PushDataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
-    {
-        var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
-        return _mapper.Map<PushDataPointEntryDto[]>(allDataPoints);
-    }
 }

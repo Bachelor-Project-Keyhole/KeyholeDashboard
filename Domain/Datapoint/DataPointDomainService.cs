@@ -1,22 +1,22 @@
 using Domain.Exceptions;
-using Domain.RepositoryInterfaces;
+using Domain.Organization;
 
 namespace Domain.Datapoint;
 
 public class DataPointDomainService : IDataPointDomainService
 {
-    private readonly IOrganizationRepository _organizationRepository;
+    private readonly IOrganizationDomainService _organizationDomainService;
     private readonly IDataPointRepository _dataPointRepository;
     private readonly IDataPointEntryRepository _dataPointEntryRepository;
 
     public DataPointDomainService(
-        IOrganizationRepository organizationRepository,
         IDataPointRepository dataPointRepository,
-        IDataPointEntryRepository dataPointEntryRepository)
+        IDataPointEntryRepository dataPointEntryRepository,
+        IOrganizationDomainService organizationDomainService)
     {
-        _organizationRepository = organizationRepository;
         _dataPointRepository = dataPointRepository;
         _dataPointEntryRepository = dataPointEntryRepository;
+        _organizationDomainService = organizationDomainService;
     }
 
     public async Task<DataPoint> CreateDataPoint(DataPoint dataPoint)
@@ -47,7 +47,7 @@ public class DataPointDomainService : IDataPointDomainService
             await _dataPointEntryRepository.GetDataPointEntries(organizationId, dataPointKey, periodDateTime);
         return dataPointEntries.ToArray();
     }
-    
+
     public async Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime periodDateTime)
     {
         var dataPointEntry = await _dataPointEntryRepository.GetDataPointEntryFromPreviousPeriod(
@@ -57,8 +57,22 @@ public class DataPointDomainService : IDataPointDomainService
         {
             return 0;
         }
+
         var previousValue = dataPoint.CalculateEntryValueWithFormula(dataPointEntry.Value);
         return dataPoint.CalculateChangeOverTime(previousValue);
+    }
+
+    public async Task AddHistoricDataPointEntries(DataPointEntry[] dataPointEntries, string apiKey)
+    {
+        var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
+        foreach (var dataPointEntry in dataPointEntries)
+        {
+            await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
+            // Add missing values to data point entry 
+            dataPointEntry.Id = IdGenerator.GenerateId();
+            dataPointEntry.OrganizationId = organization.Id;
+        }
+        await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
     }
 
     public async Task<DataPoint[]> GetAllDataPoints(string organizationId)
@@ -67,14 +81,42 @@ public class DataPointDomainService : IDataPointDomainService
         return await _dataPointRepository.GetAllDatapointForOrganization(organizationId);
     }
 
-    public async Task AddDataPointEntry(DataPointEntry dataPointEntry)
+    public async Task AddDataPointEntry(DataPointEntry dataPointEntry, string apiKey)
     {
-        await ValidateOrganization(dataPointEntry.OrganizationId);
+        var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
+        await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
+        
+        // Add missing values to data point entry 
+        dataPointEntry.Id = IdGenerator.GenerateId();
+        dataPointEntry.OrganizationId = organization.Id;
+        dataPointEntry.Time = DateTime.UtcNow;
+        await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
+    }
+
+    public async Task AddDataPointEntries(DataPointEntry[] dataPointEntries, string apiKey)
+    {
+        var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
+        foreach (var dataPointEntry in dataPointEntries)
+        {
+            await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
+            // Add missing values to data point entry 
+            dataPointEntry.Id = IdGenerator.GenerateId();
+            dataPointEntry.OrganizationId = organization.Id;
+            dataPointEntry.Time = DateTime.UtcNow;
+        }
+        
+        await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
+    }
+
+    private async Task UpdateDataPointsWithMatchingKeys(DataPointEntry dataPointEntry, Organization.Organization organization)
+    {
         var dataPoints =
             await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
+
+        //Create new Data point with matching dataPointKey if none exist, else update latest value
         if (dataPoints.Length == 0)
         {
-            await CreateDataPoint(dataPointEntry.OrganizationId, dataPointEntry.DataPointKey, dataPointEntry.Value);
+            await CreateDataPoint(organization.Id, dataPointEntry.DataPointKey, dataPointEntry.Value);
         }
         else
         {
@@ -84,8 +126,6 @@ public class DataPointDomainService : IDataPointDomainService
                 await _dataPointRepository.UpdateDataPoint(dataPoint);
             }
         }
-
-        await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
     }
 
     public async Task<DataPointEntry[]> GetAllDataPointEntries(string organizationId, string dataPointKey)
@@ -150,7 +190,7 @@ public class DataPointDomainService : IDataPointDomainService
 
     private async Task ValidateOrganization(string organizationId)
     {
-        var organizationExists = await _organizationRepository.OrganizationExists(organizationId);
+        var organizationExists = await _organizationDomainService.OrganizationExists(organizationId);
         if (!organizationExists)
         {
             throw new OrganizationNotFoundException(organizationId);

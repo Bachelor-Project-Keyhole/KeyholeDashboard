@@ -79,7 +79,10 @@ public class ErrorHandlerMiddleware
 
                 #endregion
                 
-                
+                case InvalidApiKeyException:
+                    response.StatusCode = (int) HttpStatusCode.Forbidden;
+                    break;
+
                 default:
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
