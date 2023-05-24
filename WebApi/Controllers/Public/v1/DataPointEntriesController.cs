@@ -1,9 +1,6 @@
 using System.Net;
-using Application.JWT.Authorization;
 using AutoMapper;
-using Contracts;
 using Domain.Datapoint;
-using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -34,11 +31,11 @@ public class DataPointEntriesController : ControllerBase
     public async Task<IActionResult> PostDataPointEntry(string apiKey,
         [FromBody] PushDataPointEntryDto pushDataPointEntryDto)
     {
-        var dataPointEntry = _mapper.Map<DataPointEntry>(pushDataPointEntryDto);
-        await _dataPointDomainService.AddDataPointEntry(dataPointEntry, apiKey);
+        await _dataPointDomainService.AddDataPointEntry(pushDataPointEntryDto.DataPointKey, pushDataPointEntryDto.Value,
+            apiKey);
         return Ok();
     }
-    
+
     [HttpPost]
     [Route("{apiKey}")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Post Data Point Entries")]
@@ -60,41 +57,4 @@ public class DataPointEntriesController : ControllerBase
         await _dataPointDomainService.AddHistoricDataPointEntries(dataPointEntry, apiKey);
         return Ok();
     }
-
-    #region Debug endpoints
-
-    /// <summary>
-    /// Get latest data point entry (Any auth level is required)
-    /// </summary>
-    /// <param name="organizationId"></param>
-    /// <param name="dataPointKey"></param>
-    /// <returns></returns>
-    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpGet]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Get latest data point entry")]
-    [Route("entries/last/{organizationId}/{dataPointKey}")]
-    public async Task<ActionResult<DataPointEntryDto>> GetLatestDataPointEntry(string organizationId,
-        string dataPointKey)
-    {
-        var dataPointEntry = await _dataPointDomainService.GetLatestDataPointEntry(organizationId, dataPointKey);
-        return _mapper.Map<DataPointEntryDto>(dataPointEntry);
-    }
-
-    /// <summary>
-    /// Get all data point entries (Any auth level is required)
-    /// </summary>
-    /// <param name="organizationId"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpGet]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Get all data point entries")]
-    [Route("entries/{organizationId}/{key}")]
-    public async Task<ActionResult<PushDataPointEntryDto[]>> GetAllDataPointEntries(string organizationId, string key)
-    {
-        var allDataPoints = await _dataPointDomainService.GetAllDataPointEntries(organizationId, key);
-        return _mapper.Map<PushDataPointEntryDto[]>(allDataPoints);
-    }
-
-    #endregion
 }

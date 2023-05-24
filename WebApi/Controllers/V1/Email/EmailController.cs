@@ -1,10 +1,7 @@
-﻿using System.Net;
-using Application.Email.EmailService;
-using Application.User.Model;
+﻿using Application.Email.EmailService;
 using Application.User.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 
 

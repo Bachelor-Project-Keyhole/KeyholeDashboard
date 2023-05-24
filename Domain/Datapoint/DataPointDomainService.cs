@@ -72,6 +72,7 @@ public class DataPointDomainService : IDataPointDomainService
             dataPointEntry.Id = IdGenerator.GenerateId();
             dataPointEntry.OrganizationId = organization.Id;
         }
+
         await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
     }
 
@@ -81,34 +82,45 @@ public class DataPointDomainService : IDataPointDomainService
         return await _dataPointRepository.GetAllDatapointForOrganization(organizationId);
     }
 
-    public async Task AddDataPointEntry(DataPointEntry dataPointEntry, string apiKey)
+    public async Task AddDataPointEntry(string dataPointKey, double value, string apiKey)
     {
         var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
-        await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
-        
-        // Add missing values to data point entry 
-        dataPointEntry.Id = IdGenerator.GenerateId();
-        dataPointEntry.OrganizationId = organization.Id;
-        dataPointEntry.Time = DateTime.UtcNow;
+        var dataPointEntry = CreateDataPointEntry(dataPointKey, value, organization.Id);
+
         await _dataPointEntryRepository.AddDataPointEntry(dataPointEntry);
+        await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
     }
 
     public async Task AddDataPointEntries(DataPointEntry[] dataPointEntries, string apiKey)
     {
         var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
-        foreach (var dataPointEntry in dataPointEntries)
+        var result = new List<DataPointEntry>();
+        foreach (var entry in dataPointEntries)
         {
+            var dataPointEntry = CreateDataPointEntry(entry.DataPointKey, entry.Value, organization.Id);
+
             await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
-            // Add missing values to data point entry 
-            dataPointEntry.Id = IdGenerator.GenerateId();
-            dataPointEntry.OrganizationId = organization.Id;
-            dataPointEntry.Time = DateTime.UtcNow;
+            result.Add(dataPointEntry);
         }
-        
-        await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
+
+        await _dataPointEntryRepository.AddDataPointEntries(result.ToArray());
     }
 
-    private async Task UpdateDataPointsWithMatchingKeys(DataPointEntry dataPointEntry, Organization.Organization organization)
+    private DataPointEntry CreateDataPointEntry(string dataPointKey, double value, string organizationId)
+    {
+        var dataPointEntry = new DataPointEntry
+        {
+            Id = IdGenerator.GenerateId(),
+            DataPointKey = dataPointKey,
+            OrganizationId = organizationId,
+            Value = value,
+            Time = DateTime.UtcNow,
+        };
+        return dataPointEntry;
+    }
+
+    private async Task UpdateDataPointsWithMatchingKeys(DataPointEntry dataPointEntry,
+        Organization.Organization organization)
     {
         var dataPoints =
             await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);

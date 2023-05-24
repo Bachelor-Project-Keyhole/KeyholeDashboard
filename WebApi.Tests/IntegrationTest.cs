@@ -83,6 +83,7 @@ public class IntegrationTest : IDisposable
             Id = ObjectId.Parse(IdGenerator.GenerateId()),
             OrganizationName = "wow",
             OrganizationOwnerId = "aa",
+            ApiKey = IdGenerator.GenerateId(),
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };

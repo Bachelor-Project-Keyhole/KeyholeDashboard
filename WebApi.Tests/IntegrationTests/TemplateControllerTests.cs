@@ -50,18 +50,18 @@ public class TemplateControllerTests : IntegrationTest
 
         var entitiesToBeReturned = new DataPointEntryEntity[]
         {
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now),
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 20, DateTime.Now.AddDays(-2))
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.UtcNow),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 20, DateTime.UtcNow.AddDays(-2))
         };
         await PopulateDatabase(entitiesToBeReturned);
 
         var otherEntities = new[]
         {
             new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 23,
-                DateTime.Now.AddDays(-10)),
-            new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now),
-            new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.Now),
+                DateTime.UtcNow.AddDays(-10)),
+            new DataPointEntryEntity(organization.Id.ToString(), "other", 23, DateTime.UtcNow),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.UtcNow),
+            new DataPointEntryEntity(IdGenerator.GenerateId(), "random", 23, DateTime.UtcNow),
         };
         await PopulateDatabase(otherEntities);
         var expectedResult = new DataPointEntryDto[]
@@ -139,19 +139,19 @@ public class TemplateControllerTests : IntegrationTest
 
         var timeSpanInDays = 10;
         var expectedSelection = new DataPointEntryEntity(organization.Id.ToString(), dataPointEntity.DataPointKey, 50,
-            DateTime.Now.AddDays(-timeSpanInDays).AddHours(-2));
+            DateTime.UtcNow.AddDays(-timeSpanInDays).AddHours(-2));
         await PopulateDatabase(new[] { expectedSelection });
 
         var tesEntities = new DataPointEntryEntity[]
         {
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.Now),
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 0, DateTime.Now.AddDays(-1)),
-            new(organization.Id.ToString(), dataPointEntity.DataPointKey, -33, DateTime.Now.AddDays(-5)),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 10, DateTime.UtcNow),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, 0, DateTime.UtcNow.AddDays(-1)),
+            new(organization.Id.ToString(), dataPointEntity.DataPointKey, -33, DateTime.UtcNow.AddDays(-5)),
             new(organization.Id.ToString(), dataPointEntity.DataPointKey, 800.45,
-                DateTime.Now.AddDays(timeSpanInDays + 2)),
-            new(organization.Id.ToString(), "other", 23, DateTime.Now.AddDays(-23)),
-            new(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.Now.AddDays(-23)),
-            new(IdGenerator.GenerateId(), "random", -500, DateTime.Now.AddDays(-23))
+                DateTime.UtcNow.AddDays(timeSpanInDays + 2)),
+            new(organization.Id.ToString(), "other", 23, DateTime.UtcNow.AddDays(-23)),
+            new(IdGenerator.GenerateId(), dataPointEntity.DataPointKey, 23, DateTime.UtcNow.AddDays(-23)),
+            new(IdGenerator.GenerateId(), "random", -500, DateTime.UtcNow.AddDays(-23))
         };
         await PopulateDatabase(tesEntities);
 
