@@ -12,6 +12,7 @@ using WebApi.Controllers.Shared;
 namespace WebApi.Controllers.V1.Dashboard;
 
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class DashboardController : BaseApiController
 {
     private readonly IMapper _mapper;

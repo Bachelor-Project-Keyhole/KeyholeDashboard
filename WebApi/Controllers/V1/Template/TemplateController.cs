@@ -12,6 +12,7 @@ using WebApi.Controllers.Shared;
 namespace WebApi.Controllers.V1.Template;
 
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class TemplateController : BaseApiController
 {
     private readonly IMapper _mapper;
