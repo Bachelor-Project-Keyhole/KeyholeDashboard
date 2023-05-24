@@ -68,13 +68,14 @@ public class TemplateDomainService : ITemplateDomainService
 
     public async Task<Template> CreateTemplate(Template template)
     {
+        ValidateTemplateMetrics(template);
+        
         var dashboard = await _dashboardRepository.GetDashboardById(template.DashboardId);
         if (dashboard == null)
             throw new DashboardNotFoundException($"Dashboard with Id: {template.DashboardId} does not exist");
         var datapoint = await _dataPointRepository.GetDataPointById(template.DatapointId);
         if (datapoint == null)
             throw new DataPointNotFoundException(template.DatapointId);
-        ValidateTemplateMetrics(template);
 
         template.Id = IdGenerator.GenerateId();
         await _templateRepository.Insert(template);
@@ -83,10 +84,12 @@ public class TemplateDomainService : ITemplateDomainService
 
     public async Task<Template> Update(Template template)
     {
+        ValidateTemplateMetrics(template);
+        
         var templateFromDb = await _templateRepository.GetById(template.Id);
         if (templateFromDb == null)
             throw new TemplateNotFoundException($"Template with Id: {template.Id} was not found");
-        
+
         // Should we allow to change datapoint Id? 
         if (templateFromDb.DatapointId != template.DatapointId)
         {
@@ -94,8 +97,6 @@ public class TemplateDomainService : ITemplateDomainService
             if (dataPoint == null)
                 throw new DataPointNotFoundException(template.DatapointId);
         }
-        
-        ValidateTemplateMetrics(template);
 
         template.DashboardId = templateFromDb.DashboardId;
         await _templateRepository.Update(template);
