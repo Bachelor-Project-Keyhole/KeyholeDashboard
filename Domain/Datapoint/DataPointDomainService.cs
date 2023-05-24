@@ -67,12 +67,17 @@ public class DataPointDomainService : IDataPointDomainService
         var organization = await _organizationDomainService.GetOrganizationByApiKey(apiKey);
         foreach (var dataPointEntry in dataPointEntries)
         {
-            await UpdateDataPointsWithMatchingKeys(dataPointEntry, organization);
             // Add missing values to data point entry 
             dataPointEntry.Id = IdGenerator.GenerateId();
             dataPointEntry.OrganizationId = organization.Id;
-        }
+            var dataPoints =
+                await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
 
+            if (dataPoints.Length == 0)
+            {
+                await CreateDataPoint(organization.Id, dataPointEntry.DataPointKey, dataPointEntry.Value);
+            }
+        }
         await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
     }
 
