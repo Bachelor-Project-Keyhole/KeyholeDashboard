@@ -6,5 +6,5 @@ public interface IOrganizationRepository
     Task<Domain.Organization.Organization?> GetOrganizationById(string id);
     Task Insert(Organization.Organization organizationToInsert);
     Task UpdateOrganization(Organization.Organization organization);
-
+    Task<Organization.Organization?> GetOrganizationByApiKey(string apiKey);
 }

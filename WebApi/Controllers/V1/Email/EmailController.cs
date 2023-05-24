@@ -1,10 +1,7 @@
-﻿using System.Net;
-using Application.Email.EmailService;
-using Application.User.Model;
+﻿using Application.Email.EmailService;
 using Application.User.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using WebApi.Controllers.Shared;
 
 
@@ -12,7 +9,7 @@ namespace WebApi.Controllers.V1.Email;
 
 // [Authorize]
 [Route("api/v1/[controller]")]
-
+[ApiExplorerSettings(GroupName = "internal")]
 public class EmailController : BaseApiController
 {
     private readonly IMapper _mapper;

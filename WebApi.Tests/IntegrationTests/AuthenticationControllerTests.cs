@@ -10,7 +10,7 @@ using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.User.UserPersistence;
 
-namespace WebApi.Tests.IntegrationTests.AuthenticationTests;
+namespace WebApi.Tests.IntegrationTests;
 
 public class AuthenticationControllerTests : IntegrationTest
 {

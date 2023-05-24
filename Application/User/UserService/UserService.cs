@@ -5,6 +5,7 @@ using Application.JWT.Model;
 using Application.Organization.Model;
 using Application.User.Model;
 using AutoMapper;
+using Domain;
 using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
 using Domain.TwoFactor;
@@ -104,7 +105,7 @@ public class UserService : IUserService
 
         var userToInsert = new Domain.User.User
         {
-            Id = ObjectId.GenerateNewId().ToString(),
+            Id = IdGenerator.GenerateId(),
             Email = request.Email,
             FullName = request.FullName,
             AccessLevels = new List<UserAccessLevel>
@@ -115,15 +116,14 @@ public class UserService : IUserService
 
         var organizationToInsert = new Domain.Organization.Organization
         {
-            Id = ObjectId.GenerateNewId().ToString(),
+            Id = IdGenerator.GenerateId(),
             OrganizationName = request.OrganizationName,
+            ApiKey = IdGenerator.GenerateId(),
             CreationDate = DateTime.UtcNow,
             ModificationDate = DateTime.UtcNow
         };
 
         userToInsert.MemberOfOrganizationId = organizationToInsert.Id;
-        
-
         userToInsert.OwnedOrganizationId = organizationToInsert.Id;
         organizationToInsert.OrganizationOwnerId = userToInsert.Id;
         userToInsert.PasswordHash = PasswordHelper.GetHashedPassword(request.Password);

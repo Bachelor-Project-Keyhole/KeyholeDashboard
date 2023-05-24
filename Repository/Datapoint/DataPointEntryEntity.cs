@@ -1,5 +1,3 @@
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace Repository.Datapoint;
 
 
@@ -10,7 +8,6 @@ public class DataPointEntryEntity : Document
     public string DataPointKey { get; set; }
     public double Value { get; set; }
     
-    [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
     public DateTime Time { get; set; }
 
     public DataPointEntryEntity(string organizationId, string dataPointKey, double value, DateTime time)

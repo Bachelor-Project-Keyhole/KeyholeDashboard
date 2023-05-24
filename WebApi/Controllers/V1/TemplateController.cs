@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace WebApi.Controllers.V1;
 
 [Route("api/v1/[controller]")]
+[ApiExplorerSettings(GroupName = "internal")]
 public class TemplateController : ControllerBase
 {
     private readonly IMapper _mapper;
