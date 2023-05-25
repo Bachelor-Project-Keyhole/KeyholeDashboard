@@ -89,9 +89,8 @@ public class DataPointController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
-    [HttpDelete]
+    [HttpDelete("{dataPointId}")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Delete Data Point")]
-    [Route("{dataPointId}")]
     public async Task<IActionResult> DeleteDataPoint(string dataPointId, [FromQuery] bool forceDelete)
     {
         await _dataPointDomainService.DeleteDataPoint(dataPointId, forceDelete);

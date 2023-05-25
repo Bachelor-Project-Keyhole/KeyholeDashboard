@@ -44,6 +44,11 @@ public class DataPointRepository : MongoRepository<DataPointEntity>, IDataPointR
             dpe.OrganizationId == organizationId && dpe.DataPointKey == dataPointKey);
     }
 
+    public async Task DeleteDataPointById(string dataPointId)
+    {
+        await DeleteByIdAsync(dataPointId);
+    }
+
     public async Task<DataPoint[]> FindDataPointsByKey(string key, string organizationId)
     {
         var dataPointEntity = 

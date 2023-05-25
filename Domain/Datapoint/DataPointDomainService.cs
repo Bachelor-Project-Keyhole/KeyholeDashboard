@@ -126,7 +126,7 @@ public class DataPointDomainService : IDataPointDomainService
 
         if (dataPointsWithMatchingKey.Length > 1)
         {
-            await _dataPointRepository.DeleteDataPointByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
+            await _dataPointRepository.DeleteDataPointById(dataPoint.Id);
             return;
         }
         

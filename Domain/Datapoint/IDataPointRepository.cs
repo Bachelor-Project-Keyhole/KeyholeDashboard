@@ -8,4 +8,5 @@ public interface IDataPointRepository
     Task UpdateDataPoint(DataPoint dataPoint);
     Task<DataPoint?> GetDataPointById(string dataPointId);
     Task DeleteDataPointByKey(string dataPointKey, string organizationId);
+    Task DeleteDataPointById(string dataPointId);
 }
