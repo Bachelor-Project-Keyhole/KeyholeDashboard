@@ -2,11 +2,13 @@
 using System.Text;
 using Contracts.v1.Dashboard;
 using Domain;
+using Domain.Datapoint;
 using Domain.Template;
 using FluentAssertions;
 using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Dashboard;
+using Repository.Datapoint;
 using Repository.Template;
 
 namespace WebApi.Tests.IntegrationTests.DashboardController;
@@ -445,4 +447,137 @@ public class DashboardControllerTests : IntegrationTest
       dashboards.Length.Should().Be(0);
       
    }
+
+   [Fact]
+   public async Task LoadDashboard_Successful()
+   {
+      // Arrange
+      await Authenticate();
+      var organization = await SetupOrganization();
+      
+      var dashboardPersistence = new DashboardPersistenceModel
+      {
+         Id = ObjectId.Parse(IdGenerator.GenerateId()),
+         Name = "Dashboard name",
+         OrganizationId = organization.Id.ToString()
+      };
+      await PopulateDatabase(new[] {dashboardPersistence});
+
+      var datapoint = new DataPointEntity(
+         organization.Id.ToString(),
+         "Testy", 
+         "Testy",
+         true,
+         true,
+         502)
+      {
+         Formula = new Formula
+         {
+            Factor = 2,
+            Operation = MathOperation.Add
+         }
+      };
+
+      await PopulateDatabase(new[] {datapoint});
+
+      var dataEntry1 = new DataPointEntryEntity(organization.Id.ToString(), datapoint.DataPointKey, 50, DateTime.UtcNow.AddDays(-10));
+      var dataEntry2 = new DataPointEntryEntity(organization.Id.ToString(), datapoint.DataPointKey, 25, DateTime.UtcNow.AddDays(-8));
+      var dataEntry3 = new DataPointEntryEntity(organization.Id.ToString(), datapoint.DataPointKey, -100, DateTime.UtcNow.AddDays(-6));
+      var dataEntry4 = new DataPointEntryEntity(organization.Id.ToString(), datapoint.DataPointKey, -15, DateTime.UtcNow.AddDays(-4));
+      var dataEntry5 = new DataPointEntryEntity(organization.Id.ToString(), datapoint.DataPointKey, 500, DateTime.UtcNow.AddDays(-1));
+      
+      await PopulateDatabase(new[] {dataEntry1});
+      await PopulateDatabase(new[] {dataEntry2});
+      await PopulateDatabase(new[] {dataEntry3});
+      await PopulateDatabase(new[] {dataEntry4});
+      await PopulateDatabase(new[] {dataEntry5});
+
+
+      var templatePersistence1 = new TemplatePersistenceModel
+      {
+         Id = ObjectId.Parse(IdGenerator.GenerateId()),
+         DashboardId = dashboardPersistence.Id.ToString(),
+         DatapointId = datapoint.Id.ToString(),
+         DisplayType = DisplayType.Numeric,
+         TimeUnit = TimeUnit.Week,
+         TimePeriod = 1,
+         PositionHeight = 1,
+         PositionWidth = 1,
+         SizeHeight = 1,
+         SizeWidth = 1
+      };
+      
+      var templatePersistence2 = new TemplatePersistenceModel
+      {
+         Id = ObjectId.Parse(IdGenerator.GenerateId()),
+         DashboardId = dashboardPersistence.Id.ToString(),
+         DatapointId = datapoint.Id.ToString(),
+         DisplayType = DisplayType.Numeric,
+         TimeUnit = TimeUnit.Day,
+         TimePeriod = 5,
+         PositionHeight = 1,
+         PositionWidth = 2,
+         SizeHeight = 1,
+         SizeWidth = 1
+      };
+      
+      var templatePersistence3 = new TemplatePersistenceModel
+      {
+         Id = ObjectId.Parse(IdGenerator.GenerateId()),
+         DashboardId = IdGenerator.GenerateId(),
+         DatapointId = datapoint.Id.ToString(),
+         DisplayType = DisplayType.Numeric,
+         TimeUnit = TimeUnit.Day,
+         TimePeriod = 5,
+         PositionHeight = 1,
+         PositionWidth = 2,
+         SizeHeight = 1,
+         SizeWidth = 1
+      };
+      
+      await PopulateDatabase(new[] {templatePersistence1});
+      await PopulateDatabase(new[] {templatePersistence2});
+      await PopulateDatabase(new[] {templatePersistence3});
+      
+      // Act
+      var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/Dashboard/load/{dashboardPersistence.Id.ToString()}", UriKind.Relative));
+
+      // Arrange
+      httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+      var response = JsonConvert.DeserializeObject<DashboardAndElementsResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+
+      response?.DashboardId.Should().Be(dashboardPersistence.Id.ToString());
+      response?.DashboardName.Should().Be(dashboardPersistence.Name);
+
+      var responsePlaceholder1 = response?.Placeholders.Single(x => x.TemplateId == templatePersistence1.Id.ToString());
+      responsePlaceholder1?.LatestValue.Should().Be(datapoint.LatestValue);
+      responsePlaceholder1?.Comparison.Should().Be(datapoint.ComparisonIsAbsolute);
+      responsePlaceholder1?.Change.Should().Be(475);
+      responsePlaceholder1?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry3.Value) < 0.001);
+      responsePlaceholder1?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry4.Value) < 0.001);
+      responsePlaceholder1?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry5.Value) < 0.001);
+      responsePlaceholder1?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry2.Value) < 0.001);
+      responsePlaceholder1?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry1.Value) < 0.001);
+      responsePlaceholder1?.SizeHeight.Should().Be(templatePersistence1.SizeHeight);
+      responsePlaceholder1?.SizeWidth.Should().Be(templatePersistence1.SizeWidth);
+      responsePlaceholder1?.PositionHeight.Should().Be(templatePersistence1.PositionHeight);
+      responsePlaceholder1?.PositionWidth.Should().Be(templatePersistence1.PositionWidth);
+      
+      var responsePlaceholder2 = response?.Placeholders.Single(x => x.TemplateId == templatePersistence2.Id.ToString());
+      responsePlaceholder2?.LatestValue.Should().Be(datapoint.LatestValue);
+      responsePlaceholder2?.Comparison.Should().Be(datapoint.ComparisonIsAbsolute);
+      responsePlaceholder2?.Change.Should().Be(600);
+      responsePlaceholder2?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry4.Value) < 0.001);
+      responsePlaceholder2?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry5.Value) < 0.001);
+      responsePlaceholder2?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry3.Value) < 0.001);
+      responsePlaceholder2?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry2.Value) < 0.001);
+      responsePlaceholder2?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry1.Value) < 0.001);
+      responsePlaceholder2?.SizeHeight.Should().Be(templatePersistence2.SizeHeight);
+      responsePlaceholder2?.SizeWidth.Should().Be(templatePersistence2.SizeWidth);
+      responsePlaceholder2?.PositionHeight.Should().Be(templatePersistence2.PositionHeight);
+      responsePlaceholder2?.PositionWidth.Should().Be(templatePersistence2.PositionWidth);
+
+      response?.Placeholders.Count.Should().Be(2);
+   }
+   
 }

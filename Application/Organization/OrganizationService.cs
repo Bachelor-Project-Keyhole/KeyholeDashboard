@@ -17,7 +17,25 @@ public class OrganizationService : IOrganizationService
         _organizationRepository = organizationRepository;
         _organizationUserInvite = organizationUserInvite;
     }
-    
+
+    public async Task<OrganizationDetailedResponse> GetOrganizationById(string organizationId)
+    {
+        var organization = await _organizationRepository.GetOrganizationById(organizationId);
+        if (organization == null)
+            throw new OrganizationNotFoundException($"Organization with given id: {organizationId} was not found");
+
+        return new OrganizationDetailedResponse
+        {
+            OrganizationId = organization.Id,
+            OrganizationOwnerId = organization.OrganizationOwnerId,
+            OrganizationName = organization.OrganizationName,
+            ApiKey = organization.ApiKey,
+            CreationDate = organization.CreationDate.ToLocalTime(),
+            ModificationDate = organization.ModificationDate.ToLocalTime()
+        };
+
+    }
+
     public async Task<(string, string)> InviteUser(OrganizationUserInviteRequest request)
     {
         var organization = await _organizationRepository.GetOrganizationById(request.OrganizationId);
@@ -35,7 +53,6 @@ public class OrganizationService : IOrganizationService
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
             AccessLevels = request.AccessLevels,
-            InvitedByUserId = request.UserId
         };
         
         // Delete outdated Invitations

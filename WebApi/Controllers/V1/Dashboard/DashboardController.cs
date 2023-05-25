@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Application.DataPoint;
 using Application.JWT.Authorization;
 using AutoMapper;
 using Contracts.v1.Dashboard;
@@ -18,18 +19,38 @@ public class DashboardController : BaseApiController
     private readonly IMapper _mapper;
     private readonly IDashboardDomainService _dashboardDomainService;
     private readonly ITemplateDomainService _templateDomainService;
+    private readonly IDataPointApplicationService _dataPointApplicationService;
     
     
     public DashboardController(
         IMapper mapper,
         IDashboardDomainService dashboardDomainService,
-        ITemplateDomainService templateDomainService)
+        ITemplateDomainService templateDomainService,
+        IDataPointApplicationService dataPointApplicationService)
     {
         _mapper = mapper;
         _dashboardDomainService = dashboardDomainService;
         _templateDomainService = templateDomainService;
+        _dataPointApplicationService = dataPointApplicationService;
     }
 
+    /// <summary>
+    /// Load dashboard (Any access level)
+    /// </summary>
+    /// <param name="dashboardId"></param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Load dashboard and its elements", typeof(DashboardAndElementsResponse))]
+    [Route("load/{dashboardId}")]
+    public async Task<IActionResult> LoadDashboard(string dashboardId)
+    {
+        var dashboard = await _dashboardDomainService.GetDashboardById(dashboardId);
+        var templates = await _templateDomainService.GetAllByDashboardId(dashboardId);
+        var dataPoints = await _dataPointApplicationService.TemplateDataPointsAndEntries(dashboard, templates);
+        return Ok(dataPoints);
+    }
+    
     /// <summary>
     /// Get dashboard by id (Any access level)
     /// </summary>
