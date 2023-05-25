@@ -11,4 +11,5 @@ public interface IDataPointDomainService
     Task<double> CalculateChangeOverTime(DataPoint dataPoint, DateTime periodDateTime);
     Task AddHistoricDataPointEntries(DataPointEntry[] dataPointEntries, string apiKey);
     Task AddDataPointEntries(DataPointEntry[] dataPointEntries, string apiKey);
+    Task DeleteDataPoint(string dataPointId, bool forceDelete);
 }

@@ -342,7 +342,7 @@ public class DataPointControllerTests : IntegrationTest
         //Arrange
         await Authenticate();
         var organization = await SetupOrganization();
-        
+
         var key = "TestKey";
         var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Old Display Name")
         {
@@ -418,6 +418,165 @@ public class DataPointControllerTests : IntegrationTest
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var updatedDataPointEntity = GetAll<DataPointEntity>().Result.Single();
         updatedDataPointEntity.Should().BeEquivalentTo(dataPointEntity);
+    }
+
+    [Fact]
+    public async Task DeleteDataPoint_ReturnsNotFound_WhenInvalidDataPointId()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = SetupOrganization();
+
+        var key = "TestKey";
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        //Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri($"api/v1/DataPoint/{IdGenerator.GenerateId()}?forceDelete=false",
+                UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var dataPointEntities = await GetAll<DataPointEntity>();
+        dataPointEntities.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task DeleteDataPoint_ReturnsConflict_WhenLastKeyIsToBeDeleted_AndNoForceDelete()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = SetupOrganization();
+
+        var key = "TestKey";
+        var dataPointEntity = new DataPointEntity(organization.Id.ToString(), key, "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        await PopulateDatabase(new[] { dataPointEntity });
+
+        //Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri($"api/v1/DataPoint/{dataPointEntity.Id}?forceDelete=false",
+                UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        var dataPointEntities = await GetAll<DataPointEntity>();
+        dataPointEntities.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task DeleteDataPoint_DeletesDataPointAndEntries_WhenLastKeyToBeDeleted_AndForceDelete()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = SetupOrganization();
+
+        var key = "TestKey";
+        var dataPointEntityToDelete = new DataPointEntity(organization.Id.ToString(), key, "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        
+
+        var otherDataPointEntity1 = new DataPointEntity(organization.Id.ToString(), "qwe", "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+
+        await PopulateDatabase(new[] { dataPointEntityToDelete, otherDataPointEntity1 });
+        
+        var dataPointEntries = new DataPointEntryEntity[]
+        {
+            new(organization.Id.ToString(), dataPointEntityToDelete.DataPointKey, 10, DateTime.UtcNow),
+            new(organization.Id.ToString(), otherDataPointEntity1.DataPointKey, 20, DateTime.UtcNow.AddDays(-2)),
+            new(IdGenerator.GenerateId(), dataPointEntityToDelete.DataPointKey, 20, DateTime.UtcNow.AddDays(-3))
+        };
+        await PopulateDatabase(dataPointEntries);
+        
+        //Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri($"api/v1/DataPoint/{dataPointEntityToDelete.Id}?forceDelete=true",
+                UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var dataPointEntities = await GetAll<DataPointEntity>();
+        dataPointEntities.Should().HaveCount(1);
+        dataPointEntities.Should()
+            .NotContain(dataPointEntityToDelete)
+            .And.ContainEquivalentOf(otherDataPointEntity1);
+        var entries = await GetAll<DataPointEntryEntity>();
+        entries.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task DeleteDataPoint_DeletesDataPointAndNotEntries_WhenMoreDataPointsExist()
+    {
+        //Arrange
+        await Authenticate();
+        var organization = SetupOrganization();
+
+        var key = "TestKey";
+        var dataPointEntityToDelete = new DataPointEntity(organization.Id.ToString(), key, "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        
+        var otherDataPointEntity1 = new DataPointEntity(organization.Id.ToString(), key, "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+        
+        var otherDataPointEntity2 = new DataPointEntity(organization.Id.ToString(), "qwe", "Display Name")
+        {
+            Id = new ObjectId(IdGenerator.GenerateId()),
+            Formula = new Formula { Operation = MathOperation.Divide, Factor = 2.3 },
+            LatestValue = 10
+        };
+
+        await PopulateDatabase(new[] { dataPointEntityToDelete, otherDataPointEntity1, otherDataPointEntity2 });
+        
+        var dataPointEntries = new DataPointEntryEntity[]
+        {
+            new(organization.Id.ToString(), dataPointEntityToDelete.DataPointKey, 10, DateTime.UtcNow),
+            new(organization.Id.ToString(), otherDataPointEntity1.DataPointKey, 20, DateTime.UtcNow.AddDays(-2)),
+            new(IdGenerator.GenerateId(), otherDataPointEntity2.DataPointKey, 20, DateTime.UtcNow.AddDays(-3))
+        };
+        await PopulateDatabase(dataPointEntries);
+        
+        //Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri($"api/v1/DataPoint/{dataPointEntityToDelete.Id}?forceDelete=true",
+                UriKind.Relative));
+
+        //Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var dataPointEntities = await GetAll<DataPointEntity>();
+        dataPointEntities.Should().HaveCount(2);
+        dataPointEntities.Should()
+            .NotContain(dataPointEntityToDelete)
+            .And.ContainEquivalentOf(otherDataPointEntity1)
+            .And.ContainEquivalentOf(otherDataPointEntity2);
+        var entries = await GetAll<DataPointEntryEntity>();
+        entries.Should().HaveCount(3);
     }
 
     private static void AssertDataPoint(DataPointEntity result, DataPointDto expected)
