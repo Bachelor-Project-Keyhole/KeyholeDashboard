@@ -1,6 +1,6 @@
-﻿using Application.JWT.Model;
-using Application.Organization.Model;
-using Application.User.Model;
+﻿using Application.User.Model;
+using Contracts.v1.Authentication;
+using Contracts.v1.Organization;
 
 namespace Application.User.UserService;
 

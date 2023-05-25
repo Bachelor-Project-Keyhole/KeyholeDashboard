@@ -1,7 +1,7 @@
 using System.Net;
 using Application.JWT.Authorization;
 using AutoMapper;
-using Contracts;
+using Contracts.v1.DataPoint;
 using Domain.Datapoint;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
@@ -25,15 +25,15 @@ public class DataPointController : ControllerBase
     /// <summary>
     /// Create Data Point (Editor or admin access level needed)
     /// </summary>
-    /// <param name="createDataPointDto">Operation: None, Add, Subtract, Multiply, Divide </param>
+    /// <param name="createDataPointRequest">Operation: None, Add, Subtract, Multiply, Divide </param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
     [HttpPost]
     [SwaggerResponse((int)HttpStatusCode.OK, "Create Data Point")]
     [Route("")]
-    public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointDto createDataPointDto)
+    public async Task<ActionResult<DataPointDto>> CreateDataPoint([FromBody] CreateDataPointRequest createDataPointRequest)
     {
-        var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(createDataPointDto);
+        var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(createDataPointRequest);
         var result = await _dataPointDomainService.CreateDataPoint(dataPoint);
         return Ok(result);
     }
@@ -62,10 +62,10 @@ public class DataPointController : ControllerBase
     [HttpGet]
     [SwaggerResponse((int)HttpStatusCode.OK,"")]
     [Route("{organizationId}/displayNames")]
-    public async Task<ActionResult<DataPointDisplayNameDto[]>> GetDataPointDisplayNames(string organizationId)
+    public async Task<ActionResult<DataPointDisplayNameResponse[]>> GetDataPointDisplayNames(string organizationId)
     {
         var dataPoints = await _dataPointDomainService.GetAllDataPoints(organizationId);
-        return _mapper.Map<DataPointDisplayNameDto[]>(dataPoints);
+        return _mapper.Map<DataPointDisplayNameResponse[]>(dataPoints);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using Application.Organization.Model;
+﻿using Contracts.v1.Organization;
 using Domain.Organization.OrganizationUserInvite;
 
 namespace Application.Organization;

@@ -4,9 +4,9 @@ using System.Text;
 using Application.Authentication.AuthenticationService;
 using Application.Email.EmailService;
 using Application.JWT.Helper;
-using Application.JWT.Model;
 using Application.JWT.Service;
 using Application.User.UserService;
+using Contracts.v1.Authentication;
 using Domain;
 using Domain.Datapoint;
 using Domain.RepositoryInterfaces;
@@ -92,6 +92,7 @@ public class IntegrationTest : IDisposable
 
         return organization;
     }
+    
 
     protected async Task PopulateDatabase<TDocument>(TDocument[] documents) where TDocument : IDocument
     {

@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using Application.Authentication.AuthenticationService;
 using Application.JWT.Authorization;
-using Application.JWT.Model;
 using Application.User.UserService;
 using AutoMapper;
+using Contracts.v1.Authentication;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;

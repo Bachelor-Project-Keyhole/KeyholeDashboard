@@ -2,6 +2,7 @@
 using Application.JWT.Model;
 using Application.JWT.Service;
 using AutoMapper;
+using Contracts.v1.Authentication;
 using Domain;
 using Domain.Exceptions;
 using Domain.RepositoryInterfaces;

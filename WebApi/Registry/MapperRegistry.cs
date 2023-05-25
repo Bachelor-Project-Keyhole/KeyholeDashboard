@@ -1,13 +1,19 @@
-﻿using Application.Organization.Model;
-using AutoMapper;
-using Contracts;
+﻿using AutoMapper;
+using Contracts.v1.Dashboard;
+using Contracts.v1.DataPoint;
+using Contracts.v1.Organization;
+using Contracts.v1.Template;
+using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.TwoFactor;
+using Domain.Template;
 using Domain.User;
 using MongoDB.Bson;
+using Repository.Dashboard;
 using Repository.Datapoint;
 using Repository.TwoFactor;
+using Repository.Template;
 using Repository.User.UserPersistence;
 using WebApi.Controllers.Public.v1;
 
@@ -45,14 +51,31 @@ static class MapperRegistry
 
             #endregion
 
+            #region Dashboard
+
+            cfg.CreateMap<Dashboard, DashboardPersistenceModel>().ReverseMap();
+            cfg.CreateMap<Dashboard, DashboardResponse>();
+
+            #endregion
+
+            #region Template
+
+            cfg.CreateMap<CreateTemplateRequest, Template>().ReverseMap();
+            cfg.CreateMap<UpdateTemplateRequest, Template>().ReverseMap();
+            cfg.CreateMap<Template, TemplatePersistenceModel>().ReverseMap();
+            cfg.CreateMap<Template, TemplateResponse>().ReverseMap();
+
+
+            #endregion
+
             cfg.CreateMap<DataPointDto, DataPoint>().ReverseMap();
-            cfg.CreateMap<DataPointDisplayNameDto, DataPoint>().ReverseMap();
-            cfg.CreateMap<CreateDataPointDto, DataPoint>().ReverseMap();
+            cfg.CreateMap<DataPointDisplayNameResponse, DataPoint>().ReverseMap();
+            cfg.CreateMap<CreateDataPointRequest, DataPoint>().ReverseMap();
             cfg.CreateMap<DataPointEntity, DataPoint>().ReverseMap();
-            cfg.CreateMap<DataPointEntry, PushDataPointEntryDto>().ReverseMap();
-            cfg.CreateMap<DataPointEntry, HistoricDataPointEntryDto>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, PushDataPointEntryRequest>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, HistoricDataPointEntryRequest>().ReverseMap();
             cfg.CreateMap<DataPointEntry, DataPointEntryEntity>().ReverseMap();
-            cfg.CreateMap<DataPointEntry, DataPointEntryDto>().ReverseMap();
+            cfg.CreateMap<DataPointEntry, DataPointEntryResponse>().ReverseMap();
             cfg.CreateMap<Formula, FormulaDto>().ReverseMap();
             cfg.CreateMap<MathOperation, string>().ConvertUsing(e => e.ToString());
             cfg.CreateMap<string, MathOperation>().ConvertUsing(s => Enum.Parse<MathOperation>(s));

@@ -76,7 +76,15 @@ public class ErrorHandlerMiddleware
                 case DataPointNotFoundException:
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
-
+                case DashboardNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+                case TemplateNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+                case InvalidTemplateMetricException:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    break;
                 #endregion
                 
                 case InvalidApiKeyException:

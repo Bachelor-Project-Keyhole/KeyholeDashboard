@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Text;
 using Application.JWT.Helper;
-using Application.Organization.Model;
 using Application.User.Model;
+using Contracts.v1.Organization;
 using Domain;
 using Domain.User;
 using FluentAssertions;

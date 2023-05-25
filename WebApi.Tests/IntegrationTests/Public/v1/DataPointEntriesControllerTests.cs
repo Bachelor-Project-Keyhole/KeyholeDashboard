@@ -18,7 +18,7 @@ public class DataPointEntriesControllerTests : IntegrationTest
         var organization = await SetupOrganization();
 
         var dataPointEntryDto =
-            new PushDataPointEntryDto(IdGenerator.GenerateId(), 500);
+            new PushDataPointEntryRequest(IdGenerator.GenerateId(), 500);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -60,7 +60,7 @@ public class DataPointEntriesControllerTests : IntegrationTest
         await PopulateDatabase(new[] { dataPointEntity });
 
         var dataPointEntryDto =
-            new PushDataPointEntryDto(key, 500);
+            new PushDataPointEntryRequest(key, 500);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -90,7 +90,7 @@ public class DataPointEntriesControllerTests : IntegrationTest
     {
         //Arrange
         var dataPointEntryDto =
-            new PushDataPointEntryDto("key", 500);
+            new PushDataPointEntryRequest("key", 500);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -114,7 +114,7 @@ public class DataPointEntriesControllerTests : IntegrationTest
         var organization = await SetupOrganization();
 
         var dataPointEntryDto =
-            new PushDataPointEntryDto("dataPointKey", 500);
+            new PushDataPointEntryRequest("dataPointKey", 500);
 
         var stringContent =
             new StringContent(JsonConvert.SerializeObject(dataPointEntryDto), Encoding.UTF8, "application/json");
@@ -158,8 +158,8 @@ public class DataPointEntriesControllerTests : IntegrationTest
 
         var dataPointEntryDtos = new[]
         {
-            new PushDataPointEntryDto(dataPoint.DataPointKey, 42),
-            new PushDataPointEntryDto(IdGenerator.GenerateId(), 23)
+            new PushDataPointEntryRequest(dataPoint.DataPointKey, 42),
+            new PushDataPointEntryRequest(IdGenerator.GenerateId(), 23)
         };
 
         var stringContent =
@@ -209,10 +209,10 @@ public class DataPointEntriesControllerTests : IntegrationTest
 
         var dataPointEntryDtos = new[]
         {
-            new HistoricDataPointEntryDto(dataPoint.DataPointKey, 42, DateTime.UtcNow.AddDays(-7)),
-            new HistoricDataPointEntryDto(dataPoint.DataPointKey, 30, DateTime.UtcNow.AddDays(-8)),
-            new HistoricDataPointEntryDto(dataPoint.DataPointKey, 17, DateTime.UtcNow.AddDays(-9)),
-            new HistoricDataPointEntryDto(IdGenerator.GenerateId(), 23, DateTime.UtcNow.AddDays(-10))
+            new HistoricDataPointEntryRequest(dataPoint.DataPointKey, 42, DateTime.UtcNow.AddDays(-7)),
+            new HistoricDataPointEntryRequest(dataPoint.DataPointKey, 30, DateTime.UtcNow.AddDays(-8)),
+            new HistoricDataPointEntryRequest(dataPoint.DataPointKey, 17, DateTime.UtcNow.AddDays(-9)),
+            new HistoricDataPointEntryRequest(IdGenerator.GenerateId(), 23, DateTime.UtcNow.AddDays(-10))
         };
 
         var stringContent =

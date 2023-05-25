@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using Application.JWT.Helper;
-using Application.JWT.Model;
+using Contracts.v1.Authentication;
 using Domain;
 using Domain.User;
 using FluentAssertions;

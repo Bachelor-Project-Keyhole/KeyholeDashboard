@@ -23,15 +23,15 @@ public class DataPointEntriesController : ControllerBase
     /// Post Data Point entry. If data point key is unique, new data point will be created with this key (needed access Editor or Admin)
     /// </summary>
     /// <param name="apiKey"></param>
-    /// <param name="pushDataPointEntryDto"></param>
+    /// <param name="pushDataPointEntryRequest"></param>
     /// <returns></returns>
     [HttpPost]
     [Route("{apiKey}/single")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Post Data Point Entry")]
     public async Task<IActionResult> PostDataPointEntry(string apiKey,
-        [FromBody] PushDataPointEntryDto pushDataPointEntryDto)
+        [FromBody] PushDataPointEntryRequest pushDataPointEntryRequest)
     {
-        await _dataPointDomainService.AddDataPointEntry(pushDataPointEntryDto.DataPointKey, pushDataPointEntryDto.Value,
+        await _dataPointDomainService.AddDataPointEntry(pushDataPointEntryRequest.DataPointKey, pushDataPointEntryRequest.Value,
             apiKey);
         return Ok();
     }
@@ -40,7 +40,7 @@ public class DataPointEntriesController : ControllerBase
     [Route("{apiKey}")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Post Data Point Entries")]
     public async Task<IActionResult> PostDataPointEntries(string apiKey,
-        [FromBody] PushDataPointEntryDto[] pushDataPointEntryDtos)
+        [FromBody] PushDataPointEntryRequest[] pushDataPointEntryDtos)
     {
         var dataPointEntries = _mapper.Map<DataPointEntry[]>(pushDataPointEntryDtos);
         await _dataPointDomainService.AddDataPointEntries(dataPointEntries, apiKey);
@@ -51,7 +51,7 @@ public class DataPointEntriesController : ControllerBase
     [Route("{apiKey}/historic")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Post Historic Data Point Entries")]
     public async Task<IActionResult> PostHistoricDataPointEntries(string apiKey,
-        [FromBody] HistoricDataPointEntryDto[] historicDataPointEntryDtos)
+        [FromBody] HistoricDataPointEntryRequest[] historicDataPointEntryDtos)
     {
         var dataPointEntry = _mapper.Map<DataPointEntry[]>(historicDataPointEntryDtos);
         await _dataPointDomainService.AddHistoricDataPointEntries(dataPointEntry, apiKey);
