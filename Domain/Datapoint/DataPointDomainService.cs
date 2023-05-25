@@ -71,13 +71,15 @@ public class DataPointDomainService : IDataPointDomainService
             dataPointEntry.Id = IdGenerator.GenerateId();
             dataPointEntry.OrganizationId = organization.Id;
             var dataPoints =
-                await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey, dataPointEntry.OrganizationId);
+                await _dataPointRepository.FindDataPointsByKey(dataPointEntry.DataPointKey,
+                    dataPointEntry.OrganizationId);
 
             if (dataPoints.Length == 0)
             {
                 await CreateDataPoint(organization.Id, dataPointEntry.DataPointKey, dataPointEntry.Value);
             }
         }
+
         await _dataPointEntryRepository.AddDataPointEntries(dataPointEntries);
     }
 
@@ -109,6 +111,32 @@ public class DataPointDomainService : IDataPointDomainService
         }
 
         await _dataPointEntryRepository.AddDataPointEntries(result.ToArray());
+    }
+
+    public async Task DeleteDataPoint(string dataPointId, bool forceDelete)
+    {
+        var dataPoint = await _dataPointRepository.GetDataPointById(dataPointId);
+        if (dataPoint is null)
+        {
+            throw new DataPointNotFoundException(dataPointId);
+        }
+
+        var dataPointsWithMatchingKey =
+            await _dataPointRepository.FindDataPointsByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
+
+        if (dataPointsWithMatchingKey.Length > 1)
+        {
+            await _dataPointRepository.DeleteDataPointByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
+            return;
+        }
+        
+        if (!forceDelete && dataPointsWithMatchingKey.Length == 1)
+        {
+            throw new DeleteDataPointWarningException(dataPoint.DataPointKey);
+        }
+        
+        await _dataPointEntryRepository.DeleteAllEntriesByDataPointKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
+        await _dataPointRepository.DeleteDataPointByKey(dataPoint.DataPointKey, dataPoint.OrganizationId);
     }
 
     private DataPointEntry CreateDataPointEntry(string dataPointKey, double value, string organizationId)
@@ -144,7 +172,7 @@ public class DataPointDomainService : IDataPointDomainService
             }
         }
     }
-    
+
     public async Task UpdateDataPoint(DataPoint dataPoint)
     {
         await ValidateOrganization(dataPoint.OrganizationId);
@@ -153,7 +181,7 @@ public class DataPointDomainService : IDataPointDomainService
         await UpdateDataPointLatestValue(dataPoint);
         await _dataPointRepository.UpdateDataPoint(dataPoint);
     }
-    
+
     private async Task CreateDataPoint(string organizationId, string key, double dataPointLatestValue)
     {
         var dataPoint = new DataPoint(organizationId, key);

@@ -9,4 +9,5 @@ public interface IDataPointEntryRepository
     Task<IEnumerable<DataPointEntry>> GetDataPointEntries(string organizationId, string dataPointKey,
         DateTime periodDateTime);
     Task<DataPointEntry?> GetDataPointEntryFromPreviousPeriod(string organizationId, string dataPointKey, DateTime endOfPeriod);
+    Task DeleteAllEntriesByDataPointKey(string dataPointKey, string organizationId);
 }
