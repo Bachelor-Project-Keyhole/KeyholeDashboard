@@ -2,11 +2,13 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using Application.Email.Helper;
 using Application.JWT.Model;
+using Domain.Organization.OrganizationUserInvite;
 using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
 using Repository;
+using WebApi.Controllers.V1.Organization;
 using WebApi.Registry;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +32,12 @@ var configuration = new ConfigurationBuilder()
 
 // Configure database options
 builder.Services.Configure<DatabaseOptions>(configuration.GetSection("DatabaseOptions"));
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.Configure<InvitationBaseRoute>(builder.Configuration.GetSection("BaseRouteForDev"));
+else
+    builder.Services.Configure<InvitationBaseRoute>(builder.Configuration.GetSection("BaseRouteForProd"));
+    
 
 #endregion
 

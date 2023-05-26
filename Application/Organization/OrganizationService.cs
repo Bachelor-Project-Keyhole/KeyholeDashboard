@@ -2,6 +2,8 @@
 using Domain.Exceptions;
 using Domain.Organization.OrganizationUserInvite;
 using Domain.RepositoryInterfaces;
+using Domain.User;
+using Microsoft.Extensions.Options;
 
 namespace Application.Organization;
 
@@ -9,13 +11,16 @@ public class OrganizationService : IOrganizationService
 {
     private readonly IOrganizationRepository _organizationRepository;
     private readonly IOrganizationUserInviteRepository _organizationUserInvite;
+    private readonly InvitationBaseRoute _invitationBaseRoute;
 
     public OrganizationService(
         IOrganizationRepository organizationRepository,
-        IOrganizationUserInviteRepository organizationUserInvite)
+        IOrganizationUserInviteRepository organizationUserInvite,
+        IOptions<InvitationBaseRoute> invitationBaseRoute)
     {
         _organizationRepository = organizationRepository;
         _organizationUserInvite = organizationUserInvite;
+        _invitationBaseRoute = invitationBaseRoute.Value;
     }
 
     public async Task<OrganizationDetailedResponse> GetOrganizationById(string organizationId)
@@ -41,6 +46,19 @@ public class OrganizationService : IOrganizationService
         var organization = await _organizationRepository.GetOrganizationById(request.OrganizationId);
         if (organization == null)
             throw new OrganizationNotFoundException($"Organization with given id: {request.OrganizationId} was not found");
+        
+        var toEnum = Enum.TryParse(request.AccessLevel, out UserAccessLevel accessLevel);
+        if(toEnum == false)
+            throw new AccessLevelForbiddenException($"This access level does not exist: {request.AccessLevel}");
+
+
+        var accessLevelsToInsert = accessLevel switch
+        {
+            UserAccessLevel.Admin => new List<UserAccessLevel> {UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer},
+            UserAccessLevel.Editor => new List<UserAccessLevel> {UserAccessLevel.Editor, UserAccessLevel.Viewer},
+            UserAccessLevel.Viewer => new List<UserAccessLevel> {UserAccessLevel.Viewer},
+            _ => throw new AccessLevelForbiddenException("Access level does not exist")
+        };
 
         var alphaNumericToken = GenerateAlphaNumeric();
 
@@ -52,7 +70,7 @@ public class OrganizationService : IOrganizationService
             hasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
-            AccessLevels = request.AccessLevels,
+            AccessLevels = accessLevelsToInsert
         };
         
         // Delete outdated Invitations
@@ -64,10 +82,7 @@ public class OrganizationService : IOrganizationService
 
         await _organizationUserInvite.InsertInviteUser(insert);
         
-        
-        
-
-        var link = $"https://keyholedashboard.azurewebsites.net/organization/register/{alphaNumericToken}";
+        var link = $"{_invitationBaseRoute.Link}/{alphaNumericToken}";
         return (link, organization.OrganizationName);
     }
 
