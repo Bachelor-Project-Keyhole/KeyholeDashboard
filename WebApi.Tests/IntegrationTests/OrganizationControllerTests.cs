@@ -164,8 +164,7 @@ public class OrganizationControllerTests : IntegrationTest
         var request = new OrganizationUserInviteRequest
         {
             OrganizationId = organizationPersistence.Id.ToString(),
-            AccessLevels = new List<UserAccessLevel>
-                { UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin },
+            AccessLevel = "Admin",
             ReceiverEmailAddress = "dziugis10@gmail.com",
         };
 
@@ -179,6 +178,56 @@ public class OrganizationControllerTests : IntegrationTest
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task InviteUser_EnumParseException() 
+    {
+        // Arrange
+        await Authenticate();
+        var userPersistence = new UserPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Email = "test1@test1.com",
+            OwnedOrganizationId = "",
+            MemberOfOrganizationId = "",
+            FullName = "Yo lama1",
+            PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+            AccessLevels = new List<UserAccessLevel>
+                { UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin },
+            RefreshTokens = new List<PersistenceRefreshToken>(),
+            ModifiedDate = DateTime.UtcNow,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+
+        var organizationPersistence = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationOwnerId = "",
+            OrganizationName = "OrgNam1e",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+
+        await PopulateDatabase(new[] { organizationPersistence });
+        await PopulateDatabase(new[] { userPersistence });
+
+        var request = new OrganizationUserInviteRequest
+        {
+            OrganizationId = organizationPersistence.Id.ToString(),
+            AccessLevel = "a",
+            ReceiverEmailAddress = "dziugis10@gmail.com",
+        };
+
+        var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+        // Act
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri("/api/v1/organization/invite/email", UriKind.Relative), stringContent);
+
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+    
     [Fact]
     public async Task CompleteRegistrationByInvitation_Successful() 
     {
@@ -629,7 +678,7 @@ public class OrganizationControllerTests : IntegrationTest
         var request = new OrganizationUserInviteRequest
         {
             OrganizationId = organizationPersistence.Id.ToString(),
-            AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer, UserAccessLevel.Editor },
+            AccessLevel = "Viewer",
             ReceiverEmailAddress = "dziugis10@gmail.com",
         };
 
