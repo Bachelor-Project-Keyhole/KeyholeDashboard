@@ -132,11 +132,11 @@ public class OrganizationController : BaseApiController
     }
     
     /// <summary>
-    /// Change access level to user
+    /// Change access level to user 
     /// </summary>
     /// <param name="request">
     /// AdminId -> admin that wants to change access to user
-    /// SetAccessLevel -> to level the user access should be set
+    /// SetAccessLevel -> Enum -> "Viewer", "Editor", "Admin"
     /// </param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Admin)]

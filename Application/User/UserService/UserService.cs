@@ -192,11 +192,6 @@ public class UserService : IUserService
 
     public async Task<UserChangeAccessResponse> SetAccessLevel(ChangeUserAccessRequest request)
     {
-        // We could could try to get admin user by refresh token that could be in the cookies, but if cookies are disable that might be a problem
-        var adminUser = await _userRepository.GetUserById(request.AdminUserId);
-        if (adminUser == null)
-            throw new UserNotFoundException("Admin user was not found");
-            
         
         var user = await _userRepository.GetUserById(request.UserId);
         if (user == null)
@@ -205,13 +200,12 @@ public class UserService : IUserService
         if (!string.IsNullOrEmpty(user.OwnedOrganizationId))
             throw new AccessLevelForbiddenException("Owner cannot be removed.");
 
-        if (adminUser.MemberOfOrganizationId != user.MemberOfOrganizationId)
-            throw new UserInvalidActionException("Admin and user are not in the same organization");
-            
+        var toEnum = Enum.TryParse(request.SetAccessLevel, out UserAccessLevel accessLevel);
+        if(toEnum == false)
+            throw new AccessLevelForbiddenException($"This access level does not exist: {request.SetAccessLevel}");
 
-   
-        
-        user.AccessLevels = request.SetAccessLevel switch
+
+        user.AccessLevels = accessLevel switch
         {
             UserAccessLevel.Admin => new List<UserAccessLevel> {UserAccessLevel.Admin, UserAccessLevel.Editor, UserAccessLevel.Viewer},
             UserAccessLevel.Editor => new List<UserAccessLevel> {UserAccessLevel.Editor, UserAccessLevel.Viewer},

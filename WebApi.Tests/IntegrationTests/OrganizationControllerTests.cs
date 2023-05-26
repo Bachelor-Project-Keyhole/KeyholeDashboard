@@ -638,8 +638,7 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new ChangeUserAccessRequest
          {
              UserId = userPersistence3.Id.ToString(),
-             AdminUserId = userPersistence2.Id.ToString(),
-             SetAccessLevel = UserAccessLevel.Editor
+             SetAccessLevel = "Editor"
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -655,8 +654,11 @@ public class OrganizationControllerTests : IntegrationTest
          demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
      }
      
-     [Fact]
-     public async Task ChangeAccessLevelOfUser_AdminUserNotFound() // Change auth attribute to pass
+    [Theory]
+    [InlineData("Viewer")]
+    [InlineData("Editor")]
+    [InlineData("Admin")]
+    public async Task ChangeAccessLevelOfUser_AccessLevels(params string[] accessLevels) // Change auth attribute to pass
      {
          // Arrange
          var orgId = IdGenerator.GenerateId();
@@ -696,8 +698,7 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new ChangeUserAccessRequest
          {
              UserId = userPersistence3.Id.ToString(),
-             AdminUserId = IdGenerator.GenerateId(),
-             SetAccessLevel = UserAccessLevel.Editor
+             SetAccessLevel = accessLevels.Single()
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -706,13 +707,32 @@ public class OrganizationControllerTests : IntegrationTest
          var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
          
          // Assert
-         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
          
          var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
          var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
-         demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Admin);
+         switch (accessLevels.Single())
+         {
+             case "Viewer":
+                 demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Editor);
+                 demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Viewer);
+                 break;
+             case "Editor":
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Viewer);
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Editor);
+                 demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
+                 break;
+             case "Admin":
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Viewer);
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Editor);
+                 demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Admin);
+                 break;
+         }
+
+
+         
      }
-     
      [Fact]
      public async Task ChangeAccessLevelOfUser_UserNotFound() // Change auth attribute to pass
      {
@@ -754,8 +774,7 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new ChangeUserAccessRequest
          {
              UserId = IdGenerator.GenerateId(),
-             AdminUserId = userPersistence2.Id.ToString(),
-             SetAccessLevel = UserAccessLevel.Editor
+             SetAccessLevel = "Editor"
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -769,19 +788,20 @@ public class OrganizationControllerTests : IntegrationTest
          var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
          var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
      }
+
+     
      
      [Fact]
-     public async Task ChangeAccessLevelOfUser_CannotChangeOwnerForbiddenException() // Change auth attribute to pass
+     public async Task ChangeAccessLevelOfUser_AccessLevelParseException() // Change auth attribute to pass
      {
          // Arrange
-         var orgId = IdGenerator.GenerateId();
          await Authenticate();
          var userPersistence2 = new UserPersistenceModel
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              Email = "test1@test.com",
              OwnedOrganizationId = "",
-             MemberOfOrganizationId = orgId,
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
              FullName = "Yo lama1a",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
              AccessLevels = new List<UserAccessLevel>
@@ -794,8 +814,8 @@ public class OrganizationControllerTests : IntegrationTest
          {
              Id = ObjectId.Parse(IdGenerator.GenerateId()),
              Email = "test2@test.com",
-             OwnedOrganizationId = "Admin",
-             MemberOfOrganizationId = orgId,
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
              FullName = "Yo lama2",
              PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
              AccessLevels = new List<UserAccessLevel>
@@ -811,8 +831,7 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new ChangeUserAccessRequest
          {
              UserId = userPersistence3.Id.ToString(),
-             AdminUserId = userPersistence2.Id.ToString(),
-             SetAccessLevel = UserAccessLevel.Editor
+             SetAccessLevel = "E"
          };
          
          var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -822,67 +841,8 @@ public class OrganizationControllerTests : IntegrationTest
          
          // Assert
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-         
-         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
-         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
-         demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
      }
      
-      [Fact]
-     public async Task ChangeAccessLevelOfUser_DifferentOrganizationIdException() // Change auth attribute to pass
-     {
-         // Arrange
-         await Authenticate();
-         var userPersistence2 = new UserPersistenceModel
-         {
-             Id = ObjectId.Parse(IdGenerator.GenerateId()),
-             Email = "test1@test.com",
-             OwnedOrganizationId = "",
-             MemberOfOrganizationId = IdGenerator.GenerateId(),
-             FullName = "Yo lama1a",
-             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
-             AccessLevels = new List<UserAccessLevel>
-                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
-             RefreshTokens = new List<PersistenceRefreshToken>(),
-             ModifiedDate = DateTime.UtcNow,
-             RegistrationDate = DateTime.UtcNow
-         };
-         var userPersistence3 = new UserPersistenceModel
-         {
-             Id = ObjectId.Parse(IdGenerator.GenerateId()),
-             Email = "test2@test.com",
-             OwnedOrganizationId = "",
-             MemberOfOrganizationId = IdGenerator.GenerateId(),
-             FullName = "Yo lama2",
-             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
-             AccessLevels = new List<UserAccessLevel>
-                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
-             RefreshTokens = new List<PersistenceRefreshToken>(),
-             ModifiedDate = DateTime.UtcNow,
-             RegistrationDate = DateTime.UtcNow
-         };
-         
-         await PopulateDatabase(new [] {userPersistence2});
-         await PopulateDatabase(new[] {userPersistence3});
-
-         var request = new ChangeUserAccessRequest
-         {
-             UserId = userPersistence3.Id.ToString(),
-             AdminUserId = userPersistence2.Id.ToString(),
-             SetAccessLevel = UserAccessLevel.Editor
-         };
-         
-         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-
-         // Act
-         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/access", UriKind.Relative), stringContent);
-         
-         // Assert
-         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-         
-         var response = JsonConvert.DeserializeObject<UserChangeAccessResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
-         var demotedUser = (await GetAll<UserPersistenceModel>()).FirstOrDefault(x => x.Id.ToString() == response?.UserId);
-         demotedUser?.AccessLevels.Should().NotContain(UserAccessLevel.Admin);
-     }
+     
      
 }
