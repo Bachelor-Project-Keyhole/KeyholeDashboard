@@ -1,5 +1,6 @@
 ﻿using Domain.Exceptions;
 using Domain.RepositoryInterfaces;
+using Domain.Template;
 
 namespace Domain.Dashboard;
 
@@ -7,13 +8,16 @@ public class DashboardDomainService : IDashboardDomainService
 {
     private readonly IOrganizationRepository _organizationRepository;
     private readonly IDashboardRepository _dashboardRepository;
+    private readonly ITemplateDomainService _templateDomainService;
 
     public DashboardDomainService(
         IOrganizationRepository organizationRepository,
-        IDashboardRepository dashboardRepository)
+        IDashboardRepository dashboardRepository,
+        ITemplateDomainService templateDomainService)
     {
         _organizationRepository = organizationRepository;
         _dashboardRepository = dashboardRepository;
+        _templateDomainService = templateDomainService;
     }
 
     public async Task<Dashboard> GetDashboardById(string id)
@@ -70,6 +74,8 @@ public class DashboardDomainService : IDashboardDomainService
         var dashboard = await _dashboardRepository.GetDashboardById(id);
         if (dashboard == null)
             throw new DashboardNotFoundException($"Dashboard with id: {id} was not found");
+        
+        await _templateDomainService.RemoveAllTemplatesWithDashboardId(id);
         await _dashboardRepository.Delete(id);
     }
 }

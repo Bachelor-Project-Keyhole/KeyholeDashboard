@@ -11,5 +11,4 @@ public class OrganizationUserInvitePersistence : Document
     public bool hasAccepted{ get; set; }
     public DateTime TokenExpirationTime { get; set; }
     public DateTime RemoveFromDbDate { get; set; }
-    public string InvitedByUserId { get; set; }
 }
