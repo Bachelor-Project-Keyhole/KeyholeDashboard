@@ -179,7 +179,6 @@ public class OrganizationController : BaseApiController
         return Ok($"user by id: {userId} removed");
     }
     
-    
     /// <summary>
     /// Forgot password function
     /// </summary>
