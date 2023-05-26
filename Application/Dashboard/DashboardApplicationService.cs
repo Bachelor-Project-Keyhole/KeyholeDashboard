@@ -1,24 +1,32 @@
 ﻿using Contracts.v1.Dashboard;
+using Domain.Dashboard;
 using Domain.Datapoint;
 using Domain.Template;
 
-namespace Application.DataPoint;
+namespace Application.Dashboard;
 
-public class DataPointApplicationService : IDataPointApplicationService
+public class DashboardApplicationService : IDashboardApplicationService
 {
     private readonly IDataPointDomainService _dataPointDomainService;
+    private readonly IDashboardDomainService _dashboardDomainService;
     private readonly ITemplateDomainService _templateDomainService;
 
-    public DataPointApplicationService(
+    public DashboardApplicationService(
         IDataPointDomainService dataPointDomainService,
-        ITemplateDomainService templateDomainService)
+        ITemplateDomainService templateDomainService,
+        IDashboardDomainService dashboardDomainService)
     {
         _dataPointDomainService = dataPointDomainService;
         _templateDomainService = templateDomainService;
+        _dashboardDomainService = dashboardDomainService;
     }
     
-    public async Task<DashboardAndElementsResponse> TemplateDataPointsAndEntries(Domain.Dashboard.Dashboard dashboard, List<Template> templates)
+    
+    public async Task<DashboardAndElementsResponse> LoadDashboard(string dashboardId)
     {
+        var dashboard = await _dashboardDomainService.GetDashboardById(dashboardId);
+        var templates = await _templateDomainService.GetAllByDashboardId(dashboardId);
+        
         var response = new DashboardAndElementsResponse
         {
             DashboardId = dashboard.Id,
@@ -35,7 +43,7 @@ public class DataPointApplicationService : IDataPointApplicationService
                 dataPointLatestValue.dataPointKey, 
                 Domain.TimeSpanConverter.CalculatePeriodBoundary(template.TimePeriod, template.TimeUnit));
             
-            var placeholderData = new Placeholders()
+            var placeholderData = new Placeholders
             {
                 PositionHeight = template.PositionHeight,
                 PositionWidth = template.PositionWidth,

@@ -1,10 +1,9 @@
 ﻿using System.Net;
-using Application.DataPoint;
+using Application.Dashboard;
 using Application.JWT.Authorization;
 using AutoMapper;
 using Contracts.v1.Dashboard;
 using Domain.Dashboard;
-using Domain.Template;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -17,21 +16,18 @@ namespace WebApi.Controllers.V1.Dashboard;
 public class DashboardController : BaseApiController
 {
     private readonly IMapper _mapper;
+    private readonly IDashboardApplicationService _dashboardApplicationService;
     private readonly IDashboardDomainService _dashboardDomainService;
-    private readonly ITemplateDomainService _templateDomainService;
-    private readonly IDataPointApplicationService _dataPointApplicationService;
     
     
     public DashboardController(
         IMapper mapper,
         IDashboardDomainService dashboardDomainService,
-        ITemplateDomainService templateDomainService,
-        IDataPointApplicationService dataPointApplicationService)
+        IDashboardApplicationService dashboardApplicationService)
     {
         _mapper = mapper;
         _dashboardDomainService = dashboardDomainService;
-        _templateDomainService = templateDomainService;
-        _dataPointApplicationService = dataPointApplicationService;
+        _dashboardApplicationService = dashboardApplicationService;
     }
 
     /// <summary>
@@ -45,9 +41,7 @@ public class DashboardController : BaseApiController
     [Route("load/{dashboardId}")]
     public async Task<IActionResult> LoadDashboard(string dashboardId)
     {
-        var dashboard = await _dashboardDomainService.GetDashboardById(dashboardId);
-        var templates = await _templateDomainService.GetAllByDashboardId(dashboardId);
-        var dataPoints = await _dataPointApplicationService.TemplateDataPointsAndEntries(dashboard, templates);
+        var dataPoints = await _dashboardApplicationService.LoadDashboard(dashboardId);
         return Ok(dataPoints);
     }
     
@@ -123,7 +117,6 @@ public class DashboardController : BaseApiController
     [Route("{dashboardId}")]
     public async Task<IActionResult> DeleteDashboard(string dashboardId)
     {
-        await _templateDomainService.RemoveAllTemplatesWithDashboardId(dashboardId);
         await _dashboardDomainService.RemoveDashboard(dashboardId);
         return Ok();
     }

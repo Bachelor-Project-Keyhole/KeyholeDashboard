@@ -1,5 +1,5 @@
 ﻿using Application.Authentication.AuthenticationService;
-using Application.DataPoint;
+using Application.Dashboard;
 using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.Organization;
@@ -33,7 +33,7 @@ static class ServiceRegistry
         collection.AddTransient<IOrganizationService, OrganizationService>();
         collection.AddTransient<IDashboardDomainService, DashboardDomainService>();
         collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
-        collection.AddTransient<IDataPointApplicationService, DataPointApplicationService>();
+        collection.AddTransient<IDashboardApplicationService, DashboardApplicationService>();
         
 
         #endregion
