@@ -20,10 +20,10 @@ public class DataPointEntriesController : ControllerBase
     }
 
     /// <summary>
-    /// Post Data Point entry. If data point key is unique, new data point will be created with this key (needed access Editor or Admin)
+    /// Post Data Point entry. If data point key is unique, new data point will be created with this key
     /// </summary>
-    /// <param name="apiKey"></param>
-    /// <param name="pushDataPointEntryRequest"></param>
+    /// <param name="apiKey">Api key assigned to the organization</param>
+    /// <param name="pushDataPointEntryRequest">Key-value pair representing a single data point entry</param>
     /// <returns></returns>
     [HttpPost]
     [Route("{apiKey}/single")]
@@ -31,14 +31,26 @@ public class DataPointEntriesController : ControllerBase
     public async Task<IActionResult> PostDataPointEntry(string apiKey,
         [FromBody] PushDataPointEntryRequest pushDataPointEntryRequest)
     {
-        await _dataPointDomainService.AddDataPointEntry(pushDataPointEntryRequest.DataPointKey, pushDataPointEntryRequest.Value,
+        await _dataPointDomainService.AddDataPointEntry(
+            pushDataPointEntryRequest.DataPointKey,
+            pushDataPointEntryRequest.Value,
             apiKey);
         return Ok();
     }
 
+    /// <summary>
+    /// Push latest data point entries
+    /// </summary>
+    /// <remarks>Push data point entries into the system. Each entry is a key value pair.
+    /// If any of the provided entries contains a new, unique key, a new data point will be created inside of the system and will be accessible from the Manage Data Points page.
+    /// Each entry is assigned a DateTime timestamp that represents the time of creation and the value is going to be displayed as latest value for the data points.
+    /// Should be used to push latest data value that are true at the time of making the request.</remarks>
+    /// <param name="apiKey">Api key assigned to the organization</param>
+    /// <param name="pushDataPointEntryDtos">Array of key value pairs where each item represents a data point entry</param>
+    /// <returns></returns>
     [HttpPost]
     [Route("{apiKey}")]
-    [SwaggerResponse((int)HttpStatusCode.OK, "Post Data Point Entries")]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Post data point entries")]
     public async Task<IActionResult> PostDataPointEntries(string apiKey,
         [FromBody] PushDataPointEntryRequest[] pushDataPointEntryDtos)
     {
@@ -47,6 +59,14 @@ public class DataPointEntriesController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Post data point entries from the past
+    /// </summary>
+    /// <remarks> Designed to be used when you need to push entries that do not represent current values but where true sometime in the past.
+    /// Meant to be used to send data that was true before starting to use our system. </remarks>
+    /// <param name="apiKey">Api key assigned to the organization</param>
+    /// <param name="historicDataPointEntryDtos">Array of objects composed of data point key, value, and time when the entry was true.</param>
+    /// <returns></returns>
     [HttpPost]
     [Route("{apiKey}/historic")]
     [SwaggerResponse((int)HttpStatusCode.OK, "Post Historic Data Point Entries")]
