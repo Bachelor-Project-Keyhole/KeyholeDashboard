@@ -90,6 +90,9 @@ public class ErrorHandlerMiddleware
                 case InvalidApiKeyException:
                     response.StatusCode = (int) HttpStatusCode.Forbidden;
                     break;
+                case DeleteDataPointWarningException:
+                    response.StatusCode = (int) HttpStatusCode.Conflict;
+                    break;
 
                 default:
                     response.StatusCode = (int)HttpStatusCode.InternalServerError;

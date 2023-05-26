@@ -82,6 +82,18 @@ public class DataPointController : ControllerBase
         var dataPoint = _mapper.Map<Domain.Datapoint.DataPoint>(dataPointDto);
         await _dataPointDomainService.UpdateDataPoint(dataPoint);
         return Ok();
-        
+    }
+    
+    /// <summary>
+    /// Delete Data Point (needed access Editor or Admin)
+    /// </summary>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpDelete("{dataPointId}")]
+    [SwaggerResponse((int)HttpStatusCode.OK, "Delete Data Point")]
+    public async Task<IActionResult> DeleteDataPoint(string dataPointId, [FromQuery] bool forceDelete)
+    {
+        await _dataPointDomainService.DeleteDataPoint(dataPointId, forceDelete);
+        return Ok();
     }
 }

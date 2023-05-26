@@ -19,7 +19,7 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
         var dataPointEntryEntity = _mapper.Map<DataPointEntryEntity>(dataPointEntry);
         await InsertOneAsync(dataPointEntryEntity);
     }
-    
+
     public async Task AddDataPointEntries(DataPointEntry[] dataPointEntry)
     {
         var dataPointEntryEntities = _mapper.Map<DataPointEntryEntity[]>(dataPointEntry);
@@ -41,7 +41,7 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
             .FirstOrDefaultAsync();
         return _mapper.Map<DataPointEntry>(latestDataPointEntry);
     }
-    
+
     public async Task<IEnumerable<DataPointEntry>> GetDataPointEntries(string organizationId, string dataPointKey,
         DateTime periodDateTime)
     {
@@ -76,5 +76,11 @@ public class DataPointEntryRepository : MongoRepository<DataPointEntryEntity>, I
             .ToListAsync();
 
         return _mapper.Map<DataPointEntry>(result.FirstOrDefault());
+    }
+
+    public async Task DeleteAllEntriesByDataPointKey(string dataPointKey, string organizationId)
+    {
+        await DeleteManyAsync(dpe => 
+            dpe.OrganizationId == organizationId && dpe.DataPointKey == dataPointKey);
     }
 }
