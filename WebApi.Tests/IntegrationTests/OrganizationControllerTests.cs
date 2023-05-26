@@ -160,7 +160,6 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new OrganizationUserInviteRequest
          {
              OrganizationId = organizationPersistence.Id.ToString(),
-             UserId = userPersistence.Id.ToString(),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
              ReceiverEmailAddress = "dziugis10@gmail.com",
          };
@@ -190,7 +189,6 @@ public class OrganizationControllerTests : IntegrationTest
              TokenExpirationTime = DateTime.UtcNow.AddDays(2),
              RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
-             InvitedByUserId = IdGenerator.GenerateId()
          };
              
          await PopulateDatabase(new[] {invitationOfUser});
@@ -232,7 +230,6 @@ public class OrganizationControllerTests : IntegrationTest
              TokenExpirationTime = DateTime.UtcNow.AddDays(2),
              RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
-             InvitedByUserId = IdGenerator.GenerateId()
          };
              
          await PopulateDatabase(new[] {invitationOfUser});
@@ -267,7 +264,6 @@ public class OrganizationControllerTests : IntegrationTest
              TokenExpirationTime = DateTime.UtcNow.AddDays(-2),
              RemoveFromDbDate = DateTime.UtcNow.AddDays(1),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
-             InvitedByUserId = IdGenerator.GenerateId()
          };
              
          await PopulateDatabase(new[] {invitationOfUser});
@@ -302,7 +298,6 @@ public class OrganizationControllerTests : IntegrationTest
              TokenExpirationTime = DateTime.UtcNow.AddDays(2),
              RemoveFromDbDate = DateTime.UtcNow.AddDays(1),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
-             InvitedByUserId = IdGenerator.GenerateId()
          };
              
          await PopulateDatabase(new[] {invitationOfUser});
@@ -321,12 +316,43 @@ public class OrganizationControllerTests : IntegrationTest
          // Assert
          httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
      }
+
+     [Fact]
+     public async Task GetOrganizationById_Successful()
+     {
+         // Arrange
+         await Authenticate();
+         var organization = await SetupOrganization();
+         
+         // Act
+         var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/Organization/{organization.Id.ToString()}", UriKind.Relative));
+
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+         var response = JsonConvert.DeserializeObject<OrganizationDetailedResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+
+         response?.OrganizationId.Should().Be(organization.Id.ToString());
+         response?.OrganizationName.Should().Be(organization.OrganizationName);
+         response?.ApiKey.Should().Be(organization.ApiKey);
+         response?.OrganizationOwnerId.Should().Be(organization.OrganizationOwnerId);
+     }
+     
+     [Fact]
+     public async Task GetOrganizationById_NotFound()
+     {
+         // Arrange
+         await Authenticate();
+
+         // Act
+         var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/Organization/{IdGenerator.GenerateId()}", UriKind.Relative));
+
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+     }
      
      [Fact]
      public async Task GetAllUsersOfOrganization() // Change auth attribute to pass
      {
-         
-         
          // Arrange
          var orgId = IdGenerator.GenerateId();
          await Authenticate();
@@ -571,7 +597,6 @@ public class OrganizationControllerTests : IntegrationTest
              ReceiverEmail = "random@random.com",
              TokenExpirationTime = DateTime.UtcNow.AddDays(-10),
              RemoveFromDbDate = DateTime.UtcNow.AddDays(-2),
-             InvitedByUserId = userPersistence.Id.ToString()
          };
     
          await PopulateDatabase(new[] {organizationPersistence});
@@ -581,7 +606,6 @@ public class OrganizationControllerTests : IntegrationTest
          var request = new OrganizationUserInviteRequest
          {
              OrganizationId = organizationPersistence.Id.ToString(),
-             UserId = userPersistence.Id.ToString(),
              AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
              ReceiverEmailAddress = "dziugis10@gmail.com",
          };

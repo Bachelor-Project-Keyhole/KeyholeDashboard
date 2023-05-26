@@ -1,9 +1,9 @@
 ﻿using System.Net;
+using Application.Dashboard;
 using Application.JWT.Authorization;
 using AutoMapper;
 using Contracts.v1.Dashboard;
 using Domain.Dashboard;
-using Domain.Template;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,20 +16,35 @@ namespace WebApi.Controllers.V1.Dashboard;
 public class DashboardController : BaseApiController
 {
     private readonly IMapper _mapper;
+    private readonly IDashboardApplicationService _dashboardApplicationService;
     private readonly IDashboardDomainService _dashboardDomainService;
-    private readonly ITemplateDomainService _templateDomainService;
     
     
     public DashboardController(
         IMapper mapper,
         IDashboardDomainService dashboardDomainService,
-        ITemplateDomainService templateDomainService)
+        IDashboardApplicationService dashboardApplicationService)
     {
         _mapper = mapper;
         _dashboardDomainService = dashboardDomainService;
-        _templateDomainService = templateDomainService;
+        _dashboardApplicationService = dashboardApplicationService;
     }
 
+    /// <summary>
+    /// Load dashboard (Any access level)
+    /// </summary>
+    /// <param name="dashboardId"></param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Load dashboard and its elements", typeof(DashboardAndElementsResponse))]
+    [Route("load/{dashboardId}")]
+    public async Task<IActionResult> LoadDashboard(string dashboardId)
+    {
+        var dataPoints = await _dashboardApplicationService.LoadDashboard(dashboardId);
+        return Ok(dataPoints);
+    }
+    
     /// <summary>
     /// Get dashboard by id (Any access level)
     /// </summary>
@@ -102,7 +117,6 @@ public class DashboardController : BaseApiController
     [Route("{dashboardId}")]
     public async Task<IActionResult> DeleteDashboard(string dashboardId)
     {
-        await _templateDomainService.RemoveAllTemplatesWithDashboardId(dashboardId);
         await _dashboardDomainService.RemoveDashboard(dashboardId);
         return Ok();
     }

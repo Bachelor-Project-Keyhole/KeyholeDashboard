@@ -101,6 +101,20 @@ public class OrganizationController : BaseApiController
     }
 
     /// <summary>
+    /// Fetch detailed info on organization by Id (Any auth level required)
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Get organization by Id", typeof(OrganizationDetailedResponse))]
+    [Route("{organizationId}")]
+    public async Task<IActionResult> GetOrganizationById(string organizationId)
+    {
+        var response = await _organizationService.GetOrganizationById(organizationId);
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Get all users of the organization (Any auth level required)
     /// </summary>
     /// <param name="organizationId"> id of an organization, the users are assigned to</param>
