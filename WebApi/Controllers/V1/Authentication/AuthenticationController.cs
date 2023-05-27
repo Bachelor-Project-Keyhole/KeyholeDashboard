@@ -49,7 +49,7 @@ public class AuthenticationController : BaseApiController
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(RefreshTokenRotateResponse))]
     [Route("token/refresh")]
     public async Task<IActionResult> RefreshToken()
     {
@@ -65,7 +65,7 @@ public class AuthenticationController : BaseApiController
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
-    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(AuthenticationResponse))]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Rotate Refresh token if it is still active", typeof(RefreshTokenRotateResponse))]
     [Route("token/refresh/cookie")]
     public async Task<IActionResult> RefreshTokenNonCookie(AddNonRefreshTokenRequest request)
     {
