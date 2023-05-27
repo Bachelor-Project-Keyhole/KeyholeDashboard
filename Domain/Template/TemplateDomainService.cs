@@ -34,14 +34,21 @@ public class TemplateDomainService : ITemplateDomainService
         return dataPointEntries;
     }
 
-    public async Task<(double LatestValue, double Change, bool DirectionIsUp, bool ComparisonIsAbsolute, string dataPointKey)>
-        GetLatestValueWithChange(string dataPointId, int timeSpan,
+    public async Task<LatestValuewithChange> GetLatestValueWithChange(string dataPointId, int timeSpan,
             TimeUnit timeUnit)
     {
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
         var endOfPeriod = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
         var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, endOfPeriod);
-        return (dataPoint.LatestValue, change, dataPoint.DirectionIsUp, dataPoint.ComparisonIsAbsolute, dataPoint.DataPointKey);
+        return new LatestValuewithChange
+        {
+            DataPointKey = dataPoint.DataPointKey,
+            DisplayName = dataPoint.DisplayName,
+            LatestValue = dataPoint.LatestValue,
+            Change = change,
+            DirectionIsUp = dataPoint.DirectionIsUp,
+            ComparisonIsAbsolute = dataPoint.ComparisonIsAbsolute
+        };
     }
 
     public async Task<Template> GetTemplateById(string id)
