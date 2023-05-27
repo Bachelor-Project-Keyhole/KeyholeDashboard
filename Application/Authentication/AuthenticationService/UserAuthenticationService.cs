@@ -71,7 +71,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         };
     }
 
-    public async Task<AuthenticationResponse> RefreshToken(string? token)
+    public async Task<RefreshTokenRotateResponse> RefreshToken(string? token)
     {
         if (string.IsNullOrEmpty(token))
             throw new InvalidTokenException("Token was not found in cookies");
@@ -100,17 +100,12 @@ public class UserAuthenticationService : IUserAuthenticationService
         
         // generate new JWT token
         var (jwtToken, jwtExpiration) = _tokenGenerator.GenerateToken(user);
-        return new AuthenticationResponse
+        return new RefreshTokenRotateResponse
         {
             Token = jwtToken,
             Expiration = jwtExpiration,
             RefreshToken = refreshToken.Token,
-            RefreshTokenExpiration = refreshToken.ExpirationTime,
-            User = new UserAuthenticationResponse
-            {
-                Id = user.Id,
-                Email = user.Email
-            }
+            RefreshTokenExpiration = refreshToken.ExpirationTime
         };
     }
 
