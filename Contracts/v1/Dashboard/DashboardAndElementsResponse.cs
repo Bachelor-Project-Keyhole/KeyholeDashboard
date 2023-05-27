@@ -19,6 +19,7 @@ public class Placeholders
     public bool Comparison { get; set; }
     public double LatestValue { get; set; }
     public bool IsDirectionUp { get; set; }
+    public string DisplayName { get; set; }
     
 }
 

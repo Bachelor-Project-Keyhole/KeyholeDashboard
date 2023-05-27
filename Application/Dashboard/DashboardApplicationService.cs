@@ -37,10 +37,10 @@ public class DashboardApplicationService : IDashboardApplicationService
         foreach (var template in templates)
         {
             
-            var dataPointLatestValue = await _templateDomainService.GetLatestValueWithChange(template.DatapointId, template.TimePeriod, template.TimeUnit);
+            var latestValueWithChange = await _templateDomainService.GetLatestValueWithChange(template.DatapointId, template.TimePeriod, template.TimeUnit);
             var dataEntries = await _dataPointDomainService.GetDataPointEntries(
                 dashboard.OrganizationId,
-                dataPointLatestValue.dataPointKey, 
+                latestValueWithChange.DataPointKey, 
                 Domain.TimeSpanConverter.CalculatePeriodBoundary(template.TimePeriod, template.TimeUnit));
             
             var placeholderData = new Placeholders
@@ -50,10 +50,11 @@ public class DashboardApplicationService : IDashboardApplicationService
                 SizeHeight = template.SizeHeight,
                 SizeWidth = template.SizeWidth,
                 TemplateId = template.Id,
-                Change = dataPointLatestValue.Change,
-                Comparison = dataPointLatestValue.ComparisonIsAbsolute,
-                IsDirectionUp = dataPointLatestValue.DirectionIsUp,
-                LatestValue = dataPointLatestValue.LatestValue,
+                Change = latestValueWithChange.Change,
+                Comparison = latestValueWithChange.ComparisonIsAbsolute,
+                IsDirectionUp = latestValueWithChange.DirectionIsUp,
+                DisplayName = latestValueWithChange.DisplayName,
+                LatestValue = latestValueWithChange.LatestValue,
                 Values = dataEntries.Select(x => new ValueResponse
                 {
                     Value = x.Value,
