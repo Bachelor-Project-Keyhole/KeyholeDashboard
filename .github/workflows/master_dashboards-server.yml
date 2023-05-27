@@ -10,8 +10,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+  publish:
+    runs-on: windows-latest
+    needs: test
 
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +53,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: publish
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
@@ -55,3 +72,14 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7549744881A144B6841316E7B76A5E91 }}
           package: .
+          
+  delete-artifact:
+    runs-on: windows-latest
+    needs: deploy
+    
+    steps:
+      - name: Delete Artifact
+        uses: GeekyEggo/delete-artifact@v2.0.0
+        with:
+          # The name of the artifact to delete; multiple names can be supplied on new lines.
+          name: .net-app
