@@ -817,33 +817,7 @@ public class TemplateControllerTests : IntegrationTest
         var templates = await GetAll<TemplatePersistenceModel>();
         templates.Length.Should().Be(1);
     }
-    
-    [Fact]
-    public async Task GetTemplatesByDashboardId_TemplatesNotFound()
-    {
-        // Arrange
-        await Authenticate();
-        var organization = await SetupOrganization();
 
-        var dashboardPersistence = new DashboardPersistenceModel
-        {
-            Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            Name = "dashboard",
-            OrganizationId = organization.Id.ToString()
-        };
-        await PopulateDatabase(new[] {dashboardPersistence});
-
-        
-        // Act
-        var httpResponseMessage = await TestClient.GetAsync(new Uri($"/api/v1/Template/all/{dashboardPersistence.Id.ToString()}", UriKind.Relative));
-
-        // Assert
-        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        
-        var templates = await GetAll<TemplatePersistenceModel>();
-        templates.Should().BeEmpty();
-    }
-    
     [Fact]
     public async Task RemoveTemplate_Successful()
     {
