@@ -67,7 +67,7 @@ public class TemplateDomainService : ITemplateDomainService
             throw new DashboardNotFoundException($"Dashboard with Id: {dashboardId} does not exist");
 
         var templates = await _templateRepository.GetAllByDashboardId(dashboardId);
-        if(templates == null || templates.Count < 1)
+        if(templates == null)
             throw new TemplateNotFoundException($"Templates with dashboardId: {dashboardId} was not found");
 
         return templates;

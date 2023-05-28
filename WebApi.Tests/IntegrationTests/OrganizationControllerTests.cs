@@ -177,6 +177,70 @@ public class OrganizationControllerTests : IntegrationTest
         // Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+    
+    [Fact]
+    public async Task InviteUser_Successful_ReplaceExistingInviteWithNewOne() 
+    {
+        // Arrange
+        await Authenticate();
+        var userPersistence = new UserPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Email = "test1@test1.com",
+            OwnedOrganizationId = "",
+            MemberOfOrganizationId = "",
+            FullName = "Yo lama1",
+            PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+            AccessLevels = new List<UserAccessLevel>
+                { UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin },
+            RefreshTokens = new List<PersistenceRefreshToken>(),
+            ModifiedDate = DateTime.UtcNow,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+
+        var organizationPersistence = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationOwnerId = "",
+            OrganizationName = "OrgNam1e",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+        var invitationToReplace = new OrganizationUserInvitePersistence
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Token = "tCcihCry",
+            AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
+            HasAccepted = false,
+            OrganizationId = organizationPersistence.Id.ToString(),
+            ReceiverEmail = "dziugis10@gmail.com",
+            TokenExpirationTime = DateTime.UtcNow.AddDays(2),
+            RemoveFromDbDate = DateTime.UtcNow.AddDays(3)
+        };
+
+        await PopulateDatabase(new[] { organizationPersistence });
+        await PopulateDatabase(new[] { userPersistence });
+        await PopulateDatabase(new[] { invitationToReplace });
+
+        var request = new OrganizationUserInviteRequest
+        {
+            OrganizationId = organizationPersistence.Id.ToString(),
+            AccessLevel = "Admin",
+            ReceiverEmailAddress = "dziugis10@gmail.com",
+        };
+
+        var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+        // Act
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri("/api/v1/organization/invite/email", UriKind.Relative), stringContent);
+
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(1);
+    }
 
     [Fact]
     public async Task InviteUser_EnumParseException() 
@@ -572,7 +636,8 @@ public class OrganizationControllerTests : IntegrationTest
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
         var response =
             JsonConvert.DeserializeObject<PendingUserInvitationResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
-
+       
+        response?.Id.Should().Be(invitation.Id.ToString());
         response?.OrganizationId.Should().Be(organization.Id.ToString());
         response?.Token.Should().Be(invitation.Token);
         response?.ReceiverEmail.Should().Be(invitation.ReceiverEmail);
@@ -637,6 +702,7 @@ public class OrganizationControllerTests : IntegrationTest
         var response =
             JsonConvert.DeserializeObject<PendingUserInvitationResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
 
+        response?.Id.Should().Be(invitation.Id.ToString());
         response?.OrganizationId.Should().Be(organization.Id.ToString());
         response?.Token.Should().Be(invitation.Token);
         response?.ReceiverEmail.Should().Be(invitation.ReceiverEmail);
@@ -724,12 +790,14 @@ public class OrganizationControllerTests : IntegrationTest
         response?.Count.Should().Be(2);
 
         var response1 = response?.Single(x => x.Token == invitation1.Token);
+        response1?.Id.Should().Be(invitation1.Id.ToString());
         response1?.OrganizationId.Should().Be(organization.Id.ToString());
         response1?.ReceiverEmail.Should().Be(invitation1.ReceiverEmail);
         response1?.HasAccepted.Should().Be(invitation1.HasAccepted);
         
         var response2 = response?.Single(x => x.Token == invitation2.Token); 
-        response1?.OrganizationId.Should().Be(organization.Id.ToString());
+        response2?.Id.Should().Be(invitation2.Id.ToString());
+        response2?.OrganizationId.Should().Be(organization.Id.ToString());
         response2?.ReceiverEmail.Should().Be(invitation2.ReceiverEmail);
         response2?.HasAccepted.Should().Be(invitation2.HasAccepted);
     }

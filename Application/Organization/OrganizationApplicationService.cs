@@ -1,7 +1,9 @@
 ﻿using Contracts.v1.Organization;
+using Domain;
 using Domain.Exceptions;
 using Domain.Organization;
 using Domain.Organization.OrganizationUserInvite;
+using Domain.RepositoryInterfaces;
 using Domain.User;
 using Microsoft.Extensions.Options;
 
@@ -10,13 +12,16 @@ namespace Application.Organization;
 public class OrganizationApplicationService : IOrganizationApplicationService
 {
     private readonly IOrganizationDomainService _organizationDomainService;
+    private readonly IOrganizationUserInviteRepository _organizationUserInviteRepository;
     private readonly InvitationBaseRoute _invitationBaseRoute;
 
     public OrganizationApplicationService(
         IOrganizationDomainService organizationDomainService,
+        IOrganizationUserInviteRepository organizationUserInviteRepository,
         IOptions<InvitationBaseRoute> invitationBaseRoute)
     {
         _organizationDomainService = organizationDomainService;
+        _organizationUserInviteRepository = organizationUserInviteRepository;
         _invitationBaseRoute = invitationBaseRoute.Value;
     }
 
@@ -39,7 +44,10 @@ public class OrganizationApplicationService : IOrganizationApplicationService
     public async Task<(string, string)> InviteUser(OrganizationUserInviteRequest request)
     {
         var organization = await _organizationDomainService.GetOrganizationById(request.OrganizationId);
-        
+        var invitation = await _organizationUserInviteRepository.GetInvitationByEmail(request.ReceiverEmailAddress, request.OrganizationId);
+        if (invitation != null)
+            await _organizationUserInviteRepository.RemoveInvitationById(invitation.Id);
+            
         var toEnum = Enum.TryParse(request.AccessLevel, out UserAccessLevel accessLevel);
         if(toEnum == false)
             throw new AccessLevelForbiddenException($"This access level does not exist: {request.AccessLevel}");
@@ -57,6 +65,7 @@ public class OrganizationApplicationService : IOrganizationApplicationService
 
         var insert = new OrganizationUserInvites
         {
+            Id = IdGenerator.GenerateId(),
             OrganizationId = request.OrganizationId,
             Token = alphaNumericToken,
             ReceiverEmail = request.ReceiverEmailAddress,
