@@ -5,6 +5,7 @@ using Application.JWT.Authorization;
 using Application.Organization;
 using Application.User.Model;
 using Application.User.UserService;
+using AutoMapper;
 using Contracts.v1.Organization;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
@@ -18,18 +19,21 @@ namespace WebApi.Controllers.V1.Organization;
 [ApiExplorerSettings(GroupName = "internal")]
 public class OrganizationController : BaseApiController
 {
-    private readonly IOrganizationService _organizationService;
+    private readonly IOrganizationApplicationService _organizationApplicationService;
     private readonly IUserService _userService;
     private readonly IEmailService _emailService;
+    private readonly IMapper _mapper;
 
     public OrganizationController(
-        IOrganizationService organizationService,
+        IOrganizationApplicationService organizationApplicationService,
         IUserService userService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IMapper mapper)
     {
-        _organizationService = organizationService;
+        _organizationApplicationService = organizationApplicationService;
         _userService = userService;
         _emailService = emailService;
+        _mapper = mapper;
     }
     
     /// <summary>
@@ -59,7 +63,7 @@ public class OrganizationController : BaseApiController
     [Route("invite/email")]
     public async Task<IActionResult> InviteUserToOrganization([FromBody]OrganizationUserInviteRequest request)
     {
-        var link = await _organizationService.InviteUser(request);
+        var link = await _organizationApplicationService.InviteUser(request);
         await _emailService.SendInvitationEmail(request.ReceiverEmailAddress, request.Message, link.Item1, link.Item2);
         return Ok();
     }
@@ -82,7 +86,7 @@ public class OrganizationController : BaseApiController
             try
             {
                 // Start
-                var invitation = await _organizationService.TokenValidity(token);
+                var invitation = await _organizationApplicationService.TokenValidity(token);
                 var response = await _userService.CreateUser(invitation.OrganizationId, invitation.ReceiverEmail, invitation.AccessLevels, request);
                 
                 // Compete transaction
@@ -110,10 +114,10 @@ public class OrganizationController : BaseApiController
     [Route("{organizationId}")]
     public async Task<IActionResult> GetOrganizationById(string organizationId)
     {
-        var response = await _organizationService.GetOrganizationById(organizationId);
+        var response = await _organizationApplicationService.GetOrganizationById(organizationId);
         return Ok(response);
     }
-
+    
     /// <summary>
     /// Get all users of the organization (Any auth level required)
     /// </summary>
@@ -128,6 +132,53 @@ public class OrganizationController : BaseApiController
         var response = await _userService.GetAllUsers(organizationId);
         return Ok(response);
     }
+    
+    /// <summary>
+    /// Get user invitation by Id (Admin)
+    /// </summary>
+    /// <param name="invitationId"> Id of an invitation doc</param>
+    /// <param name="organizationId"> Just to make sure all the invitations that can be fetched belongs in organization scope</param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Get user invitation by Id", typeof(PendingUserInvitationResponse))]
+    [Route("invitationId/{invitationId}/organizationId/{organizationId}")]
+    public async Task<IActionResult> GetInvitationById(string invitationId, string organizationId)
+    {
+        var response = await _organizationApplicationService.GetInvitationById(invitationId, organizationId);
+        return Ok(_mapper.Map<PendingUserInvitationResponse>(response));
+    }
+
+    /// <summary>
+    /// Get user invitation by email (Admin)
+    /// </summary>
+    /// <param name="email">email to which invitation was sent to</param>
+    /// <param name="organizationId">Just to make sure all the invitations that can be fetched belongs in organization scope</param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Get user invitation by email", typeof(PendingUserInvitationResponse))]
+    [Route("invitation/email/{email}/organizationId/{organizationId}")]
+    public async Task<IActionResult> GetInvitationByEmail(string email, string organizationId)
+    {
+        var response = await _organizationApplicationService.GetInvitationByEmail(email, organizationId);
+        return Ok(_mapper.Map<PendingUserInvitationResponse>(response));
+    }
+    
+    /// <summary>
+    /// Get user invitation by organization Id (Admin)
+    /// </summary>
+    /// <param name="organizationId"></param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
+    [HttpGet]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Get user invitation by organization Id", typeof(List<PendingUserInvitationResponse>))]
+    [Route("invitation/organization/{organizationId}")]
+    public async Task<IActionResult> GetInvitationByOrganizationId(string organizationId)
+    {
+        var response = await _organizationApplicationService.GetInvitationByOrganizationId(organizationId);
+        return Ok(_mapper.Map<List<PendingUserInvitationResponse>>(response));
+    }
 
     /// <summary>
     /// Update organization (Admin endpoint)
@@ -141,7 +192,7 @@ public class OrganizationController : BaseApiController
     [Route("update")]
     public async Task<IActionResult> UpdateOrganization([FromBody] UpdateOrganizationRequest request)
     {
-        var response = await _organizationService.UpdateOrganization(request);
+        var response = await _organizationApplicationService.UpdateOrganization(request);
         return Ok(response);
     }
     
@@ -169,7 +220,6 @@ public class OrganizationController : BaseApiController
     /// <param name="userId"> id of a user that will be removed </param>
     /// <returns></returns>
     [Authorization(UserAccessLevel.Admin)]
-    //[AllowAnonymous] // For testing
     [HttpDelete]
     [SwaggerResponse((int) HttpStatusCode.OK, "Remove user from organization")]
     [Route("Remove/user/{userId}")]
@@ -178,7 +228,23 @@ public class OrganizationController : BaseApiController
         await _userService.RemoveUserById(userId);
         return Ok($"user by id: {userId} removed");
     }
-    
+
+    /// <summary>
+    /// Remove invitation by Id (Admin)
+    /// </summary>
+    /// <param name="invitationId">invitation id</param>
+    /// <param name="organizationId">Just to make sure all the invitations that can be fetched belongs in organization scope</param>
+    /// <returns></returns>
+    [Authorization(UserAccessLevel.Admin)]
+    [HttpDelete]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Remove invitation by Id")]
+    [Route("invitation/id/{invitationId}/organizationId/{organizationId}")]
+    public async Task<IActionResult> RemoveInvitationById(string invitationId, string organizationId)
+    {
+        await _organizationApplicationService.RemoveInvitationById(invitationId, organizationId);
+        return Ok();
+    }
+
     /// <summary>
     /// Forgot password function
     /// </summary>

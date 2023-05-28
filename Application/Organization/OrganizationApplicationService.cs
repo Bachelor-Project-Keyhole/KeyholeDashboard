@@ -1,34 +1,29 @@
 ﻿using Contracts.v1.Organization;
 using Domain.Exceptions;
+using Domain.Organization;
 using Domain.Organization.OrganizationUserInvite;
-using Domain.RepositoryInterfaces;
 using Domain.User;
 using Microsoft.Extensions.Options;
 
 namespace Application.Organization;
 
-public class OrganizationService : IOrganizationService
+public class OrganizationApplicationService : IOrganizationApplicationService
 {
-    private readonly IOrganizationRepository _organizationRepository;
-    private readonly IOrganizationUserInviteRepository _organizationUserInvite;
+    private readonly IOrganizationDomainService _organizationDomainService;
     private readonly InvitationBaseRoute _invitationBaseRoute;
 
-    public OrganizationService(
-        IOrganizationRepository organizationRepository,
-        IOrganizationUserInviteRepository organizationUserInvite,
+    public OrganizationApplicationService(
+        IOrganizationDomainService organizationDomainService,
         IOptions<InvitationBaseRoute> invitationBaseRoute)
     {
-        _organizationRepository = organizationRepository;
-        _organizationUserInvite = organizationUserInvite;
+        _organizationDomainService = organizationDomainService;
         _invitationBaseRoute = invitationBaseRoute.Value;
     }
 
     public async Task<OrganizationDetailedResponse> GetOrganizationById(string organizationId)
     {
-        var organization = await _organizationRepository.GetOrganizationById(organizationId);
-        if (organization == null)
-            throw new OrganizationNotFoundException($"Organization with given id: {organizationId} was not found");
-
+        var organization = await _organizationDomainService.GetOrganizationById(organizationId);
+        
         return new OrganizationDetailedResponse
         {
             OrganizationId = organization.Id,
@@ -43,9 +38,7 @@ public class OrganizationService : IOrganizationService
 
     public async Task<(string, string)> InviteUser(OrganizationUserInviteRequest request)
     {
-        var organization = await _organizationRepository.GetOrganizationById(request.OrganizationId);
-        if (organization == null)
-            throw new OrganizationNotFoundException($"Organization with given id: {request.OrganizationId} was not found");
+        var organization = await _organizationDomainService.GetOrganizationById(request.OrganizationId);
         
         var toEnum = Enum.TryParse(request.AccessLevel, out UserAccessLevel accessLevel);
         if(toEnum == false)
@@ -67,20 +60,19 @@ public class OrganizationService : IOrganizationService
             OrganizationId = request.OrganizationId,
             Token = alphaNumericToken,
             ReceiverEmail = request.ReceiverEmailAddress,
-            hasAccepted = false,
+            HasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
             AccessLevels = accessLevelsToInsert
         };
         
         // Delete outdated Invitations
-        var invitations = await _organizationUserInvite.GetAllInvitesByOrganizationId(organization.Id);
+        var invitations = await _organizationDomainService.GetAllInvitesByOrganizationId(organization.Id);
 
-        if (invitations != null)
+        if (invitations.Count > 0) // TODO: ADD test
             await RemoveAllOutdatedInvitations(invitations);
-
-
-        await _organizationUserInvite.InsertInviteUser(insert);
+        
+        await _organizationDomainService.InsertInviteUser(insert);
         
         var link = $"{_invitationBaseRoute.Link}/{alphaNumericToken}";
         return (link, organization.OrganizationName);
@@ -88,30 +80,19 @@ public class OrganizationService : IOrganizationService
 
     public async Task<OrganizationUserInvites> TokenValidity(string token)
     {
-        var invitation = await _organizationUserInvite.GetByToken(token);
-        if (invitation == null)
-            throw new InvitationTokenException($"Invitation token: {token} was not found ");
-        if(invitation.TokenExpirationTime < DateTime.UtcNow )
-            throw new InvitationTokenException($"Invitation token: {token} has already expired");
-        if(invitation.hasAccepted)
-            throw new InvitationTokenException($"Invitation token: {token} was already used ");
+        var invitation = await _organizationDomainService.GetInvitationByToken(token);
         
-       
-        invitation.hasAccepted = true;
-        await _organizationUserInvite.UpdateUserInvite(invitation);
+        invitation.HasAccepted = true;
+        await _organizationDomainService.UpdateUserInvite(invitation);
         return invitation;
     }
 
     public async Task<OrganizationResponse> UpdateOrganization(UpdateOrganizationRequest request)
     {
-        var organization = await _organizationRepository.GetOrganizationById(request.OrganzationId);
-        if (organization == null)
-            throw new OrganizationNotFoundException($"Organization with id: {request.OrganzationId} was not found");
-
+        var organization = await _organizationDomainService.GetOrganizationById(request.OrganizationId);
         organization.OrganizationName = request.OrganizationName;
         organization.ModificationDate = DateTime.UtcNow;
-        await _organizationRepository.UpdateOrganization(organization);
-
+        await _organizationDomainService.Update(organization);
         return new OrganizationResponse
         {
             OrganizationId = organization.Id,
@@ -120,6 +101,30 @@ public class OrganizationService : IOrganizationService
             CreationDate = organization.CreationDate.ToLocalTime(),
             ModificationDate = organization.ModificationDate.ToLocalTime()
         };
+    }
+
+    public async Task<OrganizationUserInvites> GetInvitationById(string invitationId, string organizationId)
+    {
+        await _organizationDomainService.GetOrganizationById(organizationId); // To validate organization
+        var invitation = await _organizationDomainService.GetInvitationById(invitationId, organizationId);
+        return invitation;
+    }
+
+    public async Task<OrganizationUserInvites> GetInvitationByEmail(string email, string organizationId)
+    {
+        await _organizationDomainService.GetOrganizationById(organizationId); // To validate organization
+        return await _organizationDomainService.GetInvitationByEmail(email, organizationId);
+    }
+
+    public async Task<List<OrganizationUserInvites>> GetInvitationByOrganizationId(string organizationId)
+    {
+       return await _organizationDomainService.GetAllInvitesByOrganizationId(organizationId);
+    }
+
+    public async Task RemoveInvitationById(string invitationId, string organizationId)
+    {
+        await _organizationDomainService.GetOrganizationById(organizationId); // To validate organization
+        await _organizationDomainService.RemoveInvitationById(invitationId, organizationId);
     }
 
     private string GenerateAlphaNumeric()
@@ -134,11 +139,11 @@ public class OrganizationService : IOrganizationService
     
     private async Task RemoveAllOutdatedInvitations(List<OrganizationUserInvites> invites)
     {
-        var validInvites = new List<OrganizationUserInvites>();
-        foreach (var invite in invites)
+        var validInvites = invites.Where(x => x.TokenExpirationTime > DateTime.UtcNow).ToList();
+        invites.RemoveAll(x => validInvites.Contains(x));
+        foreach (var invite in invites.Where(invite => invite.RemoveFromDbDate < DateTime.UtcNow))
         {
-            if (invite.RemoveFromDbDate < DateTime.UtcNow)
-                await _organizationUserInvite.RemoveByToken(invite.Token);
+            await _organizationDomainService.RemoveInvitationByToken(invite.Token);
         }
     }
 }

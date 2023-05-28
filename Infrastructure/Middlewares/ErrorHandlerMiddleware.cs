@@ -65,6 +65,9 @@ public class ErrorHandlerMiddleware
                 case AccessLevelForbiddenException:
                     response.StatusCode = (int)HttpStatusCode.Forbidden;
                     break;
+                case InvitationNotFound:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
 
                 #endregion
 
