@@ -30,7 +30,7 @@ static class ServiceRegistry
         collection.AddTransient<IEmailService, EmailService>();
         collection.AddTransient<IUserAuthenticationService, UserAuthenticationService>();
         collection.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
-        collection.AddTransient<IOrganizationService, OrganizationService>();
+        collection.AddTransient<IOrganizationApplicationService, OrganizationApplicationService>();
         collection.AddTransient<IDashboardDomainService, DashboardDomainService>();
         collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
         collection.AddTransient<IDashboardApplicationService, DashboardApplicationService>();

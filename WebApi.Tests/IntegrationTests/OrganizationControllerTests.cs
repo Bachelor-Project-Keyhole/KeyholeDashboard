@@ -229,6 +229,88 @@ public class OrganizationControllerTests : IntegrationTest
     }
     
     [Fact]
+    public async Task InviteUser_RemoveOutDatedInvitations() 
+    {
+        // Arrange
+        await Authenticate();
+        var userPersistence = new UserPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Email = "test1@test1.com",
+            OwnedOrganizationId = "",
+            MemberOfOrganizationId = "",
+            FullName = "Yo lama1",
+            PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+            AccessLevels = new List<UserAccessLevel>
+                { UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin },
+            RefreshTokens = new List<PersistenceRefreshToken>(),
+            ModifiedDate = DateTime.UtcNow,
+            RegistrationDate = DateTime.UtcNow
+        };
+
+
+        var organizationPersistence = new OrganizationPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            OrganizationOwnerId = "",
+            OrganizationName = "OrgNam1e",
+            CreationDate = DateTime.UtcNow,
+            ModificationDate = DateTime.UtcNow
+        };
+
+        await PopulateDatabase(new[] { organizationPersistence });
+        await PopulateDatabase(new[] { userPersistence });
+
+        var invitation1 = new OrganizationUserInvitePersistence
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Token = "tCcihCry",
+            AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
+            HasAccepted = false,
+            OrganizationId = organizationPersistence.Id.ToString(),
+            ReceiverEmail = "DoesNotMatter@DoesNotMatter.Ok",
+            TokenExpirationTime = DateTime.UtcNow.AddDays(-5),
+            RemoveFromDbDate = DateTime.UtcNow.AddDays(-2)
+        };
+        
+        var invitation2 = new OrganizationUserInvitePersistence
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Token = "tCcihary",
+            AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
+            HasAccepted = false,
+            OrganizationId = organizationPersistence.Id.ToString(),
+            ReceiverEmail = "DoesNaotMatter@DoesNotMaatter.Ok",
+            TokenExpirationTime = DateTime.UtcNow.AddDays(-5),
+            RemoveFromDbDate = DateTime.UtcNow.AddHours(-1)
+        };
+ 
+        await PopulateDatabase(new[] { invitation1, invitation2 });
+
+
+        var request = new OrganizationUserInviteRequest
+        {
+            OrganizationId = organizationPersistence.Id.ToString(),
+            AccessLevel = "Admin",
+            ReceiverEmailAddress = "dziugis10@gmail.com",
+        };
+
+        var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+        // Act
+        var httpResponseMessage =
+            await TestClient.PostAsync(new Uri("/api/v1/organization/invite/email", UriKind.Relative), stringContent);
+
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(1);
+        var invitation = invitations.Single();
+        invitation.Id.Should().NotBe(invitation1.Id);
+        invitation.Id.Should().NotBe(invitation2.Id);
+    }
+    
+    [Fact]
     public async Task CompleteRegistrationByInvitation_Successful() 
     {
         // Arrange
@@ -239,7 +321,7 @@ public class OrganizationControllerTests : IntegrationTest
             OrganizationId = IdGenerator.GenerateId(),
             Token = "5a6f8a",
             ReceiverEmail = "test@test.com",
-            hasAccepted = false,
+            HasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
             AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer, UserAccessLevel.Editor },
@@ -283,7 +365,7 @@ public class OrganizationControllerTests : IntegrationTest
             OrganizationId = IdGenerator.GenerateId(),
             Token = "5a6f8a",
             ReceiverEmail = "test@test.com",
-            hasAccepted = false,
+            HasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(5),
             AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer, UserAccessLevel.Editor },
@@ -319,7 +401,7 @@ public class OrganizationControllerTests : IntegrationTest
             OrganizationId = IdGenerator.GenerateId(),
             Token = "5a6f8a",
             ReceiverEmail = "test@test.com",
-            hasAccepted = false,
+            HasAccepted = false,
             TokenExpirationTime = DateTime.UtcNow.AddDays(-2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(1),
             AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer, UserAccessLevel.Editor },
@@ -354,7 +436,7 @@ public class OrganizationControllerTests : IntegrationTest
             OrganizationId = IdGenerator.GenerateId(),
             Token = "5a6f8a",
             ReceiverEmail = "test@test.com",
-            hasAccepted = true,
+            HasAccepted = true,
             TokenExpirationTime = DateTime.UtcNow.AddDays(2),
             RemoveFromDbDate = DateTime.UtcNow.AddDays(1),
             AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer, UserAccessLevel.Editor },
@@ -472,6 +554,187 @@ public class OrganizationControllerTests : IntegrationTest
         response?.Users.Should().Contain(user2!);
     }
 
+
+    [Fact]
+    public async Task GetInvitationById_Successful()
+    {
+        // Assert
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var invitation = await InsertInvitation(organization.Id.ToString());
+        
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitationId/{invitation.Id.ToString()}/organizationId/{organization.Id.ToString()}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response =
+            JsonConvert.DeserializeObject<PendingUserInvitationResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+
+        response?.OrganizationId.Should().Be(organization.Id.ToString());
+        response?.Token.Should().Be(invitation.Token);
+        response?.ReceiverEmail.Should().Be(invitation.ReceiverEmail);
+        response?.HasAccepted.Should().Be(invitation.HasAccepted);
+    }
+    
+    [Fact]
+    public async Task GetInvitationById_OrganizationNotFound()
+    {
+        // Assert
+        await Authenticate();
+        var randomId = IdGenerator.GenerateId();
+        var invitation = await InsertInvitation(randomId);
+        
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitationId/{invitation.Id.ToString()}/organizationId/{randomId}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var invites = await GetAll<OrganizationUserInvitePersistence>();
+        invites.Length.Should().Be(1);
+    }
+    
+    [Fact]
+    public async Task GetInvitationById_InvitationNotFound()
+    {
+        // Assert
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var randomId = IdGenerator.GenerateId();
+
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitationId/{randomId}/organizationId/{organization.Id.ToString()}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        
+        var invites = await GetAll<OrganizationUserInvitePersistence>();
+        invites.Length.Should().Be(0);
+    }
+    
+    [Fact]
+    public async Task GetInvitationByEmail_Successful()
+    {
+        // Assert
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var invitation = await InsertInvitation(organization.Id.ToString());
+        
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitation/email/{invitation.ReceiverEmail}/organizationId/{organization.Id.ToString()}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response =
+            JsonConvert.DeserializeObject<PendingUserInvitationResponse>(await httpResponseMessage.Content.ReadAsStringAsync());
+
+        response?.OrganizationId.Should().Be(organization.Id.ToString());
+        response?.Token.Should().Be(invitation.Token);
+        response?.ReceiverEmail.Should().Be(invitation.ReceiverEmail);
+        response?.HasAccepted.Should().Be(invitation.HasAccepted);
+    }
+    
+    [Fact]
+    public async Task GetInvitationByEmail_OrganizationNotFound()
+    {
+        // Assert
+        await Authenticate();
+        var randomId = IdGenerator.GenerateId();
+        var invitation = await InsertInvitation(randomId);
+        
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitation/email/{invitation.ReceiverEmail}/organizationId/{randomId}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        
+        var invites = await GetAll<OrganizationUserInvitePersistence>();
+        invites.Length.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetInvitationByEmail_InvitationNotFound()
+    {
+        // Assert
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var randomId = IdGenerator.GenerateId();
+
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitation/email/{randomId}/organizationId/{organization.Id.ToString()}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        
+        var invites = await GetAll<OrganizationUserInvitePersistence>();
+        invites.Length.Should().Be(0);
+    }
+    
+    [Fact]
+    public async Task GetInvitationByOrganizationId_Successful()
+    {
+        // Assert
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var randomId = IdGenerator.GenerateId();
+
+        var invitation1 = await InsertInvitation(organization.Id.ToString());
+        var invitation2 = new OrganizationUserInvitePersistence
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Token = "tCcaaCry",
+            AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
+            HasAccepted = false,
+            OrganizationId = organization.Id.ToString(),
+            ReceiverEmail = "DoaesNotMatter@DoesNaotMatter.Ok",
+            TokenExpirationTime = DateTime.UtcNow.AddDays(2),
+            RemoveFromDbDate = DateTime.UtcNow.AddDays(3)
+        };
+        
+        await PopulateDatabase(new[] { invitation2 });
+
+        await InsertInvitation(randomId);
+        
+        
+        // Act
+        var httpResponseMessage = await TestClient.GetAsync(new Uri(
+            $"api/v1/Organization/invitation/organization/{organization.Id.ToString()}",
+            UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response =
+            JsonConvert.DeserializeObject<List<PendingUserInvitationResponse>>(await httpResponseMessage.Content.ReadAsStringAsync());
+
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(3);
+        response?.Count.Should().Be(2);
+
+        var response1 = response?.Single(x => x.Token == invitation1.Token);
+        response1?.OrganizationId.Should().Be(organization.Id.ToString());
+        response1?.ReceiverEmail.Should().Be(invitation1.ReceiverEmail);
+        response1?.HasAccepted.Should().Be(invitation1.HasAccepted);
+        
+        var response2 = response?.Single(x => x.Token == invitation2.Token); 
+        response1?.OrganizationId.Should().Be(organization.Id.ToString());
+        response2?.ReceiverEmail.Should().Be(invitation2.ReceiverEmail);
+        response2?.HasAccepted.Should().Be(invitation2.HasAccepted);
+    }
+    
+    
     [Fact]
     public async Task UpdateOrganization_Successful() 
     {
@@ -482,7 +745,7 @@ public class OrganizationControllerTests : IntegrationTest
         var request = new UpdateOrganizationRequest
         {
             OrganizationName = "Changed Name",
-            OrganzationId = organization.Id.ToString()
+            OrganizationId = organization.Id.ToString()
         };
 
         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -514,7 +777,7 @@ public class OrganizationControllerTests : IntegrationTest
         var request = new UpdateOrganizationRequest
         {
             OrganizationName = "Changed Name",
-            OrganzationId = IdGenerator.GenerateId()
+            OrganizationId = IdGenerator.GenerateId()
         };
 
         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
@@ -628,7 +891,7 @@ public class OrganizationControllerTests : IntegrationTest
         var user = await GetAll<UserPersistenceModel>();
         user.Length.Should().Be(3); // Because one is for auth service
     }
-
+    
     [Fact]
     public async Task RemoveUserInvitationPastTtl()
     {
@@ -662,7 +925,7 @@ public class OrganizationControllerTests : IntegrationTest
         var outdatedInvitation = new OrganizationUserInvitePersistence
         {
             Id = ObjectId.Parse(IdGenerator.GenerateId()),
-            hasAccepted = false,
+            HasAccepted = false,
             Token = "randomString",
             OrganizationId = organizationPersistence.Id.ToString(),
             AccessLevels = new List<UserAccessLevel> { UserAccessLevel.Viewer },
@@ -690,6 +953,68 @@ public class OrganizationControllerTests : IntegrationTest
 
         // Assert
         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RemoveInvitationById_Successful()
+    {
+        // Arrange
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var invitation1 = await InsertInvitation(organization.Id.ToString());
+        var invitation2 = await InsertInvitation(organization.Id.ToString());
+        
+        // Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri(
+                $"/api/v1/Organization/invitation/id/{invitation1.Id.ToString()}/organizationId/{organization.Id.ToString()}", UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(1);
+        var invitation = invitations.Single();
+        invitation.Id.Should().Be(invitation2.Id);
+    }
+    
+    [Fact]
+    public async Task RemoveInvitationById_OrganizationNotFound()
+    {
+        // Arrange
+        await Authenticate();
+        var randomId = IdGenerator.GenerateId();
+        var invitation1 = await InsertInvitation(randomId);
+        var invitation2 = await InsertInvitation(randomId);
+        
+        // Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri(
+                $"/api/v1/Organization/invitation/id/{invitation1.Id.ToString()}/organizationId/{randomId}", UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var invitations = await GetAll<OrganizationUserInvitePersistence>();
+        invitations.Length.Should().Be(2);
+    }
+    
+    [Fact]
+    public async Task RemoveInvitationById_InvitationNotFound()
+    {
+        // Arrange
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var randomId = IdGenerator.GenerateId();
+        var invitation2 = await InsertInvitation(organization.Id.ToString());
+        
+        // Act
+        var httpResponseMessage =
+            await TestClient.DeleteAsync(new Uri(
+                $"/api/v1/Organization/invitation/id/{randomId}/organizationId/{organization.Id.ToString()}", UriKind.Relative));
+        
+        // Assert
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
         var invitations = await GetAll<OrganizationUserInvitePersistence>();
         invitations.Length.Should().Be(1);
     }

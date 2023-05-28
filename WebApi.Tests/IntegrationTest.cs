@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using Repository;
 using Repository.Datapoint;
 using Repository.Organization;
+using Repository.OrganizationUserInvite;
 using Repository.TwoFactor;
 using Repository.User.UserPersistence;
 using Repository.User.UserRepository;
@@ -91,6 +92,25 @@ public class IntegrationTest : IDisposable
         await PopulateDatabase(new[] { organization });
 
         return organization;
+    }
+
+    protected async Task<OrganizationUserInvitePersistence> InsertInvitation(string organizationId)
+    {
+        var invitation = new OrganizationUserInvitePersistence
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Token = "tCcihCry",
+            AccessLevels = new List<UserAccessLevel> {UserAccessLevel.Viewer, UserAccessLevel.Editor},
+            HasAccepted = false,
+            OrganizationId = organizationId,
+            ReceiverEmail = "DoesNotMatter@DoesNotMatter.Ok",
+            TokenExpirationTime = DateTime.UtcNow.AddDays(2),
+            RemoveFromDbDate = DateTime.UtcNow.AddDays(3)
+        };
+       
+        await PopulateDatabase(new[] { invitation });
+        
+        return invitation;
     }
     
 
