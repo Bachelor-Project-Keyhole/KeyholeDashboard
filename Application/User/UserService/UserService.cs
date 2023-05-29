@@ -1,10 +1,10 @@
 ﻿using Application.Authentication.AuthenticationService;
 using Application.Email.EmailService;
 using Application.JWT.Helper;
-using Application.User.Model;
 using AutoMapper;
 using Contracts.v1.Authentication;
 using Contracts.v1.Organization;
+using Contracts.v1.User;
 using Domain;
 using Domain.Exceptions;
 using Domain.Organization;

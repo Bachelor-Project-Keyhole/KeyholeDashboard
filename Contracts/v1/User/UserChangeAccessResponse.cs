@@ -1,6 +1,6 @@
 ﻿using Domain.User;
 
-namespace Application.User.Model;
+namespace Contracts.v1.User;
 
 public class UserChangeAccessResponse
 {

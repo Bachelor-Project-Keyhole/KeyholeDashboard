@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS8618
-namespace Application.User.Model;
+namespace Contracts.v1.User;
 
 public class TwoFactorResponse
 {
