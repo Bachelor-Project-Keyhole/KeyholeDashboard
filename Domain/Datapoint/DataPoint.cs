@@ -51,12 +51,12 @@ public class DataPoint
 
     public void SetLatestValueBasedOnFormula(double value)
     {
-        LatestValue = CalculateValue(value);
+        LatestValue = Math.Round(CalculateValue(value), 3);
     }
 
     public double CalculateEntryValueWithFormula(double value)
     {
-        return CalculateValue(value);
+        return Math.Round(CalculateValue(value), 3);
     }
 
     private double CalculateValue(double value)

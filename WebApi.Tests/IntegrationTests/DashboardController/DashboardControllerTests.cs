@@ -245,6 +245,33 @@ public class DashboardControllerTests : IntegrationTest
         response?.Count.Should().Be(2);
         dashboards.Length.Should().Be(3);
     }
+    
+    [Fact]
+    public async Task GetDashboardsByOrganizationId_ReturnsEmptyArray()
+    {
+        // Arrange
+        await Authenticate();
+        var organization = await SetupOrganization();
+        var dashboardPersistence3 = new DashboardPersistenceModel
+        {
+            Id = ObjectId.Parse(IdGenerator.GenerateId()),
+            Name = "OrgName",
+            OrganizationId = IdGenerator.GenerateId()
+        };
+        await PopulateDatabase(new[] { dashboardPersistence3 });
+
+        // Act
+        var httpResponseMessage =
+            await TestClient.GetAsync(new Uri($"/api/v1/Dashboard/all/{organization.Id.ToString()}", UriKind.Relative));
+
+        // Assert 
+        httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response =
+            JsonConvert.DeserializeObject<List<DashboardResponse>>(
+                await httpResponseMessage.Content.ReadAsStringAsync());
+        response.Should().NotBeNull();
+        response.Should().BeEmpty();
+    }
 
     [Fact]
     public async Task GetDashboardsByOrganizationId_OrganizationDoesNotExist()
