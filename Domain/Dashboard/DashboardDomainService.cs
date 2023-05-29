@@ -35,9 +35,6 @@ public class DashboardDomainService : IDashboardDomainService
             throw new OrganizationNotFoundException(organizationId);
         
         var dashboards = await _dashboardRepository.GetAllDashboards(organizationId);
-        if (dashboards == null || dashboards.Count < 1)
-            throw new DashboardNotFoundException($"No dashboards were found with organization Id: {organizationId}");
-                
         return dashboards;
     }
 
