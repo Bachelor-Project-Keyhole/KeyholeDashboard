@@ -9,6 +9,8 @@ using Domain.Datapoint;
 using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Domain.Template;
+using Domain.TwoFactor;
+using Domain.User;
 using Repository.Dashboard;
 using Repository.Datapoint;
 using Repository.Organization;
@@ -34,6 +36,8 @@ static class ServiceRegistry
         collection.AddTransient<IDashboardDomainService, DashboardDomainService>();
         collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
         collection.AddTransient<IDashboardApplicationService, DashboardApplicationService>();
+        collection.AddTransient<IUserDomainService, UserDomainService>();
+        collection.AddTransient<ITwoFactorDomainService, TwoFactorDomainService>();
         
 
         #endregion

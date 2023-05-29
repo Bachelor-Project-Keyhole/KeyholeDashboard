@@ -1,6 +1,4 @@
-﻿using Domain.User;
-
-namespace Contracts.v1.Organization;
+﻿namespace Contracts.v1.Organization;
 
 public class OrganizationUserInviteRequest
 {

@@ -3,10 +3,10 @@ using System.Transactions;
 using Application.Email.EmailService;
 using Application.JWT.Authorization;
 using Application.Organization;
-using Application.User.Model;
 using Application.User.UserService;
 using AutoMapper;
 using Contracts.v1.Organization;
+using Contracts.v1.User;
 using Domain.User;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -246,18 +246,33 @@ public class OrganizationController : BaseApiController
     }
 
     /// <summary>
-    /// Forgot password function
+    /// Forgot password function send email
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Forgot password function")]
-    [Route("password/reset")]
+    [Route("password/send/email")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         var response = await _userService.ForgotPassword(request);
         return Ok(response);
+    }
+
+    /// <summary>
+    /// Reset password
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost]
+    [SwaggerResponse((int) HttpStatusCode.OK, "Reset password")]
+    [Route("password/reset")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        await _userService.ResetPassword(request.Token, request.Password);
+        return Ok("Password changed");
     }
     
     

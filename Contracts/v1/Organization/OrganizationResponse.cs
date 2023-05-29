@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Contracts.v1.Organization;
+﻿namespace Contracts.v1.Organization;
 
 public class OrganizationResponse
 {

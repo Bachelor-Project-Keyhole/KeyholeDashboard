@@ -1,6 +1,6 @@
-﻿using Application.User.Model;
-using Contracts.v1.Authentication;
+﻿using Contracts.v1.Authentication;
 using Contracts.v1.Organization;
+using Contracts.v1.User;
 
 namespace Application.User.UserService;
 
@@ -14,4 +14,5 @@ public interface IUserService
     Task Revoke(LogoutRequest request);
     Task<UserChangeAccessResponse> SetAccessLevel(ChangeUserAccessRequest request);
     Task<string> ForgotPassword(ForgotPasswordRequest request);
+    Task ResetPassword(string token, string password);
 }

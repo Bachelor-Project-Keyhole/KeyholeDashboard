@@ -65,8 +65,8 @@ public class TemplateController : BaseApiController
         {
             LatestValue = latestValueWithChange.LatestValue,
             Change = latestValueWithChange.Change,
-            DirectionIsUp = latestValueWithChange.DirectionIsUp,
-            ComparisonIsAbsolute = latestValueWithChange.ComparisonIsAbsolute
+            IsDirectionUp = latestValueWithChange.IsDirectionUp,
+            IsComparisonAbsolute = latestValueWithChange.IsComparisonAbsolute
         };
     }
 

@@ -587,7 +587,7 @@ public class DataPointControllerTests : IntegrationTest
         result.DisplayName.Should().Be(expected.DisplayName);
         result.Formula.Operation.Should().Be(Enum.Parse<MathOperation>(expected.Formula.Operation));
         result.Formula.Factor.Should().Be(expected.Formula.Factor);
-        result.ComparisonIsAbsolute.Should().Be(expected.ComparisonIsAbsolute);
-        result.DirectionIsUp.Should().Be(expected.DirectionIsUp);
+        result.IsComparisonAbsolute.Should().Be(expected.IsComparisonAbsolute);
+        result.IsDirectionUp.Should().Be(expected.IsDirectionUp);
     }
 }

@@ -43,7 +43,6 @@ static class MapperRegistry
 
             #region Organization
 
-            cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationEntity>().ReverseMap();
             
             cfg.CreateMap<Domain.Organization.Organization, Repository.Organization.OrganizationPersistenceModel>().ReverseMap();
             cfg.CreateMap<OrganizationUserInvites, Repository.OrganizationUserInvite.OrganizationUserInvitePersistence>().ReverseMap();

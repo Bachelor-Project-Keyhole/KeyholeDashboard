@@ -60,7 +60,7 @@ public class DataPointTests
         var dataPoint = new DataPoint(IdGenerator.GenerateId(), "Key")
         {
             LatestValue = newValue,
-            ComparisonIsAbsolute = true
+            IsComparisonAbsolute = true
         };
 
         // Act
@@ -90,7 +90,7 @@ public class DataPointTests
         var dataPoint = new DataPoint(IdGenerator.GenerateId(), "Key")
         {
             LatestValue = newValue,
-            ComparisonIsAbsolute = false
+            IsComparisonAbsolute = false
         };
 
         // Act

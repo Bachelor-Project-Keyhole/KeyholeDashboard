@@ -566,7 +566,7 @@ public class DashboardControllerTests : IntegrationTest
         var responsePlaceholder1 =
             response?.Placeholders.Single(x => x.TemplateId == templatePersistence1.Id.ToString());
         responsePlaceholder1?.LatestValue.Should().Be(datapoint.LatestValue);
-        responsePlaceholder1?.Comparison.Should().Be(datapoint.ComparisonIsAbsolute);
+        responsePlaceholder1?.Comparison.Should().Be(datapoint.IsComparisonAbsolute);
         responsePlaceholder1?.Change.Should().Be(475);
         responsePlaceholder1?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry3.Value) < 0.001);
         responsePlaceholder1?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry4.Value) < 0.001);
@@ -582,7 +582,7 @@ public class DashboardControllerTests : IntegrationTest
         var responsePlaceholder2 =
             response?.Placeholders.Single(x => x.TemplateId == templatePersistence2.Id.ToString());
         responsePlaceholder2?.LatestValue.Should().Be(datapoint.LatestValue);
-        responsePlaceholder2?.Comparison.Should().Be(datapoint.ComparisonIsAbsolute);
+        responsePlaceholder2?.Comparison.Should().Be(datapoint.IsComparisonAbsolute);
         responsePlaceholder2?.Change.Should().Be(600);
         responsePlaceholder2?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry4.Value) < 0.001);
         responsePlaceholder2?.Values.Should().Contain(x => Math.Abs(x.Value - dataEntry5.Value) < 0.001);

@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 #pragma warning disable CS8618
-namespace Application.User.Model;
+namespace Contracts.v1.User;
 
 public class CreateAdminAndOrganizationRequest
 {

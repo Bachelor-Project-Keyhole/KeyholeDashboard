@@ -10,23 +10,23 @@ public class DataPoint
 
     public string DisplayName { get; set; }
 
-    public bool DirectionIsUp { get; set; }
+    public bool IsDirectionUp { get; set; }
 
-    public bool ComparisonIsAbsolute { get; set; }
+    public bool IsComparisonAbsolute { get; set; }
 
     public double LatestValue { get; set; }
 
     public Formula Formula { get; set; } = new() { Operation = MathOperation.None };
 
-    public DataPoint(string organizationId, string dataPointKey, bool directionIsUp = true,
-        bool comparisonIsAbsolute = false)
+    public DataPoint(string organizationId, string dataPointKey, bool isDirectionUp = true,
+        bool isComparisonAbsolute = false)
     {
         Id = IdGenerator.GenerateId();
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
         DisplayName = dataPointKey;
-        DirectionIsUp = directionIsUp;
-        ComparisonIsAbsolute = comparisonIsAbsolute;
+        IsDirectionUp = isDirectionUp;
+        IsComparisonAbsolute = isComparisonAbsolute;
     }
 
     public DataPoint(
@@ -36,17 +36,17 @@ public class DataPoint
         string displayName,
         double latestValue,
         Formula formula,
-        bool directionIsUp = true,
-        bool comparisonIsAbsolute = false)
+        bool isDirectionUp = true,
+        bool isComparisonAbsolute = false)
     {
         Id = id;
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
-        DirectionIsUp = directionIsUp;
+        IsDirectionUp = isDirectionUp;
         DisplayName = displayName;
         LatestValue = latestValue;
         Formula = formula;
-        ComparisonIsAbsolute = comparisonIsAbsolute;
+        IsComparisonAbsolute = isComparisonAbsolute;
     }
 
     public void SetLatestValueBasedOnFormula(double value)
@@ -82,14 +82,14 @@ public class DataPoint
         {
             return 0;
         }
-        if (!ComparisonIsAbsolute && originalValue == 0)
+        if (!IsComparisonAbsolute && originalValue == 0)
         {
             return LatestValue > 0 ? 100 : -100;
         }
 
         // % increase = Increase ÷ Original Number × 100.
         //  If result is a negative number, then this is a decrease.
-        return ComparisonIsAbsolute
+        return IsComparisonAbsolute
             ? LatestValue - originalValue
             : (LatestValue - originalValue) / Math.Abs(originalValue) * 100;
     }

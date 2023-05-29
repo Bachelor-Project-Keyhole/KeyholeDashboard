@@ -34,20 +34,20 @@ public class TemplateDomainService : ITemplateDomainService
         return dataPointEntries;
     }
 
-    public async Task<LatestValuewithChange> GetLatestValueWithChange(string dataPointId, int timeSpan,
+    public async Task<LatestValueWithChange> GetLatestValueWithChange(string dataPointId, int timeSpan,
             TimeUnit timeUnit)
     {
         var dataPoint = await _dataPointDomainService.GetDataPointById(dataPointId);
         var endOfPeriod = TimeSpanConverter.CalculatePeriodBoundary(timeSpan, timeUnit);
         var change = await _dataPointDomainService.CalculateChangeOverTime(dataPoint, endOfPeriod);
-        return new LatestValuewithChange
+        return new LatestValueWithChange
         {
             DataPointKey = dataPoint.DataPointKey,
             DisplayName = dataPoint.DisplayName,
             LatestValue = dataPoint.LatestValue,
             Change = change,
-            DirectionIsUp = dataPoint.DirectionIsUp,
-            ComparisonIsAbsolute = dataPoint.ComparisonIsAbsolute
+            IsDirectionUp = dataPoint.IsDirectionUp,
+            IsComparisonAbsolute = dataPoint.IsComparisonAbsolute
         };
     }
 

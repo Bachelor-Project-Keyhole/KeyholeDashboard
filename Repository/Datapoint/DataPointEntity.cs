@@ -9,8 +9,8 @@ public class DataPointEntity : Document
     public string OrganizationId { get; set; }
     public string DataPointKey { get; set; }
     public string DisplayName { get; set; }
-    public bool DirectionIsUp { get; set; }
-    public bool ComparisonIsAbsolute { get; set; }
+    public bool IsDirectionUp { get; set; }
+    public bool IsComparisonAbsolute { get; set; }
     public double LatestValue { get; set; }
 
     public Formula Formula { get; set; } = new() { Operation = MathOperation.None };
@@ -19,15 +19,15 @@ public class DataPointEntity : Document
         string organizationId,
         string dataPointKey,
         string displayName,
-        bool directionIsUp = false,
-        bool comparisonIsAbsolute = false,
+        bool isDirectionUp = false,
+        bool isComparisonAbsolute = false,
         double latestValue = 0)
     {
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
         DisplayName = displayName;
-        DirectionIsUp = directionIsUp;
-        ComparisonIsAbsolute = comparisonIsAbsolute;
+        IsDirectionUp = isDirectionUp;
+        IsComparisonAbsolute = isComparisonAbsolute;
         LatestValue = latestValue;
     }
     
@@ -36,16 +36,16 @@ public class DataPointEntity : Document
         string organizationId,
         string dataPointKey,
         string displayName,
-        bool directionIsUp = false,
-        bool comparisonIsAbsolute = false,
+        bool isDirectionUp = false,
+        bool isComparisonAbsolute = false,
         double latestValue = 0)
     {
         Id = new ObjectId(id);
         OrganizationId = organizationId;
         DataPointKey = dataPointKey;
         DisplayName = displayName;
-        DirectionIsUp = directionIsUp;
-        ComparisonIsAbsolute = comparisonIsAbsolute;
+        IsDirectionUp = isDirectionUp;
+        IsComparisonAbsolute = isComparisonAbsolute;
         LatestValue = latestValue;
     }
 }

@@ -44,8 +44,8 @@ public class DataPointEntriesControllerTests : IntegrationTest
         dataPointEntity.OrganizationId.Should().Be(organization.Id.ToString());
         dataPointEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
-        dataPointEntity.DirectionIsUp.Should().BeTrue();
+        dataPointEntity.IsComparisonAbsolute.Should().BeFalse();
+        dataPointEntity.IsDirectionUp.Should().BeTrue();
         dataPointEntity.LatestValue.Should().Be(dataPointEntryDto.Value);
     }
 
@@ -140,8 +140,8 @@ public class DataPointEntriesControllerTests : IntegrationTest
         dataPointEntity.OrganizationId.Should().Be(organization.Id.ToString());
         dataPointEntity.DataPointKey.Should().Be(dataPointEntryDto.DataPointKey);
         dataPointEntity.DisplayName.Should().Be(dataPointEntryDto.DataPointKey);
-        dataPointEntity.ComparisonIsAbsolute.Should().BeFalse();
-        dataPointEntity.DirectionIsUp.Should().BeTrue();
+        dataPointEntity.IsComparisonAbsolute.Should().BeFalse();
+        dataPointEntity.IsDirectionUp.Should().BeTrue();
         dataPointEntity.LatestValue.Should().Be(dataPointEntryDto.Value);
     }
 
