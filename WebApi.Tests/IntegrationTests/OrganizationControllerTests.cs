@@ -1462,7 +1462,7 @@ public class OrganizationControllerTests : IntegrationTest
          await PopulateDatabase(new [] {userPersistence});
          await PopulateDatabase(new [] {twoFactorPersistence});
 
-         var request = new ResetPasswordReset
+         var request = new ResetPasswordRequest
          {
              Token = twoFactorPersistence.ConfirmationCode,
              Password = "JoMama123+"
@@ -1514,7 +1514,7 @@ public class OrganizationControllerTests : IntegrationTest
          await PopulateDatabase(new [] {userPersistence});
          await PopulateDatabase(new [] {twoFactorPersistence});
 
-         var request = new ResetPasswordReset
+         var request = new ResetPasswordRequest
          {
              Token = twoFactorPersistence.ConfirmationCode,
              Password = "JoMama123+"
@@ -1566,7 +1566,7 @@ public class OrganizationControllerTests : IntegrationTest
          await PopulateDatabase(new [] {userPersistence});
          await PopulateDatabase(new [] {twoFactorPersistence});
 
-         var request = new ResetPasswordReset
+         var request = new ResetPasswordRequest
          {
              Token = twoFactorPersistence.ConfirmationCode,
              Password = "JoMa"
@@ -1617,7 +1617,7 @@ public class OrganizationControllerTests : IntegrationTest
          await PopulateDatabase(new [] {userPersistence});
          await PopulateDatabase(new [] {twoFactorPersistence});
 
-         var request = new ResetPasswordReset
+         var request = new ResetPasswordRequest
          {
              Token = "qqjeqwh",
              Password = "JoMa"

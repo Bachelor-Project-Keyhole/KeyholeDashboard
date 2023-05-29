@@ -269,7 +269,7 @@ public class OrganizationController : BaseApiController
     [HttpPost]
     [SwaggerResponse((int) HttpStatusCode.OK, "Reset password")]
     [Route("password/reset")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordReset request)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         await _userService.ResetPassword(request.Token, request.Password);
         return Ok("Password changed");
