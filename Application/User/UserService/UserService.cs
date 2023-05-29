@@ -7,10 +7,12 @@ using Contracts.v1.Authentication;
 using Contracts.v1.Organization;
 using Domain;
 using Domain.Exceptions;
+using Domain.Organization;
 using Domain.RepositoryInterfaces;
 using Domain.TwoFactor;
 using Domain.User;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 
 namespace Application.User.UserService;
@@ -18,60 +20,51 @@ namespace Application.User.UserService;
 public class UserService : IUserService
 {
     private readonly IMapper _mapper;
+    private readonly IUserDomainService _userDomainService;
     private readonly IUserRepository _userRepository;
-    private readonly IOrganizationRepository _organizationRepository;
+    private readonly IOrganizationDomainService _organizationDomainService;
     private readonly IUserAuthenticationService _userAuthentication;
     private readonly ITwoFactorRepository _twoFactorRepository;
+    private readonly ITwoFactorDomainService _twoFactorDomainService;
+    private readonly UserPasswordResetRoute _userPasswordResetRoute;
     private readonly IEmailService _emailService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
 
     public UserService(
         IMapper mapper,
+        IUserDomainService userDomainService,
         IUserRepository userRepository,
-        IOrganizationRepository organizationRepository,
+        IOrganizationDomainService organizationDomainService,
         IUserAuthenticationService userAuthentication,
         ITwoFactorRepository twoFactorRepository,
+        ITwoFactorDomainService twoFactorDomainService,
+        IOptions<UserPasswordResetRoute> userPasswordResetRoute,
         IEmailService emailService,
         IHttpContextAccessor httpContextAccessor
         )
     {
         _mapper = mapper;
+        _userDomainService = userDomainService;
         _userRepository = userRepository;
-        _organizationRepository = organizationRepository;
+        _organizationDomainService = organizationDomainService;
         _userAuthentication = userAuthentication;
         _twoFactorRepository = twoFactorRepository;
+        _twoFactorDomainService = twoFactorDomainService;
+        _userPasswordResetRoute = userPasswordResetRoute.Value;
         _emailService = emailService;
         _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Domain.User.User?> GetUserById(string id)
     {
-        var user = await _userRepository.GetUserById(id);
-        if (user == null)
-            throw new UserNotFoundException($"User with given email: {id} was not found");
+        var user = await _userDomainService.GetUserById(id);
         return user;
     }
-
-    public async Task<Domain.User.User?> GetUserByEmail(string email)
-    {
-        var user = await _userRepository.GetUserByEmail(email);
-        if (user == null)
-            throw new UserNotFoundException($"User with given email: {email} was not found");
-        return user;
-    }
-
-    public async Task<Domain.User.User?> GetByRefreshToken(string token)
-    {
-        return await _userRepository.GetByRefreshToken(token);
-    }
-
+    
     public async Task<AllUsersOfOrganizationResponse> GetAllUsers(string organizationId)
     {
-        var users = await _userRepository.GetAllUsersByOrganizationId(organizationId);
-        if (users == null)
-            throw new UserNotFoundException($"No users were found with organization Id: {organizationId}");
-
+        var users = await _userDomainService.GetAllUsersByOrganizationId(organizationId);
         return new AllUsersOfOrganizationResponse
         {
             OrganizationId = organizationId,
@@ -79,20 +72,13 @@ public class UserService : IUserService
         };
     }
 
-    public async Task UpdateUser(Domain.User.User user)
-    {
-        await _userRepository.UpdateUser(user);
-    }
-
     public async Task RemoveUserById(string userId)
     {
-        var user = await _userRepository.GetUserById(userId);
-        if (user == null)
-            throw new UserNotFoundException($"user with id: {userId} was not found");
+        var user = await _userDomainService.GetUserById(userId);
         if (user.OwnedOrganizationId != null)
             throw new UserForbiddenAction($"user with id: {userId} is an owner");
 
-        await _userRepository.RemoveUserById(userId);
+        await _userDomainService.RemoveUserById(userId);
     }
 
     public async Task<AdminAndOrganizationCreateResponse> CreateAdminUserAndOrganization(CreateAdminAndOrganizationRequest request)
@@ -127,8 +113,8 @@ public class UserService : IUserService
         userToInsert.OwnedOrganizationId = organizationToInsert.Id;
         organizationToInsert.OrganizationOwnerId = userToInsert.Id;
         userToInsert.PasswordHash = PasswordHelper.GetHashedPassword(request.Password);
-        await _userRepository.CreateUser(userToInsert);
-        await _organizationRepository.Insert(organizationToInsert);
+        await _userDomainService.CreateUser(userToInsert);
+        await _organizationDomainService.Insert(organizationToInsert);
 
         return new AdminAndOrganizationCreateResponse
         {
@@ -167,7 +153,7 @@ public class UserService : IUserService
             PasswordHash = PasswordHelper.GetHashedPassword(request.Password)
         };
 
-        await _userRepository.CreateUser(userToInsert);
+        await _userDomainService.CreateUser(userToInsert);
 
         return new UserRegistrationResponse
         {
@@ -194,9 +180,7 @@ public class UserService : IUserService
     {
         // We could could try to get admin user by refresh token that could be in the cookies, but if cookies are disable that might be a problem
 
-        var user = await _userRepository.GetUserById(request.UserId);
-        if (user == null)
-            throw new UserNotFoundException("User not found");
+        var user = await _userDomainService.GetUserById(request.UserId);
 
         if (!string.IsNullOrEmpty(user.OwnedOrganizationId))
             throw new AccessLevelForbiddenException("Owner cannot be removed.");
@@ -216,7 +200,7 @@ public class UserService : IUserService
             _ => throw new AccessLevelForbiddenException("Access level does not exist")
         };
 
-        await _userRepository.UpdateUser(user);
+        await _userDomainService.UpdateUser(user);
         var response = new UserChangeAccessResponse
         {
             UserId = user.Id,
@@ -228,7 +212,7 @@ public class UserService : IUserService
 
     public async Task<string> ForgotPassword(ForgotPasswordRequest request)
     {
-        var userTask = _userRepository.GetUserByEmail(request.Email);
+        var userTask = _userDomainService.GetUserByEmail(request.Email);
         var twoFactorTask = _twoFactorRepository.GetByIdentifier(request.Email);
         await Task.WhenAll(userTask, twoFactorTask);
         var user = await userTask;
@@ -237,11 +221,12 @@ public class UserService : IUserService
         if (user == null) 
             throw new UserNotFoundException($"User was not found with email: {request.Email}");
 
-        var generator = new Random();
-        var token = generator.Next(0, 1000000).ToString("D6");
+
+        var token = GenerateAlphaNumeric();
+        var link = $"{_userPasswordResetRoute.Link}/{token}";
 
         if (twoFactor != null)
-            await _twoFactorRepository.Delete(twoFactor.Id);
+            await _twoFactorRepository.DeleteById(twoFactor.Id);
 
         var twoFactorToInsert = new TwoFactor
         {
@@ -253,9 +238,34 @@ public class UserService : IUserService
         };
 
         await _twoFactorRepository.Insert(twoFactorToInsert);
+        return await _emailService.SendPasswordRecoveryTokenEmail(request.Email, link);
+    }
 
-        var response = await _emailService.SendPasswordRecoveryTokenEmail(request.Email, token);
-
-        return response;
+    public async Task ResetPassword(string token, string password)
+    {
+        var twoFactor = await _twoFactorDomainService.GetByToken(token);
+        if (twoFactor.ConfirmationCreationDate.AddMinutes(10) < DateTime.UtcNow)
+        {
+            await _twoFactorDomainService.DeleteByToken(token);
+            throw new TokenExpiredException("Token has expired and was removed");
+        }
+        var user = await _userDomainService.GetUserById(twoFactor.UserId); // verify that user exists
+        
+        if (password.Length < 8)
+            throw new PasswordTooShortException("Password too short");
+        
+        user.PasswordHash = PasswordHelper.GetHashedPassword(password);
+        await _userDomainService.UpdateUser(user);
+        await _twoFactorDomainService.DeleteById(twoFactor.Id);
+    }
+    
+    private string GenerateAlphaNumeric()
+    {
+        var length = 6;
+        Random random = new Random();
+        string charCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        return new string(Enumerable.Range(0, length)
+            .Select(_ => charCharacters[random.Next(charCharacters.Length)])
+            .ToArray());
     }
 }

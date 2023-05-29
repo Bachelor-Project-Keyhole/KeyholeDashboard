@@ -19,7 +19,7 @@ public class EmailService : IEmailService
 
     }
 
-    public async Task<string> SendPasswordRecoveryTokenEmail(string toEmail, string token)
+    public async Task<string> SendPasswordRecoveryTokenEmail(string toEmail, string link)
     {
         try
         {
@@ -31,7 +31,8 @@ public class EmailService : IEmailService
             email.Body = new TextPart(TextFormat.Html) // Can be changed to different types of text format
             {
                 // integrate html reading
-                Text = EmailTemplate.InviteUser($"Password recovery code: {token}", "https://www.google.com")
+                Text = EmailTemplate.InviteUser($"Password recovery link email. To proceed click button below",
+                    link)
             };
 
             using var smpt = new SmtpClient(); // Use mailKit instead of system package.

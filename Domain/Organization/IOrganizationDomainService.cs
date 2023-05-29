@@ -5,6 +5,7 @@ public interface IOrganizationDomainService
     Task<bool> OrganizationExists(string organizationId);
     Task<Organization> GetOrganizationById(string organizationId);
     Task<Organization> GetOrganizationByApiKey(string apiKey);
+    Task Insert(Organization organization);
     Task Update(Organization organization);
     
     Task<List<OrganizationUserInvite.OrganizationUserInvites>> GetAllInvitesByOrganizationId(string organizationId);

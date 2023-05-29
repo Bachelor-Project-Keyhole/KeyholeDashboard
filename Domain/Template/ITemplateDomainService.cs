@@ -7,7 +7,7 @@ public interface ITemplateDomainService
     Task<DataPointEntry[]> GetDataForTemplate(string organizationId, string dataPointId, string displayType,
         int timeSpan, TimeUnit timeUnit);
 
-    Task<LatestValuewithChange> GetLatestValueWithChange(
+    Task<LatestValueWithChange> GetLatestValueWithChange(
         string dataPointId, int timeSpan, TimeUnit timeUnit);
 
     Task<Template> GetTemplateById(string id);

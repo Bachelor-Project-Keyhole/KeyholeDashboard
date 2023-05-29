@@ -40,6 +40,11 @@ public class OrganizationDomainService : IOrganizationDomainService
         return organization;
     }
 
+    public async Task Insert(Organization organization)
+    {
+       await _organizationRepository.Insert(organization);
+    }
+
     public async Task Update(Organization organization)
     {
         await _organizationRepository.UpdateOrganization(organization);

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Application.Email.Helper;
 using Application.JWT.Model;
 using Domain.Organization.OrganizationUserInvite;
+using Domain.User;
 using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -34,9 +35,15 @@ var configuration = new ConfigurationBuilder()
 builder.Services.Configure<DatabaseOptions>(configuration.GetSection("DatabaseOptions"));
 
 if (builder.Environment.IsDevelopment())
+{
     builder.Services.Configure<InvitationBaseRoute>(builder.Configuration.GetSection("BaseRouteForDev"));
+    builder.Services.Configure<UserPasswordResetRoute>(builder.Configuration.GetSection("TwoFactorRouteForDev"));
+}
 else
+{
     builder.Services.Configure<InvitationBaseRoute>(builder.Configuration.GetSection("BaseRouteForProd"));
+    builder.Services.Configure<UserPasswordResetRoute>(builder.Configuration.GetSection("TwoFactorRouteForProd"));
+}
     
 
 #endregion

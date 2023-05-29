@@ -15,26 +15,24 @@ namespace Application.Authentication.AuthenticationService;
 public class UserAuthenticationService : IUserAuthenticationService
 {
     private readonly JwtSettings _jwtSettings;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserDomainService _userDomainService;
     private readonly IMapper _mapper;
     private readonly IJwtTokenGenerator _tokenGenerator;
 
     public UserAuthenticationService(
         IJwtTokenGenerator tokenGenerator,
-        IUserRepository userRepository,
+        IUserDomainService userDomainService,
         IMapper mapper,
         IOptions<JwtSettings> jwtSettings)
     {
-        _userRepository = userRepository;
+        _userDomainService = userDomainService;
         _tokenGenerator = tokenGenerator;
         _mapper = mapper;
         _jwtSettings = jwtSettings.Value;
     }
     public async Task<AuthenticationResponse> Authenticate(AuthenticateRequest model)
     {
-        var user = await _userRepository.GetUserByEmail(model.Email);
-        if (user == null)
-            throw new UserNotFoundException("User by given email was not found");
+        var user = await _userDomainService.GetUserByEmail(model.Email);
         if (!PasswordHelper.ComparePasswords(model.Password, user.PasswordHash))
             throw new UserForbiddenAction("Incorrect credentials");
         
@@ -51,7 +49,7 @@ public class UserAuthenticationService : IUserAuthenticationService
 
         RemoveOldRefreshTokens(user);
 
-        await _userRepository.UpdateUser(user);
+        await _userDomainService.UpdateUser(user);
         return new AuthenticationResponse
         {
             Token = tokenInfo,
@@ -76,10 +74,8 @@ public class UserAuthenticationService : IUserAuthenticationService
         if (string.IsNullOrEmpty(token))
             throw new InvalidTokenException("Token was not found in cookies");
         
-        var user = await _userRepository.GetByRefreshToken(token);
-        if (user == null)
-            throw new UserNotFoundException("User with given token was not found");
-
+        var user = await _userDomainService.GetByRefreshToken(token);
+        
         var userRefreshToken = user.RefreshTokens?.Single(x => x.Token == token);
         if (userRefreshToken != null && (userRefreshToken.IsRevoked || userRefreshToken.ExpirationTime <= DateTime.UtcNow))
         {
@@ -96,7 +92,7 @@ public class UserAuthenticationService : IUserAuthenticationService
         user.RefreshTokens?.Add(refreshToken);
         
         RemoveOldRefreshTokens(user);
-        await _userRepository.UpdateUser(user);
+        await _userDomainService.UpdateUser(user);
         
         // generate new JWT token
         var (jwtToken, jwtExpiration) = _tokenGenerator.GenerateToken(user);
@@ -111,16 +107,13 @@ public class UserAuthenticationService : IUserAuthenticationService
 
     public async Task RevokeToken(string token)
     {
-        var user = await _userRepository.GetByRefreshToken(token);
-        if(user == null)
-            throw new UserNotFoundException("User missing");
-        
+        var user = await _userDomainService.GetByRefreshToken(token);
         var userRefreshToken = user.RefreshTokens?.Single(x => x.Token == token);
         if (userRefreshToken == null || !userRefreshToken.IsActive || userRefreshToken.ExpirationTime <= DateTime.UtcNow)
             throw new InvalidTokenException("Invalid/Expired token");
         
         RevokeRefreshToken(userRefreshToken, "Revoked without replacement");
-        await _userRepository.UpdateUser(user);
+        await _userDomainService.UpdateUser(user);
     }
 
     private void RevokeAllRefreshTokens(RefreshToken refreshToken, Domain.User.User user, string reason)

@@ -14,4 +14,5 @@ public interface IUserService
     Task Revoke(LogoutRequest request);
     Task<UserChangeAccessResponse> SetAccessLevel(ChangeUserAccessRequest request);
     Task<string> ForgotPassword(ForgotPasswordRequest request);
+    Task ResetPassword(string token, string password);
 }

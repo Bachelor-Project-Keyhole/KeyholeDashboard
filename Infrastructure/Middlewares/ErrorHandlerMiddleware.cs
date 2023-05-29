@@ -54,6 +54,12 @@ public class ErrorHandlerMiddleware
                 case RevokeTokenBadRequest:
                     response.StatusCode = (int) HttpStatusCode.BadRequest;
                     break;
+                case TokenNotFoundException:
+                    response.StatusCode = (int) HttpStatusCode.NotFound;
+                    break;
+                case TokenExpiredException:
+                    response.StatusCode = (int) HttpStatusCode.Forbidden;
+                    break;
                 
                 #endregion
 

@@ -10,6 +10,7 @@ using MongoDB.Bson;
 using Newtonsoft.Json;
 using Repository.Organization;
 using Repository.OrganizationUserInvite;
+using Repository.TwoFactor;
 using Repository.User.UserPersistence;
 
 namespace WebApi.Tests.IntegrationTests;
@@ -1341,5 +1342,298 @@ public class OrganizationControllerTests : IntegrationTest
                  demotedUser?.AccessLevels.Should().Contain(UserAccessLevel.Admin);
                  break;
          }
+     }
+
+     [Fact]
+     public async Task ForgotPassword_Success_WhenNoTwoFactorEntryExist()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         await PopulateDatabase(new [] {userPersistence});
+
+         var request = new ForgotPasswordRequest
+         {
+             Email = "dziugis10@gmail.com"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/send/email", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(1);
+     }
+     
+     [Fact]
+     public async Task ForgotPassword_Success_WhenTwoFactorEntryExist()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+
+         var twoFactorPersistence = new TwoFactorPersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Identifier = userPersistence.Email,
+             ConfirmationCode = "lk1j23",
+             ConfirmationCreationDate = DateTime.UtcNow,
+             UserId = userPersistence.Id.ToString()
+         };
+         
+         await PopulateDatabase(new [] {userPersistence});
+         await PopulateDatabase(new [] {twoFactorPersistence});
+
+         var request = new ForgotPasswordRequest
+         {
+             Email = "dziugis10@gmail.com"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/send/email", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(1);
+         var entry = twoFactor.Single();
+         entry.Identifier.Should().Be(request.Email);
+         entry.ConfirmationCode.Should().NotBe(twoFactorPersistence.ConfirmationCode);
+     }
+
+     [Fact]
+     public async Task ResetPassword_Successful()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+
+         var twoFactorPersistence = new TwoFactorPersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Identifier = userPersistence.Email,
+             ConfirmationCode = "lk1j23",
+             ConfirmationCreationDate = DateTime.UtcNow,
+             UserId = userPersistence.Id.ToString()
+         };
+         
+         await PopulateDatabase(new [] {userPersistence});
+         await PopulateDatabase(new [] {twoFactorPersistence});
+
+         var request = new ResetPasswordReset
+         {
+             Token = twoFactorPersistence.ConfirmationCode,
+             Password = "JoMama123+"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/reset", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(0);
+
+         var users = await GetAll<UserPersistenceModel>();
+         var user = users.Single();
+         user.PasswordHash.Should().Be(PasswordHelper.GetHashedPassword(request.Password));
+     }
+     
+     [Fact]
+     public async Task ResetPassword_TokenExpired()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+
+         var twoFactorPersistence = new TwoFactorPersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Identifier = userPersistence.Email,
+             ConfirmationCode = "lk1j23",
+             ConfirmationCreationDate = DateTime.UtcNow.AddMinutes(-11),
+             UserId = userPersistence.Id.ToString()
+         };
+         
+         await PopulateDatabase(new [] {userPersistence});
+         await PopulateDatabase(new [] {twoFactorPersistence});
+
+         var request = new ResetPasswordReset
+         {
+             Token = twoFactorPersistence.ConfirmationCode,
+             Password = "JoMama123+"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/reset", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(0);
+
+         var users = await GetAll<UserPersistenceModel>();
+         var user = users.Single();
+         user.PasswordHash.Should().NotBe(PasswordHelper.GetHashedPassword(request.Password));
+     }
+     
+     [Fact]
+     public async Task ResetPassword_PasswordTooShort()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+
+         var twoFactorPersistence = new TwoFactorPersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Identifier = userPersistence.Email,
+             ConfirmationCode = "lk1j23",
+             ConfirmationCreationDate = DateTime.UtcNow,
+             UserId = userPersistence.Id.ToString()
+         };
+         
+         await PopulateDatabase(new [] {userPersistence});
+         await PopulateDatabase(new [] {twoFactorPersistence});
+
+         var request = new ResetPasswordReset
+         {
+             Token = twoFactorPersistence.ConfirmationCode,
+             Password = "JoMa"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/reset", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(1);
+         var users = await GetAll<UserPersistenceModel>();
+         var user = users.Single();
+         user.PasswordHash.Should().NotBe(PasswordHelper.GetHashedPassword(request.Password));
+     }
+     
+      [Fact]
+     public async Task ResetPassword_TokenWasNotFound()
+     {
+         // Arrange
+         var userPersistence = new UserPersistenceModel
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Email = "dziugis10@gmail.com",
+             OwnedOrganizationId = "",
+             MemberOfOrganizationId = IdGenerator.GenerateId(),
+             FullName = "Yo lama2",
+             PasswordHash = PasswordHelper.GetHashedPassword("orange1234"), // Has to be at least 8 chars
+             AccessLevels = new List<UserAccessLevel>
+                 {UserAccessLevel.Viewer, UserAccessLevel.Editor, UserAccessLevel.Admin},
+             RefreshTokens = new List<PersistenceRefreshToken>(),
+             ModifiedDate = DateTime.UtcNow,
+             RegistrationDate = DateTime.UtcNow
+         };
+         
+         var twoFactorPersistence = new TwoFactorPersistence
+         {
+             Id = ObjectId.Parse(IdGenerator.GenerateId()),
+             Identifier = userPersistence.Email,
+             ConfirmationCode = "lk1j23",
+             ConfirmationCreationDate = DateTime.UtcNow,
+             UserId = userPersistence.Id.ToString()
+         };
+
+         await PopulateDatabase(new [] {userPersistence});
+         await PopulateDatabase(new [] {twoFactorPersistence});
+
+         var request = new ResetPasswordReset
+         {
+             Token = "qqjeqwh",
+             Password = "JoMa"
+         };
+         
+         var stringContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+         // Act
+         var httpResponseMessage = await TestClient.PostAsync(new Uri($"api/v1/Organization/password/reset", UriKind.Relative), stringContent);
+         
+         // Assert
+         httpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NotFound);
+         var twoFactor = await GetAll<TwoFactorPersistence>();
+         twoFactor.Length.Should().Be(1);
+         var users = await GetAll<UserPersistenceModel>();
+         var user = users.Single();
+         user.PasswordHash.Should().NotBe(PasswordHelper.GetHashedPassword(request.Password));
      }
 }

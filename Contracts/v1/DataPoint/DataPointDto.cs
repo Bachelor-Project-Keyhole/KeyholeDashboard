@@ -7,5 +7,5 @@ public record DataPointDto(
     string DisplayName,
     FormulaDto Formula,
     double LatestValue,
-    bool DirectionIsUp,
-    bool ComparisonIsAbsolute);
+    bool IsDirectionUp,
+    bool IsComparisonAbsolute);

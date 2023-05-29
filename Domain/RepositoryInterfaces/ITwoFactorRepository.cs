@@ -3,7 +3,9 @@
 public interface ITwoFactorRepository
 {
     Task<TwoFactor.TwoFactor?> GetByIdentifier(string email);
+    Task<TwoFactor.TwoFactor?> GetByToken(string token);
 
-    Task Delete(string id);
+    Task DeleteById(string tokenId);
+    Task DeleteByToken(string token);
     Task Insert(TwoFactor.TwoFactor twoFactor);
 }

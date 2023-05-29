@@ -51,8 +51,8 @@ public class DashboardApplicationService : IDashboardApplicationService
                 SizeWidth = template.SizeWidth,
                 TemplateId = template.Id,
                 Change = latestValueWithChange.Change,
-                Comparison = latestValueWithChange.ComparisonIsAbsolute,
-                IsDirectionUp = latestValueWithChange.DirectionIsUp,
+                Comparison = latestValueWithChange.IsComparisonAbsolute,
+                IsDirectionUp = latestValueWithChange.IsDirectionUp,
                 DisplayName = latestValueWithChange.DisplayName,
                 LatestValue = latestValueWithChange.LatestValue,
                 Values = dataEntries.Select(x => new ValueResponse
