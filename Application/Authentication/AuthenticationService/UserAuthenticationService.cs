@@ -5,7 +5,6 @@ using AutoMapper;
 using Contracts.v1.Authentication;
 using Domain;
 using Domain.Exceptions;
-using Domain.RepositoryInterfaces;
 using Domain.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;

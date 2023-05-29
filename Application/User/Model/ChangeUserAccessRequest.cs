@@ -1,6 +1,4 @@
-﻿using Domain.User;
-
-namespace Application.User.Model;
+﻿namespace Application.User.Model;
 
 public class ChangeUserAccessRequest
 {

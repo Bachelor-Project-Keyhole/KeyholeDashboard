@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.OpenApi.Models;
 using Repository;
-using WebApi.Controllers.V1.Organization;
 using WebApi.Registry;
 
 var builder = WebApplication.CreateBuilder(args);
