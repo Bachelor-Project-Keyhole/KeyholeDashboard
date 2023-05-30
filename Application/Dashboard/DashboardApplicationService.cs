@@ -51,6 +51,7 @@ public class DashboardApplicationService : IDashboardApplicationService
                 SizeWidth = template.SizeWidth,
                 TemplateId = template.Id,
                 Change = latestValueWithChange.Change,
+                DisplayType = template.DisplayType,
                 Comparison = latestValueWithChange.IsComparisonAbsolute,
                 IsDirectionUp = latestValueWithChange.IsDirectionUp,
                 DisplayName = latestValueWithChange.DisplayName,

@@ -601,6 +601,7 @@ public class DashboardControllerTests : IntegrationTest
         responsePlaceholder1?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry2.Value) < 0.001);
         responsePlaceholder1?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry1.Value) < 0.001);
         responsePlaceholder1?.SizeHeight.Should().Be(templatePersistence1.SizeHeight);
+        responsePlaceholder1?.DisplayType.Should().Be(templatePersistence1.DisplayType);
         responsePlaceholder1?.SizeWidth.Should().Be(templatePersistence1.SizeWidth);
         responsePlaceholder1?.PositionHeight.Should().Be(templatePersistence1.PositionHeight);
         responsePlaceholder1?.PositionWidth.Should().Be(templatePersistence1.PositionWidth);
@@ -617,6 +618,7 @@ public class DashboardControllerTests : IntegrationTest
         responsePlaceholder2?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry2.Value) < 0.001);
         responsePlaceholder2?.Values.Should().NotContain(x => Math.Abs(x.Value - dataEntry1.Value) < 0.001);
         responsePlaceholder2?.SizeHeight.Should().Be(templatePersistence2.SizeHeight);
+        responsePlaceholder2?.DisplayType.Should().Be(templatePersistence2.DisplayType);
         responsePlaceholder2?.SizeWidth.Should().Be(templatePersistence2.SizeWidth);
         responsePlaceholder2?.PositionHeight.Should().Be(templatePersistence2.PositionHeight);
         responsePlaceholder2?.PositionWidth.Should().Be(templatePersistence2.PositionWidth);

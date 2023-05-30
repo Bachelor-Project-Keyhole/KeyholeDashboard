@@ -15,6 +15,7 @@ public class Placeholders
     public int SizeWidth { get; set; }
     public string TemplateId { get; set; }
     public List<ValueResponse> Values { get; set; }
+    public Domain.Template.DisplayType DisplayType { get; set; }
     public double Change { get; set; }
     public bool Comparison { get; set; }
     public double LatestValue { get; set; }

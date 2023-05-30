@@ -92,7 +92,6 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             Token = GenerateUniqueToken(),
             ExpirationTime = DateTime.UtcNow.AddDays(7),
             CreationTime = DateTime.UtcNow,
-            CreatedByIpAddress = "0.0.0.0"
         };
 
         return refreshToken;
