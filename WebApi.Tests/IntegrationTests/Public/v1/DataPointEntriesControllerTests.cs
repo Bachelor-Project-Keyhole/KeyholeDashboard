@@ -1,11 +1,11 @@
 using System.Net;
 using System.Text;
+using Contracts.@public;
 using Domain;
 using Domain.Datapoint;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Repository.Datapoint;
-using WebApi.Controllers.Public.v1;
 
 namespace WebApi.Tests.IntegrationTests.Public.v1;
 
