@@ -1,5 +1,6 @@
 ﻿using Application.Authentication.AuthenticationService;
 using Application.Dashboard;
+using Application.DataPoint;
 using Application.Email.EmailService;
 using Application.JWT.Service;
 using Application.Organization;
@@ -58,6 +59,7 @@ static class ServiceRegistry
         collection.AddTransient<IDataPointEntryRepository, DataPointEntryRepository>();
         collection.AddTransient<IDataPointRepository, DataPointRepository>();
         collection.AddTransient<IDataPointDomainService, DataPointDomainService>();
+        collection.AddTransient<IDataPointApplicationService, DataPointApplicationService>();
         collection.AddTransient<ITemplateDomainService, TemplateDomainService>();
     }
 }

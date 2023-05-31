@@ -1,6 +1,6 @@
 using System.Net;
-using AutoMapper;
-using Domain.Datapoint;
+using Application.DataPoint;
+using Contracts.@public;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -10,13 +10,11 @@ namespace WebApi.Controllers.Public.v1;
 [ApiExplorerSettings(GroupName = "public")]
 public class DataPointEntriesController : ControllerBase
 {
-    private readonly IDataPointDomainService _dataPointDomainService;
-    private readonly IMapper _mapper;
+    private readonly IDataPointApplicationService _dataPointApplicationService;
 
-    public DataPointEntriesController(IDataPointDomainService dataPointDomainService, IMapper mapper)
+    public DataPointEntriesController(IDataPointApplicationService dataPointApplicationService)
     {
-        _dataPointDomainService = dataPointDomainService;
-        _mapper = mapper;
+        _dataPointApplicationService = dataPointApplicationService;
     }
 
     /// <summary>
@@ -31,7 +29,7 @@ public class DataPointEntriesController : ControllerBase
     public async Task<IActionResult> PostDataPointEntry(string apiKey,
         [FromBody] PushDataPointEntryRequest pushDataPointEntryRequest)
     {
-        await _dataPointDomainService.AddDataPointEntry(
+        await _dataPointApplicationService.AddDataPointEntry(
             pushDataPointEntryRequest.DataPointKey,
             pushDataPointEntryRequest.Value,
             apiKey);
@@ -54,8 +52,7 @@ public class DataPointEntriesController : ControllerBase
     public async Task<IActionResult> PostDataPointEntries(string apiKey,
         [FromBody] PushDataPointEntryRequest[] pushDataPointEntryDtos)
     {
-        var dataPointEntries = _mapper.Map<DataPointEntry[]>(pushDataPointEntryDtos);
-        await _dataPointDomainService.AddDataPointEntries(dataPointEntries, apiKey);
+        await _dataPointApplicationService.AddDataPointEntries(pushDataPointEntryDtos, apiKey);
         return Ok();
     }
 
@@ -73,8 +70,7 @@ public class DataPointEntriesController : ControllerBase
     public async Task<IActionResult> PostHistoricDataPointEntries(string apiKey,
         [FromBody] HistoricDataPointEntryRequest[] historicDataPointEntryDtos)
     {
-        var dataPointEntry = _mapper.Map<DataPointEntry[]>(historicDataPointEntryDtos);
-        await _dataPointDomainService.AddHistoricDataPointEntries(dataPointEntry, apiKey);
+        await _dataPointApplicationService.AddHistoricDataPointEntries(historicDataPointEntryDtos, apiKey);
         return Ok();
     }
 }

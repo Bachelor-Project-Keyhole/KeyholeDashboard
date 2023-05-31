@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WebApi.Controllers.Public.v1;
+namespace Contracts.@public;
 
 public class PushDataPointEntryRequest
 {

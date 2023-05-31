@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Contracts.@public;
 using Contracts.v1.Dashboard;
 using Contracts.v1.DataPoint;
 using Contracts.v1.Organization;
@@ -15,7 +16,6 @@ using Repository.Datapoint;
 using Repository.TwoFactor;
 using Repository.Template;
 using Repository.User.UserPersistence;
-using WebApi.Controllers.Public.v1;
 
 namespace WebApi.Registry;
 
