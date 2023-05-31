@@ -1,1 +1,1 @@
-Link to Swagger hosted on Azure: https://keyholedashboard.azurewebsites.net/swagger/
+Link to Swagger hosted on Azure: https://dashboards-server.azurewebsites.net/swagger
